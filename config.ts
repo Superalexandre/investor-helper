@@ -1,7 +1,7 @@
 export default {
     calendarPreferences: {
         filename: "calendar.ics",
-        numberOfDays: 7,
+        numberOfDays: 14,
         countries: [
             // "KR", 
             // "AU", 
