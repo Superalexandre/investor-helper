@@ -86,11 +86,17 @@ app.get("/api/calendar", async (req) => {
             const endDate = new Date(date)
             endDate.setHours(endDate.getHours() + 1)
 
+            const stars: Record<string, string> = {
+                "low": "⁎",
+                "medium": "⁑",
+                "high": "⁂"
+            }
+
             calendar.createEvent({
                 id,
                 start: startDate,
                 end: endDate,
-                summary: `[${country}] ${title}`,
+                summary: `${stars[importanceString]} ${country} ${title}`,
                 description,
                 location: country,
                 url: sourceUrl

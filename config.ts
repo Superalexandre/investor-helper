@@ -12,9 +12,8 @@ export default {
             "EUR",
         ],
         importances: [
-            "low",
             "medium",
             "high"
-        ]
+        ],
     }
 }
