@@ -3,7 +3,9 @@
     "version": "1.0.0",
     "main": "index.js",
     "scripts": {
-        "lint": "eslint ."
+        "lint": "eslint .",
+        "web": "ts-node web/index.ts",
+        "build:extension": "tsc -p extension"
     },
     "author": "",
     "license": "ISC",
@@ -28,6 +30,7 @@
     },
     "devDependencies": {
         "@types/better-sqlite3": "^7.6.11",
+        "@types/chrome": "^0.0.270",
         "eslint-plugin-react": "^7.35.2"
     }
 }

@@ -8,7 +8,6 @@
         "moduleResolution": "Node",
         "target": "ES2022",
         "strict": true,
-        "jsx": "react-jsx",
         "esModuleInterop": true,
         "skipLibCheck": true,
         "resolveJsonModule": true,
@@ -23,8 +22,7 @@
             "@/server/*": [
                 "./server/*"
             ]
-        },
-        "noEmit": true
+        }
     },
     "include": [
         "**/*.ts",

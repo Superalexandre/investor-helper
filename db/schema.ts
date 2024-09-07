@@ -1,4 +1,4 @@
-import { sqliteTable, text } from "drizzle-orm/sqlite-core"
+import { int, sqliteTable, text } from "drizzle-orm/sqlite-core"
 import { createId } from "@paralleldrive/cuid2"
 
 export const users = sqliteTable("user", {
@@ -28,3 +28,34 @@ export type User = typeof users.$inferSelect
 //     createdAt: text("created_at"),
 //     updatedAt: text("updated_at"),
 // })
+
+export const news = sqliteTable("news", {
+    id: text("id")
+        .primaryKey()
+        .unique(),
+    title: text("title")
+        .notNull(),
+    storyPath: text("story_path")
+        .notNull(),
+    sourceLogoId: text("source_logo_id")
+        .notNull(),
+    published: int("published")
+        .notNull(),
+    source: text("source")
+        .notNull(),
+    urgency: int("urgency")
+        .notNull(),
+    provider: text("provider")
+        .notNull(),
+    link: text("link"),
+    /*
+    "relatedSymbols": [
+        {
+            "symbol": "NYSE:DIS",
+            "logoid": "walt-disney"
+        }
+    ]
+    */
+    // Array of objects
+
+})
