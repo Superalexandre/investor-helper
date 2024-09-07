@@ -4,7 +4,9 @@ export default {
         numberOfDays: 7,
         countries: [
             "FR",
-            "US"
+            "US",
+            "USA",
+            "EU"
         ],
         currencies: [
             "EUR",

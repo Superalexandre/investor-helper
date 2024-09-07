@@ -56,9 +56,7 @@ app.get("/api/calendar", async (req) => {
         for (const event of events) {
             const { id, title, country, indicator, comment, period, referenceDate, source, source_url: sourceUrl, actual, previous, forecast, currency, importance, date } = event
 
-            if (!preferences.countries.includes(country)) continue
-            if (!preferences.currencies.includes(currency)) continue
-
+            
             // Convert the importance of the event (-1, 0, 1) to a string
             type Importance = -1 | 0 | 1;
             const importanceMap: Record<Importance, string> = {
@@ -66,13 +64,24 @@ app.get("/api/calendar", async (req) => {
                 0: "Medium",
                 1: "High"
             }
-
+            
             const importanceString = importanceMap[importance as Importance] || "Medium"
-
+            
             // Check if the importance of the event is in the preferences
-            if (!preferences.importances.includes(importanceString.toLowerCase())) continue
+            if (!preferences.countries.includes(country) && !preferences.currencies.includes(currency) && !preferences.importances.includes(importanceString.toLowerCase())) continue
+            
+            let description = ""
 
-            const description = `Country: ${country}\nIndicator: ${indicator}\nComment: ${comment}\nPeriod: ${period}\nReference Date: ${referenceDate}\nSource: ${source}\nSource URL: ${sourceUrl}\nActuel: ${actual}\nAvant: ${previous}\nPrévisions: ${forecast}`
+            if (actual) description += `Actuel: ${actual}\n`
+            if (previous) description += `Avant: ${previous}\n`
+            if (forecast) description += `Prévisions: ${forecast}\n`
+            if (indicator) description += `Indicator: ${indicator}\n`
+            if (comment) description += `\nComment: ${comment}\n`
+            if (period) description += `Period: ${period}\n`
+            if (referenceDate) description += `Reference Date: ${referenceDate}\n`
+            if (source) description += `\nSource: ${source}\n`
+            if (sourceUrl) description += `Source URL: ${sourceUrl}\n`
+
             const startDate = new Date(date)
             const endDate = new Date(date)
             endDate.setHours(endDate.getHours() + 1)
@@ -81,12 +90,14 @@ app.get("/api/calendar", async (req) => {
                 id,
                 start: startDate,
                 end: endDate,
-                summary: title,
+                summary: `[${country}] ${title}`,
                 description,
                 location: country,
                 url: sourceUrl
             })
         }
+
+        // fs.writeFileSync("calendar.json", JSON.stringify(calendar.toJSON(), null, 4))
 
         req.header("Content-Type", "text/calendar")
         req.header("Content-Disposition", `attachment; filename=${filename}`)
