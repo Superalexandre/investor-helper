@@ -4,8 +4,11 @@ import { serve } from "@hono/node-server"
 import { parse } from "node-html-parser"
 import ical from "ical-generator"
 import config from "../config"
+import fs from "fs"
 
 import { startOfWeek, formatISO, addDays } from "date-fns"
+
+import countriesFr from "../countries/countries-fr"
 
 const app = new Hono()
 app.use(cors())
@@ -44,6 +47,8 @@ app.get("/api/calendar", async (req) => {
         const json = await response.json()
         const events = json.result
 
+        fs.writeFileSync("events.json", JSON.stringify(events, null, 4))
+
         if (!events || events.length === 0) return req.json({ message: "No events found" })
 
         const filename = "calendar.ics"
@@ -54,31 +59,48 @@ app.get("/api/calendar", async (req) => {
         const preferences = config.calendarPreferences
 
         for (const event of events) {
-            const { id, title, country, indicator, comment, period, referenceDate, source, source_url: sourceUrl, actual, previous, forecast, currency, importance, date } = event
+            // unit, scale
+            const { id, title, country, indicator, comment, period, referenceDate, source, source_url: sourceUrl, actual, previous, forecast, currency, importance, date, unit, scale } = event
 
             
             // Convert the importance of the event (-1, 0, 1) to a string
             type Importance = -1 | 0 | 1;
             const importanceMap: Record<Importance, string> = {
-                [-1]: "Low",
-                0: "Medium",
-                1: "High"
+                [-1]: "low",
+                0: "medium",
+                1: "high"
             }
             
-            const importanceString = importanceMap[importance as Importance] || "Medium"
+            const importanceString = importanceMap[importance as Importance] || "medium"
             
             // Check if the importance of the event is in the preferences
-            if (!preferences.countries.includes(country) && !preferences.currencies.includes(currency) && !preferences.importances.includes(importanceString.toLowerCase())) continue
+            if (!preferences.countries.includes(country) && !preferences.currencies.includes(currency) && !preferences.importances.includes(importanceString)) continue
             
+            const stars: Record<string, string> = {
+                "low": "⁎",
+                "medium": "⁑",
+                "high": "⁂"
+            }
+
+            const frenchImportance: Record<string, string> = {
+                "low": "Faible",
+                "medium": "Moyen",
+                "high": "Élevé"
+            }
+
             let description = ""
 
-            if (actual) description += `Actuel: ${actual}\n`
-            if (previous) description += `Avant: ${previous}\n`
-            if (forecast) description += `Prévisions: ${forecast}\n`
-            if (indicator) description += `Indicator: ${indicator}\n`
-            if (comment) description += `\nComment: ${comment}\n`
-            if (period) description += `Period: ${period}\n`
-            if (referenceDate) description += `Reference Date: ${referenceDate}\n`
+            description += "Importance: " + frenchImportance[importanceString] + "\n\n"
+
+            if (country) description += `Pays: ${countriesFr[country] || country}\n`
+            if (currency) description += `Monnaie: ${currency}\n\n`
+            if (actual) description += `Actuel: ${actual}${unit ?? ""}${scale ?? ""}\n`
+            if (previous) description += `Avant: ${previous}${unit ?? ""}${scale ?? ""}\n`
+            if (forecast) description += `Prévisions: ${forecast}${unit ?? ""}${scale ?? ""}\n`
+            if (indicator) description += `Indicateur: ${indicator}\n`
+            if (comment) description += `\nCommentaire: ${comment}\n`
+            if (period) description += `Période: ${period}\n`
+            if (referenceDate) description += `Date de reference: ${referenceDate}\n`
             if (source) description += `\nSource: ${source}\n`
             if (sourceUrl) description += `Source URL: ${sourceUrl}\n`
 
@@ -86,24 +108,18 @@ app.get("/api/calendar", async (req) => {
             const endDate = new Date(date)
             endDate.setHours(endDate.getHours() + 1)
 
-            const stars: Record<string, string> = {
-                "low": "⁎",
-                "medium": "⁑",
-                "high": "⁂"
-            }
-
             calendar.createEvent({
                 id,
                 start: startDate,
                 end: endDate,
-                summary: `${stars[importanceString]} ${country} ${title}`,
+                summary: `${stars[importanceString] || ""} ${country} ${title}`,
                 description,
                 location: country,
                 url: sourceUrl
             })
         }
 
-        // fs.writeFileSync("calendar.json", JSON.stringify(calendar.toJSON(), null, 4))
+        fs.writeFileSync("calendar.json", JSON.stringify(calendar.toJSON(), null, 4))
 
         req.header("Content-Type", "text/calendar")
         req.header("Content-Disposition", `attachment; filename=${filename}`)
