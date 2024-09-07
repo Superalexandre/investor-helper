@@ -1,4 +1,5 @@
 node_modules
 
-/extension/**/*.js
+*.js
+
 !/extension/tailwind.config.js
