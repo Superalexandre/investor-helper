@@ -1,11 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- Import css -->
+        <link rel="stylesheet" href="./styles/tailwind.css">
     </head>
-    <body>
-        <h1>Extension Popup</h1>
-        <p>Test</p>
+    <body class="bg-slate-600 w-52 rounded-xl">
+        <h1 class="text-4xl text-white text-center">Investor Helper</h1>
+    
+        <div class="mt-8 flex flex-col justify-center">
+            <label for="areaCode" class="text-xl text-white text-center">Selection automatique pour TradeRepublic</label>
+            <select id="areaCode" name="areaCode" class="w-40 flex justify-center mx-auto m-2">
+                <option id="areaCode-+33" value="+33">France</option>
+
+                <option id="areaCode-+359" value="+359">Bulgarie</option>
+                <option id="areaCode-+45" value="+45">Danemark</option>
+                <option id="areaCode-+356" value="+356">Malte</option>
+                <option id="areaCode-+30" value="+30">Grèce</option>
+                <option id="areaCode-+32" value="+32">Belgique</option>
+                <option id="areaCode-+43" value="+43">Autriche</option>
+                <option id="areaCode-+372" value="+372">Estonie</option>
+                <option id="areaCode-+36" value="+36">Hongrie</option>
+                <option id="areaCode-+385" value="+385">Croatie</option>
+                <option id="areaCode-+31" value="+31">Pays-Bas</option>
+                <option id="areaCode-+39" value="+39">Italie</option>
+                <option id="areaCode-+421" value="+421">Slovaquie</option>
+                <option id="areaCode-+386" value="+386">Slovénie</option>
+                <option id="areaCode-+40" value="+40">Roumanie</option>
+                <option id="areaCode-+371" value="+371">Lettonie</option>
+                <option id="areaCode-+358" value="+358">Finlande</option>
+                <option id="areaCode-+46" value="+46">Suède</option>
+                <option id="areaCode-+370" value="+370">Lituanie</option>
+                <option id="areaCode-+351" value="+351">Portugal</option>
+                <option id="areaCode-+420" value="+420">République Tchèque</option>
+                <option id="areaCode-+357" value="+357">Chypre</option>
+                <option id="areaCode-+48" value="+48">Pologne</option>
+                <option id="areaCode-+352" value="+352">Luxembourg</option>
+                <option id="areaCode-+353" value="+353">Irlande</option>
+                <option id="areaCode-+34" value="+34">Espagne</option>
+                <option id="areaCode-+262" value="+262">Réunion</option>
+                <option id="areaCode-+596" value="+596">Martinique</option>
+                <option id="areaCode-+262" value="+262">Mayotte</option>
+                <option id="areaCode-+590" value="+590">Guadeloupe</option>
+                <option id="areaCode-+594" value="+594">Guyane française</option>
+                <option id="areaCode-+590" value="+590">Saint-Martin (partie française)</option>
+            </select>
+        </div>
+
+        <script src="script.js"></script>
     </body>
 </html>
