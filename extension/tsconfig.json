@@ -22,7 +22,10 @@
             "@/server/*": [
                 "./server/*"
             ]
-        }
+        },
+        "types": [
+            "@types/chrome",
+        ]
     },
     "include": [
         "**/*.ts",
