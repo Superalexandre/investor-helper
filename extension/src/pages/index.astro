@@ -1,14 +1,22 @@
-<!DOCTYPE html>
-<html lang="fr">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <!-- Import css -->
-        <link rel="stylesheet" href="./styles/tailwind.css">
-    </head>
+---
+import '@/styles/index.css'
+
+import { Button } from "@/components/ui/button"
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content="Astro description" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+	</head>
     <body class="bg-slate-600 w-52 rounded-xl">
         <h1 class="text-4xl text-white text-center">Investor Helper</h1>
-    
+
+		
         <div class="mt-8 flex flex-col justify-center">
             <label for="areaCode" class="text-xl text-white text-center">Selection automatique pour TradeRepublic</label>
             <select id="areaCode" name="areaCode" class="w-40 flex justify-center mx-auto m-2">
@@ -48,6 +56,7 @@
             </select>
         </div>
 
-        <script src="script.js"></script>
-    </body>
+	</body>
 </html>
+
+<script is:inline src="../changeCode.js"></script>

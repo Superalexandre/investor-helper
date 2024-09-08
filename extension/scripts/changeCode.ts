@@ -1,4 +1,4 @@
-const selector = document.getElementById("areaCode") as HTMLInputElement
+const selector = document.getElementById("areaCode") as HTMLSelectElement
 
 if (!selector) console.error("Area code input not found")
 
