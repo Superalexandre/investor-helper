@@ -1,7 +1,7 @@
 node_modules
+tsconfig.tsbuildinfo
 
 *.js
+*.db
 
 !/extension/tailwind.config.js
-
-*.db

@@ -1,14 +1,19 @@
 import { parse } from "node-html-parser"
-import config from "../config"
+import config from "../config.js"
 import { serve } from "@hono/node-server"
-import app from "./index"
+import app from "./index.js"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
 
-import { news as newsSchema } from "../db/schema/news"
-import { newsRelatedSymbols as newsRelatedSymbolsSchema } from "../db/schema/newsRelatedSymbols"
+import { news as newsSchema } from "../db/schema/news.js"
+import { newsRelatedSymbols as newsRelatedSymbolsSchema } from "../db/schema/newsRelatedSymbols.js"
 
 import { eq } from "drizzle-orm"
+import { fileURLToPath } from "url"
+import { dirname, join } from "path"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 async function getNews() {
     const response = await fetch(config.url.news)
@@ -37,7 +42,8 @@ async function getNews() {
 
 async function saveNews() {
 
-    const sqlite = new Database("./db/sqlite.db")
+    // const sqlite = new Database("./db/sqlite.db")
+    const sqlite = new Database(join(__dirname, "..", "db", "sqlite.db"))
     const db = drizzle(sqlite)
 
     const newsList = await getNews()

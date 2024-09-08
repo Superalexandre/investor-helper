@@ -3,8 +3,8 @@ import { cors } from "hono/cors"
 // import { parse } from "node-html-parser"
 // import config from "../config"
 
-import calendar from "./api/calendar"
-import news from "./api/news"
+import calendar from "./api/calendar.js"
+import news from "./api/news.js"
 
 const app = new Hono()
     .use(cors())

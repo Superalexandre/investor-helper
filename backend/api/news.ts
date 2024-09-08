@@ -1,14 +1,19 @@
 import { Hono } from "hono"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
-import { News, news as newsSchema } from "../../db/schema/news"
+import { News, news as newsSchema } from "../../db/schema/news.js"
 import { desc, eq } from "drizzle-orm"
-import { NewsRelatedSymbol, newsRelatedSymbols as newsRelatedSymbolsSchema } from "../../db/schema/newsRelatedSymbols"
+import { NewsRelatedSymbol, newsRelatedSymbols as newsRelatedSymbolsSchema } from "../../db/schema/newsRelatedSymbols.js"
+import { fileURLToPath } from "url"
+import { dirname, join } from "path"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const newsHono = new Hono()
 
 newsHono.get("/", async (req) => {
-    const sqlite = new Database("./db/sqlite.db")
+    const sqlite = new Database(join(__dirname, "..", "..", "db", "sqlite.db"))
     const db = drizzle(sqlite)
 
     // Get params from the request

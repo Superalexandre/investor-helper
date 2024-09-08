@@ -1,9 +1,9 @@
 import { Hono } from "hono"
 import ical from "ical-generator"
-import config from "../../config"
+import config from "../../config.js"
 import { startOfWeek, formatISO, addDays } from "date-fns"
 
-import { countries as countriesFr } from "../../countries/countries-fr"
+import { countries as countriesFr } from "../../countries/countries-fr.js"
 
 const calendarHono = new Hono()
 

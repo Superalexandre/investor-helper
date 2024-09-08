@@ -1,5 +1,5 @@
 import { sqliteTable, text } from "drizzle-orm/sqlite-core"
-import { news } from "./news"
+import { news } from "./news.js"
 import { relations } from "drizzle-orm"
 
 export const newsRelatedSymbols = sqliteTable("news_related_symbol", {

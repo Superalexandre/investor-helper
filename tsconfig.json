@@ -8,12 +8,11 @@
         "module": "ESNext",
         "moduleResolution": "Node",
         "strict": true,
-        "jsx": "react-jsx",
         "esModuleInterop": true,
         "skipLibCheck": true,
         "resolveJsonModule": true,
         "incremental": true,
-        "isolatedModules": true,
+        // "isolatedModules": true,
         "allowJs": true,
         "baseUrl": ".",
         "paths": {
@@ -32,11 +31,11 @@
         }
     },
     "include": [
-        "**/*.ts",
-        "**/*.tsx",
+        "./backend/**/*.ts",
+        "./config.ts"
     ],
     "exclude": [
-        "node_modules"
+        "./node_modules",
     ],
     "ts-node": {
         "esm": true,
