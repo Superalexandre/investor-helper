@@ -5,3 +5,4 @@ tsconfig.tsbuildinfo
 *.db
 
 !/extension/tailwind.config.js
+!/vite.config.js
