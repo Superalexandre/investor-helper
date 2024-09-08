@@ -4,7 +4,7 @@ import { serve } from "@hono/node-server"
 import { parse } from "node-html-parser"
 import ical from "ical-generator"
 import config from "../config"
-import fs from "fs"
+import { translate } from "@vitalets/google-translate-api"
 
 import { startOfWeek, formatISO, addDays } from "date-fns"
 
@@ -14,7 +14,6 @@ const app = new Hono()
 app.use(cors())
 app.get("/api/calendar", async (req) => {
     const url = new URL("https://economic-calendar.tradingview.com/events")
-
 
     const now = new Date()
     
@@ -47,8 +46,6 @@ app.get("/api/calendar", async (req) => {
         const json = await response.json()
         const events = json.result
 
-        fs.writeFileSync("events.json", JSON.stringify(events, null, 4))
-
         if (!events || events.length === 0) return req.json({ message: "No events found" })
 
         const filename = "calendar.ics"
@@ -56,7 +53,7 @@ app.get("/api/calendar", async (req) => {
             name: "Economic Calendar"
         })
 
-        const preferences = config.calendarPreferences
+        const filters = config.calendarPreferences.filters
 
         for (const event of events) {
             // unit, scale
@@ -74,8 +71,9 @@ app.get("/api/calendar", async (req) => {
             const importanceString = importanceMap[importance as Importance] || "medium"
             
             // Check if the importance of the event is in the preferences
-            if (!preferences.countries.includes(country) && !preferences.currencies.includes(currency) && !preferences.importances.includes(importanceString)) continue
-            
+            const filter = filters.find(filterFind => filterFind.country.includes(country) && filterFind.importance.includes(importanceString))
+            if (!filter) continue
+
             const stars: Record<string, string> = {
                 "low": "⁎",
                 "medium": "⁑",
@@ -88,9 +86,10 @@ app.get("/api/calendar", async (req) => {
                 "high": "Élevé"
             }
 
-            let description = ""
+            const { text: translatedTitle } = await translate(title, { from: "en", to: config.language })
+            const eventTitle = `${stars[importanceString] || ""} ${country} ${translatedTitle}`
 
-            description += "Importance: " + frenchImportance[importanceString] + "\n\n"
+            let description = "Importance: " + frenchImportance[importanceString] + "\n\n"
 
             if (country) description += `Pays: ${countriesFr[country] || country}\n`
             if (currency) description += `Monnaie: ${currency}\n\n`
@@ -98,7 +97,11 @@ app.get("/api/calendar", async (req) => {
             if (previous) description += `Avant: ${previous}${unit ?? ""}${scale ?? ""}\n`
             if (forecast) description += `Prévisions: ${forecast}${unit ?? ""}${scale ?? ""}\n`
             if (indicator) description += `Indicateur: ${indicator}\n`
-            if (comment) description += `\nCommentaire: ${comment}\n`
+            if (comment) {
+                const { text: translatedComment } = await translate(comment, { from: "en", to: config.language })
+
+                description += `\nCommentaire: ${translatedComment}\n`
+            }
             if (period) description += `Période: ${period}\n`
             if (referenceDate) description += `Date de reference: ${referenceDate}\n`
             if (source) description += `\nSource: ${source}\n`
@@ -112,14 +115,12 @@ app.get("/api/calendar", async (req) => {
                 id,
                 start: startDate,
                 end: endDate,
-                summary: `${stars[importanceString] || ""} ${country} ${title}`,
+                summary: eventTitle,
                 description,
                 location: country,
                 url: sourceUrl
             })
         }
-
-        fs.writeFileSync("calendar.json", JSON.stringify(calendar.toJSON(), null, 4))
 
         req.header("Content-Type", "text/calendar")
         req.header("Content-Disposition", `attachment; filename=${filename}`)
