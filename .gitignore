@@ -3,3 +3,5 @@ node_modules
 *.js
 
 !/extension/tailwind.config.js
+
+*.db

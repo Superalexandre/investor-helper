@@ -4,32 +4,50 @@
             "DOM",
             "ES2015"
         ],
-        "module": "CommonJS",
-        "moduleResolution": "Node",
         "target": "ES2022",
+        "module": "ESNext",
+        "moduleResolution": "Node",
         "strict": true,
         "jsx": "react-jsx",
         "esModuleInterop": true,
         "skipLibCheck": true,
         "resolveJsonModule": true,
+        "incremental": true,
+        "isolatedModules": true,
+        "allowJs": true,
         "baseUrl": ".",
         "paths": {
-            "@/*": [
-                "./app/*"
+            "@/countries/*": [
+                "./countries/*"
             ],
-            "@/types/*": [
-                "./types/*"
-            ],
-            "@/server/*": [
-                "./server/*"
-            ]
+            // "@/*": [
+            //     "./app/*"
+            // ],
+            // "@/types/*": [
+            //     "./types/*"
+            // ],
+            // "@/server/*": [
+            //     "./server/*"
+            // ]
         }
     },
     "include": [
         "**/*.ts",
-        "**/*.tsx"
+        "**/*.tsx",
     ],
     "exclude": [
-        "node_modules",
-    ]
+        "node_modules"
+    ],
+    "ts-node": {
+        "esm": true,
+        "transpileOnly": true,
+        "experimentalSpecifierResolution": "node",
+        "compilerOptions": {
+            "module": "ESNext",
+            "target": "ESNext",
+            "moduleResolution": "Node",
+            "esModuleInterop": true,
+            "skipLibCheck": true,
+        }
+    },
 }

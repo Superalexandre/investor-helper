@@ -1,4 +1,4 @@
-export default {
+const countries: Record<string, string> = {
     "AF": "Afghanistan",
     "AX": "Îles Åland",
     "AL": "Albanie",
@@ -247,4 +247,7 @@ export default {
     "ZW": "Zimbabwe",
 
     "EU": "Union Européenne"
-} as Record<string, string>
+}
+
+export default countries
+export { countries }

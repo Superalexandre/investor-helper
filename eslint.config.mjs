@@ -23,9 +23,9 @@ export default [{
 }, ...compat.extends(
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:react/recommended",
-    "plugin:react/jsx-runtime",
-    "plugin:jsx-a11y/recommended",
+    // "plugin:react/recommended",
+    // "plugin:react/jsx-runtime",
+    // "plugin:jsx-a11y/recommended",
 ), {
     plugins: {
         "@typescript-eslint": typescriptEslint,
@@ -113,9 +113,9 @@ export default [{
         "@typescript-eslint/no-shadow": "error",
         camelcase: ["error"],
 
-        "react/jsx-filename-extension": ["warn", {
-            extensions: [".tsx"],
-        }],
+        // "react/jsx-filename-extension": ["warn", {
+        //     extensions: [".tsx"],
+        // }],
 
         "tailwindcss/enforces-shorthand": "error",
         "tailwindcss/classnames-order": "error",

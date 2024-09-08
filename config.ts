@@ -1,5 +1,12 @@
 export default {
     language: "fr",
+
+    url: {
+        eventsOrigin: "https://www.tradingview.com",
+        events: "https://economic-calendar.tradingview.com/events",
+        news: "https://fr.tradingview.com/news/markets/"
+    },
+
     calendarPreferences: {
         filename: "calendar.ics",
         numberOfDays: 14,
