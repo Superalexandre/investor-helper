@@ -65,7 +65,7 @@ calendarHono.get("/", async (req) => {
 
         const eventTitle = `${stars[importanceString] || ""} ${country} ${title}`
 
-        let description = "Importance: " + frenchImportance[importanceString] + "\n\n"
+        let description = `${eventTitle}\nImportance: ${frenchImportance[importanceString]}\n\n`
 
         if (country) description += `Pays: ${countriesFr[country] || country}\n`
         if (currency) description += `Monnaie: ${currency}\n\n`
@@ -74,7 +74,7 @@ calendarHono.get("/", async (req) => {
         if (forecast) description += `Prévisions: ${forecast}${unit ?? ""}${scale ?? ""}\n`
         if (indicator) description += `Indicateur: ${indicator}\n`
         if (comment) description += `\nCommentaire: ${comment}\n`
-        if (period) description += `Période: ${period}\n`
+        if (period) description += `\nPériode: ${period}\n`
         if (referenceDate) description += `Date de reference: ${referenceDate}\n`
         if (source) description += `\nSource: ${source}\n`
         if (sourceUrl) description += `Source URL: ${sourceUrl}\n`
