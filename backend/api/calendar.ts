@@ -89,8 +89,6 @@ calendarHono.get("/", async (req) => {
             return similarity > 0.6 && new Date(eventFind.start).getTime() === startDate.getTime() && eventFind.location === country
         })
         if (eventExists) {
-            console.log("Event exists", eventExists.summary, "and", eventTitle)
-
             eventExists.numberOfEvents++
 
             // Keep the most important event in the summary
