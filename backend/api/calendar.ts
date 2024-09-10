@@ -2,10 +2,23 @@ import { Hono } from "hono"
 import ical from "ical-generator"
 import config from "../../config.js"
 import { startOfWeek, formatISO, addDays } from "date-fns"
-
+import stringComparison from "string-comparison"
 import { countries as countriesFr } from "../../countries/countries-fr.js"
 
 const calendarHono = new Hono()
+
+interface EconomicEvent {
+    id: number,
+    start: Date,
+    end: Date,
+    originalTitle: string,
+    summary: string,
+    description: string,
+    location: string,
+    url: string,
+    importance: number,
+    numberOfEvents: number
+}
 
 calendarHono.get("/", async (req) => {
     const events = await getEvents()
@@ -39,6 +52,8 @@ calendarHono.get("/", async (req) => {
 
     const filters = config.calendarPreferences.filters
 
+    const eventsList: EconomicEvent[] = []
+
     for (const event of events) {
         const { id, title, country, indicator, comment, period, referenceDate, source, source_url: sourceUrl, actual, previous, forecast, currency, importance, date, unit, scale } = event
 
@@ -68,15 +83,55 @@ calendarHono.get("/", async (req) => {
         const endDate = new Date(date)
         endDate.setHours(endDate.getHours() + 1)
 
-        calendar.createEvent({
+        const eventExists = eventsList.find(eventFind => {
+            const similarity = stringComparison.levenshtein.similarity(eventFind.originalTitle, eventTitle)
+            
+            return similarity > 0.6 && new Date(eventFind.start).getTime() === startDate.getTime() && eventFind.location === country
+        })
+        if (eventExists) {
+            console.log("Event exists", eventExists.summary, "and", eventTitle)
+
+            eventExists.numberOfEvents++
+
+            // Keep the most important event in the summary
+            let strongestImportance = importance
+            if (importance < eventExists.importance) strongestImportance = eventExists.importance 
+            
+            const strongestImportanceString = importanceMap[strongestImportance as Importance] || "medium"
+
+
+            eventExists.summary = `${stars[strongestImportanceString] || ""} ${country} ${eventExists.numberOfEvents} événements`
+            eventExists.description += `\n------------------------------------\n${description}`
+
+            continue
+        }
+
+        eventsList.push({
             id,
             start: startDate,
             end: endDate,
+            originalTitle: eventTitle,
             summary: eventTitle,
             description,
             location: country,
-            url: sourceUrl
+            url: sourceUrl,
+            importance,
+            numberOfEvents: 1
         })
+
+        // calendar.createEvent({
+        //     id,
+        //     start: startDate,
+        //     end: endDate,
+        //     summary: eventTitle,
+        //     description,
+        //     location: country,
+        //     url: sourceUrl
+        // })
+    }
+
+    for (const event of eventsList) {
+        calendar.createEvent(event)
     }
 
     req.header("Content-Type", "text/calendar")
