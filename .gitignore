@@ -1,8 +1,10 @@
 node_modules
 tsconfig.tsbuildinfo
+.env
 
 *.js
 *.db
 
+db/migrations/
 !/extension/tailwind.config.js
 !/vite.config.js
