@@ -45,7 +45,7 @@
         "eslint-plugin-tailwindcss": "^3.17.4",
         "globals": "^15.9.0",
         "hono": "^4.5.11",
-        "ical-generator": "^7.2.0",
+        "ical-generator": "^8.0.0",
         "isbot": "^5.1.17",
         "lucide-react": "^0.441.0",
         "node-html-parser": "^6.1.13",
