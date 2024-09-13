@@ -3,14 +3,15 @@ import Database from "better-sqlite3"
 import { news as newsSchema, newsRelatedSymbols as newsRelatedSymbolsSchema } from "../../db/schema/news.js"
 import type { News, NewsRelatedSymbol } from "../../db/schema/news.js"
 import { desc, eq } from "drizzle-orm"
-import { fileURLToPath } from "url"
-import { dirname, join } from "path"
+// import { fileURLToPath } from "url"
+// import { dirname, join } from "path"
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+// const __filename = fileURLToPath(import.meta.url)
+// const __dirname = dirname(__filename)
 
 async function getNews({ page = 1, limit = 10 }: { page?: number; limit?: number }) {
-    const sqlite = new Database(join(__dirname, "..", "..", "db", "sqlite.db"))
+    // const sqlite = new Database(join(__dirname, "..", "..", "db", "sqlite.db"))
+    const sqlite = new Database("../db/sqlite.db")
     const db = drizzle(sqlite)
 
     // Get the news from the database

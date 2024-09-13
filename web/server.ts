@@ -7,7 +7,7 @@ import { remix } from "remix-hono/handler"
 import calendar from "./api/calendar.js"
 import news from "./api/news.js"
 
-const isDev = true
+const isDev = false
 
 const app = new Hono()
 
@@ -23,7 +23,7 @@ app.use(async (c, next) => {
 
     return remix({
         build: build,
-        mode: "development",
+        mode: "production",
         getLoadContext: () => {
             return {} satisfies AppLoadContext
         }

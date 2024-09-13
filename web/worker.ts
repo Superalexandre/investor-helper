@@ -4,6 +4,7 @@ import { serve } from "@hono/node-server"
 import app from "./server.js"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
+import { CronJob } from "cron"
 
 import { news as newsSchema, newsRelatedSymbols as newsRelatedSymbolsSchema, newsArticle as newsArticleSchema } from "../db/schema/news.js"
 
@@ -99,6 +100,7 @@ async function getNews() {
 }
 
 async function saveNews() {
+    console.log("Fetching news")
 
     // const sqlite = new Database("./db/sqlite.db")
     const sqlite = new Database(join(__dirname, "..", "db", "sqlite.db"))
@@ -171,19 +173,17 @@ function startServer() {
     })
 }
 
-async function main() {
+function main() {
     startServer()
 
-    await saveNews()
-
-    // TODO: Replace with cron
-    // const INTERVAL = 1000 * 60 * 30
-
-    // setInterval(async () => {
-    //     console.log("Fetching news")
-
-    //     await saveNews()
-    // }, INTERVAL)
+    CronJob.from({
+        cronTime: "*/15 * * * *",
+        onTick: function () {
+            saveNews()
+        },
+        start: true,
+        timeZone: "Europe/Paris"
+    })
 }
 
 main()

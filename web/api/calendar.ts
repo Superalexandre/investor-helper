@@ -180,42 +180,4 @@ async function getEvents() {
     }
 }
 
-// async function fullTranslate(text: string, proxyUrl?: string) {
-//     const controller = new AbortController()
-//     const timer = setTimeout(() => controller.abort(), 5000)
-
-//     const agent = proxyUrl ? new HttpProxyAgent(proxyUrl) : new HttpProxyAgent(await getProxyUrl())
-
-//     try {
-//         const { text: resultText } = await translate(text, {
-//             from: "en",
-//             to: "fr",
-//             fetchOptions: {
-//                 headers: {
-//                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
-//                     "Accept": "application/json, text/javascript, */*; q=0.01",
-//                     "Accept-Language": "en-US,en;q=0.9",
-//                     "Connection": "keep-alive"
-//                 },
-//                 signal: controller.signal,
-//                 agent: agent
-//             }
-//         })
-    
-//         return resultText
-//     } catch {
-//         console.log("Error translating text, retrying with another proxy")
-
-//         return text
-//     } finally {
-//         clearTimeout(timer)
-//     }
-// }
-
-// async function getProxyUrl() {
-//     const proxyList = new ProxyList()
-//     const proxy = await proxyList.randomFromCache()
-//     return proxy.url
-// }
-
 export default calendarHono
