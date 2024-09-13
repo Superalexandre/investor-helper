@@ -1,0 +1,28 @@
+---
+import { Icon } from 'astro-icon/components'
+import '@/styles/index.css'
+---
+
+<!doctype html>
+<html lang="fr" class="w-full h-full">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="description" content="Astro description" />
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="generator" content={Astro.generator} />
+    </head>
+    <body class="dark w-[23rem] h-[30rem] min-w-full min-h-full">
+        <button 
+            class="absolute top-0 right-0 m-3 text-4xl new-tab"
+            onclick="newTab()"
+            data-url="index.html"
+        >
+            <Icon name="ic:baseline-open-in-new"/>
+        </button>
+        
+        <slot />
+
+        <script is:inline src="../openFullTab.js"></script>
+    </body>
+</html>

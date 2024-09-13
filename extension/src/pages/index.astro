@@ -1,80 +1,20 @@
 ---
-import '@/styles/index.css'
-
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select'
+import Layout from '@/layouts/Layout.astro'
 ---
 
-<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="description" content="Astro description" />
-        <meta name="viewport" content="width=device-width" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <meta name="generator" content={Astro.generator} />
-    </head>
-    <body class="bg-gray-900 text-white w-52">
-        <h1 class="text-4xl text-white text-center">Investor Helper</h1>
+<Layout>
+    <h1 class="text-4xl text-white text-center mt-3">Investor Helper</h1>
 
-        <div class="mt-8 flex flex-col justify-center">
-            <label for="areaCode" class="text-xl text-white text-center">
+    <div class="flex flex-col items-center justify-center">
+        <div class="mt-8 flex flex-col justify-center w-10/12">
+            <label for="areaCode" class="text-xl text-center">
                 Selection automatique pour TradeRepublic
             </label>
-            
-            <!--
-            <Select defaultValue="+33">
-                <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Code de pays" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem id="areaCode-+33" value="+33">France</SelectItem>
-
-                    <SelectItem id="+359" value="+359">Bulgarie</SelectItem>
-                    <SelectItem id="+45" value="+45">Danemark</SelectItem>
-                    <SelectItem id="+356" value="+356">Malte</SelectItem>
-                    <SelectItem id="+30" value="+30">Grèce</SelectItem>
-                    <SelectItem id="+32" value="+32">Belgique</SelectItem>
-                    <SelectItem id="+43" value="+43">Autriche</SelectItem>
-                    <SelectItem id="+372" value="+372">Estonie</SelectItem>
-                    <SelectItem id="+36" value="+36">Hongrie</SelectItem>
-                    <SelectItem id="+385" value="+385">Croatie</SelectItem>
-                    <SelectItem id="+31" value="+31">Pays-Bas</SelectItem>
-                    <SelectItem id="+39" value="+39">Italie</SelectItem>
-                    <SelectItem id="+421" value="+421">Slovaquie</SelectItem>
-                    <SelectItem id="+386" value="+386">Slovénie</SelectItem>
-                    <SelectItem id="+40" value="+40">Roumanie</SelectItem>
-                    <SelectItem id="+371" value="+371">Lettonie</SelectItem>
-                    <SelectItem id="+358" value="+358">Finlande</SelectItem>
-                    <SelectItem id="+46" value="+46">Suède</SelectItem>
-                    <SelectItem id="+370" value="+370">Lituanie</SelectItem>
-                    <SelectItem id="+351" value="+351">Portugal</SelectItem>
-                    <SelectItem id="+420" value="+420">République Tchèque</SelectItem>
-                    <SelectItem id="+357" value="+357">Chypre</SelectItem>
-                    <SelectItem id="+48" value="+48">Pologne</SelectItem>
-                    <SelectItem id="+352" value="+352">Luxembourg</SelectItem>
-                    <SelectItem id="+353" value="+353">Irlande</SelectItem>
-                    <SelectItem id="+34" value="+34">Espagne</SelectItem>
-                    <SelectItem id="+262" value="+262">Réunion</SelectItem>
-                    <SelectItem id="+596" value="+596">Martinique</SelectItem>
-                    <SelectItem id="+262" value="+262">Mayotte</SelectItem>
-                    <SelectItem id="+590" value="+590">Guadeloupe</SelectItem>
-                    <SelectItem id="+594" value="+594">Guyane française</SelectItem>
-                    <SelectItem id="+590" value="+590">Saint-Martin (partie française)</SelectItem>
-                </SelectContent>
-            </Select>
-             -->
 
             <select
                 id="areaCode"
                 name="areaCode"
-                class="w-40 flex justify-center mx-auto m-2 bg-gray-800 text-white text-center p-2 rounded-md text-2xl"
-
+                class="w-full xl:w-1/3 p-3 flex justify-center mx-auto m-2 text-center rounded-md text-2xl bg-primary-foreground"
             >
                 <option id="areaCode-+33" value="+33">France</option>
 
@@ -117,7 +57,13 @@ import {
                 </option>
             </select>
         </div>
-    </body>
-</html>
+
+        <div>
+            <a href="./news/index.html">
+                Voir les news
+            </a>
+        </div>
+    </div>
+</Layout>
 
 <script is:inline src="../changeCode.js"></script>
