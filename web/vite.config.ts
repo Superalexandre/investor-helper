@@ -1,0 +1,32 @@
+import { vitePlugin as remix } from "@remix-run/dev"
+import { defineConfig } from "vite"
+import tsconfigPaths from "vite-tsconfig-paths"
+import { flatRoutes } from "remix-flat-routes"
+import react from "@vitejs/plugin-react"
+import { remixPWA } from "@remix-pwa/dev"
+
+export default defineConfig({
+    plugins: [
+        react(),
+        remix({
+            routes: (defineRoutes) => {
+                return flatRoutes("routes", defineRoutes)
+            },
+            //   tailwind: true,
+            //   postcss: true,
+            future: {
+                // eslint-disable-next-line camelcase
+                v3_fetcherPersist: true,
+                // eslint-disable-next-line camelcase
+                v3_relativeSplatPath: true,
+                // eslint-disable-next-line camelcase
+                v3_throwAbortReason: true,
+            },
+        }),
+        remixPWA({
+            // workerBuildDirectory: "out",
+            // scope: "/pwa",
+        }),
+        tsconfigPaths(),
+    ],
+})
