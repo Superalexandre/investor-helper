@@ -4,7 +4,7 @@ import getUser from "@/utils/getUser"
 import NewWallet from "@/components/wallet/new"
 
 export async function loader() {
-    const { user, wallet, watchList } = await getUser({ id: "c8849929-a3e4-4516-a81c-85da83603a0e" })
+    const { user, wallet, watchList } = await getUser({ id: "62d56f78-1b1b-411f-ba77-59d749e265ed" })
 
     if (!user) return redirect("/")
 

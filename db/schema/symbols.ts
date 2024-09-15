@@ -28,14 +28,5 @@ export const symbols = sqliteTable("symbol", {
     name: text("name"),
 })
 
+// export type NewsRelatedSymbol = typeof newsRelatedSymbols.$inferSelect
 export type Symbol = typeof symbols.$inferSelect
-
-export const symbolPrices = sqliteTable("symbol_price", {
-    symbolId: text("symbol_id").references(() => symbols.symbolId),
-    price: text("price")
-        .notNull(),
-    date: text("date")
-        .notNull(),
-})
-
-export type SymbolPrice = typeof symbolPrices.$inferSelect

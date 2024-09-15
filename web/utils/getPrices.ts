@@ -1,18 +1,69 @@
-import fs from "fs"
+import TradingView from "@mathieuc/tradingview"
+
+// import fs from "fs"
+interface Period {
+    time: number
+    open: number
+    close: number
+    max: number
+    min: number
+    volume: number
+}
+
+export default function getPrices(symbolId: string, {
+    range = 100,
+    timeframe = "D"
+}: {
+    range?: number
+    timeframe?: string
+} = {}) {
+    // Create promise to resolve when the chart is loaded
+    return new Promise<Period[]>((resolve, reject) => {
+        const client = new TradingView.Client() // Creates a websocket client
+
+        const chart = new client.Session.Chart() // Init a Chart session
+
+        chart.setMarket(symbolId, { // Set the market
+            timeframe,
+            range
+        })
+
+        chart.onError((...err: unknown[]) => {
+            console.error("Chart error:", ...err)
+            reject(err)
+        })
+
+        chart.onSymbolLoaded(() => { // When the symbol is successfully loaded
+        })
+
+        chart.onUpdate(() => { // When price changes
+            if (!chart.periods[0]) return
+
+            resolve(chart.periods)
+        })
+    })
+}
+
+// eslint-disable-next-line no-secrets/no-secrets
+/*
+// import fs from "fs"
+import { drizzle } from "drizzle-orm/better-sqlite3"
+import Database from "better-sqlite3"
+import { symbolPrices as symbolPricesSchema, symbols as symbolsSchema } from "../../db/schema/symbols"
 
 const columns = [
     "name",
     "description",
     "logoid",
-    "update_mode",
     "type",
-    "typespecs",
     "close",
+    "currency",
+    "update_mode",
+    "typespecs",
     "pricescale",
     "minmov",
     "fractional",
     "minmove2",
-    "currency",
     "change",
     "volume",
     "relative_volume_10d_calc",
@@ -36,11 +87,11 @@ const markets = [
     // "austria",
     // "bahrain",
     // "bangladesh",
-    "belgium",
+    // "belgium",
     // "brazil",
-    "canada",
+    // "canada",
     // "chile",
-    "china",
+    // "china",
     // "colombia",
     // "cyprus",
     // "czech",
@@ -76,7 +127,7 @@ const markets = [
     // "philippines",
     // "poland",
     // "portugal",
-    "qatar",
+    // "qatar",
     // "romania",
     // "russia",
     // "ksa",
@@ -85,10 +136,10 @@ const markets = [
     // "slovakia",
     // "rsa",
     "korea",
-    "spain",
+    // "spain",
     // "srilanka",
     // "sweden",
-    "switzerland",
+    // "switzerland",
     // "taiwan",
     // "thailand",
     // "tunisia",
@@ -107,7 +158,7 @@ const paramsStocks = {
     },
     "range": [
         0,
-        10_000
+        200
     ],
     "sort": {
         "sortBy": "market_cap_basic",
@@ -232,7 +283,7 @@ const paramsETFs = {
     },
     "range": [
         0,
-        20_000
+        200
     ],
     "sort": {
         "sortBy": "aum",
@@ -311,6 +362,12 @@ const paramsETFs = {
 
 const paramsCrypto = {
     "columns": [
+        "name",
+        "description",
+        "logoid",
+        "type",
+        "close",
+        "currency",
         "base_currency",
         "base_currency_desc",
         "base_currency_logoid",
@@ -319,12 +376,10 @@ const paramsCrypto = {
         "typespecs",
         "exchange",
         "crypto_total_rank",
-        "close",
         "pricescale",
         "minmov",
         "fractional",
         "minmove2",
-        "currency",
         "24h_close_change|5",
         "market_cap_calc",
         "fundamental_currency_code",
@@ -350,7 +405,16 @@ const paramsCrypto = {
     ]
 }
 
+const forceList = [
+    {
+        symbolId: "EURONEXT:CHIP" 
+    }
+]
+
 async function getPrices() {
+    const sqlite = new Database("../db/sqlite.db")
+    const db = drizzle(sqlite)
+
     const resStocks = await fetch("https://scanner.tradingview.com/global/scan", {
 
         method: "POST",
@@ -382,62 +446,82 @@ async function getPrices() {
 
     const data = [...jsonStocks.data, ...jsonETFs.data, ...jsonCrypto.data]
 
-    for (const stock of data) {
-        const symbol = stock.s
+    const dbSymbols = await db
+        .select({
+            symbolId: symbolsSchema.symbolId
+        })
+        .from(symbolsSchema)
+    
+    for (const force of [...forceList, ...dbSymbols]) {
+        const fields = [
+            "name",
+            "description",
+            "close",
+            "currency",
+            "type",
+            "logoid"
+        ]
 
-        console.log(`${symbol} : ${stock.d[6]} ${stock.d[11]}`)
-    }
-
-    fs.writeFileSync("prices.json", JSON.stringify(data, null, 4))
-
-    console.log(data.length)
-
-
-
-    return data
-}
-/*
-async function getPrices() {
-    const urls = [
-        "https://scanner.tradingview.com/america/scan",
-        "https://scanner.tradingview.com/france/scan",
-        "https://scanner.tradingview.com/germany/scan",
-        "https://scanner.tradingview.com/uk/scan"
-    ]
-
-    const jsons = []
-
-    for (const url of urls) {
-        const res = await fetch(url, {
-            method: "POST",
-            body: JSON.stringify(params),
+        const res = await fetch(`https://scanner.tradingview.com/symbol?symbol=${force.symbolId}&fields=${fields.join(",")}&no_404=true&label-product=right-details`, {
+            method: "GET",
             headers: {
                 "Content-Type": "application/json"
             }
         })
 
+
         const json = await res.json()
 
-        jsons.push(...json.data)
+        if (!json) {
+            console.log("Error fetching data for ", force.symbolId)
+            continue
+        }
+
+        console.log(json)
+
+        data.push({
+            d: [json.name, json.description, json.logoid, json.type, json.close, json.currency]
+        })
     }
 
-    // console.log(jsons)
+    const symbolCached: string[] = []
+    const insertData = []
+    for (const stock of data) {
+        const symbol = stock.s
 
-    for (const data of jsons) {
-        const symbol = data.s
+        if (symbolCached.includes(symbol)) continue
 
-        console.log(`${symbol} : ${data.d[6]} ${data.d[11]}`)
-        // console.log(data.d)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const [name, description, logoid, type, close, currency] = stock.d
+
+        insertData.push({
+            symbolId: symbol,
+            date: new Date().toISOString(),
+            price: close,
+            currency
+        })
+
+        symbolCached.push(symbol)
     }
 
-    console.log(jsons.length)
+    // fs.writeFileSync("prices.json", JSON.stringify(data, null, 4))
 
-    fs.writeFileSync("prices.json", JSON.stringify(jsons, null, 4))
+    console.log("Added data prices ", data.length)
 
-    return jsons
+
+    // Do chunk insert
+    const chunkSize = 5_000
+    for (let i = 0; i < insertData.length; i += chunkSize) {
+        const chunk = insertData.slice(i, i + chunkSize)
+        await db
+            .insert(symbolPricesSchema)
+            .values(chunk)
+    }
+
+    return data
 }
-*/
 
-getPrices()
+// getPrices()
 
 export default getPrices
+*/

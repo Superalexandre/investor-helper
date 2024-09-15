@@ -65,7 +65,7 @@ export default function Index() {
                             {item.relatedSymbols && item.relatedSymbols.length > 0 ? (
                                 <CardFooter className="flex flex-row flex-wrap items-center gap-1.5">
                                     {item.relatedSymbols?.map((symbol) => (
-                                        <Link to={`/stocks/${symbol?.symbolId}`} key={symbol?.symbolId}>
+                                        <Link to={`/data/${symbol?.symbolId}`} key={symbol?.symbolId}>
                                             <Badge
                                                 key={symbol?.symbolId}
                                                 variant="default"

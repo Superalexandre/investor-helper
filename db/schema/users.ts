@@ -60,7 +60,6 @@ export type WatchList = typeof watchList.$inferSelect
 export const watchListSymbols = sqliteTable("watch_list_symbol", {
     listId: text("list_id").references(() => watchList.listId),
     symbol: text("symbol").references(() => symbols.symbolId),
-    logoid: text("logoid"),
 })
 
 export type WatchListSymbol = typeof watchListSymbols.$inferSelect
@@ -87,7 +86,23 @@ export const wallet = sqliteTable("wallet", {
 export type Wallet = typeof wallet.$inferSelect
 
 export const walletSymbols = sqliteTable("wallet_symbol", {
-    walletId: text("wallet_id").references(() => wallet.walletId),
-    symbol: text("symbol").references(() => symbols.symbolId),
+    transactionId: text("transaction_id")
+        .notNull()
+        .unique()
+        .$defaultFn(() => {
+            return uuidv4()
+        })
+        .primaryKey(),
+    walletId: text("wallet_id")
+        .notNull()
+        .references(() => wallet.walletId),
+    symbol: text("symbol")
+        .notNull(),
     quantity: int("quantity")
+        .notNull()
+        .$default(() => 0),
+    addedAt: text("added_at")
+        .notNull()
+        .$defaultFn(() => new Date().toISOString()),
+    soldAt: text("sold_at"),
 })

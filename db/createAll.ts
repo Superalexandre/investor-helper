@@ -3,8 +3,10 @@ import { drizzle } from "drizzle-orm/better-sqlite3"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import { users as usersSchema } from "./schema/users.js"
+import { wallet as walletSchema } from "./schema/users.js"
+import { walletSymbols as walletSymbolsSchema } from "./schema/users.js"
 
-// node --loader ts-node/esm ./db/createUser.ts -u test -p test -m test@gmail.com
+// node --loader ts-node/esm ./db/createAll.ts -u test -p test -m test@gmail.com
 
 // Définir les arguments attendus
 const argv = yargs(hideBin(process.argv))
@@ -49,6 +51,44 @@ async function createUser() {
         })
 
     console.log("User created", user)
+    const idUser = user[0].id
+
+
+    const wallet = await db
+        .insert(walletSchema)
+        .values({
+            userId: idUser,
+            name: "Portefeuille"
+        })
+        .returning({
+            walletId: walletSchema.walletId,
+        })
+
+    console.log("Wallet created", wallet)
+    const walletId = wallet[0].walletId
+
+    const symbols = [
+        "EURONEXT:CHIP",
+        "NASDAQ:AAPL",
+        "BITSTAMP:ETHUSD",
+        "BITSTAMP:BTCUSD",
+        "TVC:CAC40",
+        "EURONEXT:RNO",
+        "NASDAQ:NVDA"
+    ]
+
+    
+    for (const symbol of symbols) {
+        console.log(symbol)
+
+        await db
+            .insert(walletSymbolsSchema)
+            .values({
+                walletId: walletId,
+                symbol: symbol,
+                quantity: 0
+            })
+    }
 
 }
 

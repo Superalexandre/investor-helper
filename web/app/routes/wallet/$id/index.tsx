@@ -1,10 +1,10 @@
 import type { MetaFunction } from "@remix-run/node"
-import { useLoaderData } from "@remix-run/react"
+import { ClientLoaderFunctionArgs, redirect, useLoaderData } from "@remix-run/react"
 import getWalletById from "@/utils/getWallet"
-import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
-import { CartesianGrid, Line, LineChart, XAxis } from "recharts"
-import { Card, CardContent } from "@/components/ui/card"
-import { ClientOnly } from "remix-utils/client-only"
+// import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
+// import { CartesianGrid, Line, LineChart, XAxis } from "recharts"
+// import { Card, CardContent } from "@/components/ui/card"
+// import { ClientOnly } from "remix-utils/client-only"
 import {
     Dialog,
     DialogContent,
@@ -15,13 +15,36 @@ import {
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import SelectSymbol, { Symbol } from "@/components/selectSymbol"
+import getPrices from "@/utils/getPrices"
 
-export async function loader() {
-    const { wallet, walletSymbols } = await getWalletById({ id: "4b643adf-bed1-42d0-8e4a-d3ab917688ba" })
+export async function loader({
+    params
+}: ClientLoaderFunctionArgs) {
+    const { id } = params
+
+    if (!id) return redirect("/")
+
+    const { wallet, walletSymbols } = await getWalletById({ id: id })
+
+    if (!wallet) return redirect("/")
+
+    const prices = []
+    let walletValue = 0
+
+    for (const symbol of walletSymbols) {
+        const price = await getPrices(symbol.symbol)
+        const lastPrice = price[price.length - 1]
+
+        walletValue += lastPrice.close * symbol.quantity
+
+        prices.push(price)
+    }
 
     return {
+        walletValue: walletValue,
         wallet: wallet[0],
-        walletSymbols: walletSymbols
+        walletSymbols: walletSymbols,
+        prices: prices
     }
 }
 
@@ -33,76 +56,20 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Index() {
-    const { wallet, walletSymbols } = useLoaderData<typeof loader>()
+    const { walletValue, wallet, walletSymbols, prices } = useLoaderData<typeof loader>()
 
-    console.log(wallet, walletSymbols)
-
-    const chartData = [
-        {
-            name: "Aujourd'hui",
-            value: 4000,
-            deepValue: "Nvidia : 3000\nAMD : 1000"
-        },
-        {
-            name: "Hier",
-            value: 3500,
-            deepValue: "Nvidia : 3000\nAMD : 500"
-        },
-        {
-            name: "Avant-hier",
-            value: 3000,
-            deepValue: "Nvidia : 3000\nAMD : 0"
-        },
-        {
-            name: "Il y a 3 jours",
-            value: 3000,
-            deepValue: "Nvidia : 3000\nAMD : 0"
-        },
-        {
-            name: "Il y a 4 jours",
-            value: 2000,
-            deepValue: "Nvidia : 2000\nAMD : 0"
-        },
-        {
-            name: "Il y a 5 jours",
-            value: 1000,
-            deepValue: "Nvidia : 1000\nAMD : 0"
-        },
-        {
-            name: "Il y a 6 jours",
-            value: 3000,
-            deepValue: "Nvidia : 3000\nAMD : 0"
-        },
-        {
-            name: "Il y a 7 jours",
-            value: 500,
-            deepValue: "Nvidia : 500\nAMD : 0"
-        },
-        {
-            name: "Il y a 8 jours",
-            value: 0,
-            deepValue: "Nvidia : 0\nAMD : 0"
-        },
-    ].reverse()
-
-
-    const chartConfig = {
-        name: {
-            label: "Date",
-            color: "#2563eb",
-        },
-    } satisfies ChartConfig
-
+    console.log(wallet, walletSymbols, prices)
 
     return (
         <div>
             <p>{wallet.name}</p>
+            <p>{walletValue}€</p>
 
             <FindSymbols
                 triggerText="Ajouter un symbole"
             />
 
-            <Card>
+            {/* <Card>
                 <CardContent>
                     <ClientOnly fallback={<p>Chargement...</p>}>
                         {() => (
@@ -122,7 +89,7 @@ export default function Index() {
                         )}
                     </ClientOnly>
                 </CardContent>
-            </Card>
+            </Card> */}
         </div >
     )
 }

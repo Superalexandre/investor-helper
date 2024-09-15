@@ -95,15 +95,6 @@ function GetDeepComponent(children: any, data: GroupedNews<NewsArticle>, { class
 
     for (const child of children) {
         if (child.type === "news-image") {
-            console.log(child.params.image)
-            /*
-            source-height
-: 
-555
-source-width
-: 
-1024*/
-
             Component.push(
                 <img
                     width={child.params.image["source-width"]}
@@ -112,7 +103,6 @@ source-width
                     src={`https://s3.tradingview.com/news/image/${child.params.image.id}-resized.jpeg`} 
                     alt={child.params.image.alt ?? ""} 
                 />
-
             )
 
             continue
@@ -135,18 +125,18 @@ source-width
 
         if (typeof child === "object") {
             if (["symbol"].includes(child?.type)) {
-                const logoId = data.relatedSymbols?.find(symbol => symbol?.symbolId === child.params?.symbol)?.logoid
+                const relatedSymbolsData = data.relatedSymbols?.find(symbol => symbol?.symbolId === child.params?.symbol)
 
                 Component.push(
-                    <Link to={`/stocks/${child.params?.symbol}`} key={`${child.params?.symbol}-${Component.length}`} className={className?.badge}>
+                    <Link to={`/data/${child.params?.symbol}`} key={`${child.params?.symbol}-${Component.length}`} className={className?.badge}>
                         <Badge
                             variant="default"
                             className="flex h-8 flex-row items-center justify-center"
                         >
-                            {logoId ?
+                            {relatedSymbolsData?.logoid ?
                                 <img
                                     id={child.params?.symbol}
-                                    src={"https://s3-symbol-logo.tradingview.com/" + logoId + ".svg"}
+                                    src={"https://s3-symbol-logo.tradingview.com/" + relatedSymbolsData?.logoid + ".svg"}
                                     alt={child.params?.symbol}
                                     className="mr-1.5 size-6 rounded-full"
                                 />
@@ -167,7 +157,6 @@ source-width
 
                 Component.push(
                     <p 
-                        
                         key={`${child.type}-${Component.length}-${child.children.length}`}
                     >
                         {ComponentResult}

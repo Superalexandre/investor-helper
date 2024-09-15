@@ -5,14 +5,11 @@ import app from "./server.js"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
 import { CronJob } from "cron"
-import fs from "fs"
-
 import { news as newsSchema, newsRelatedSymbols as newsRelatedSymbolsSchema, newsArticle as newsArticleSchema } from "../db/schema/news.js"
 
 import { eq } from "drizzle-orm"
 import { fileURLToPath } from "url"
 import { dirname, join } from "path"
-import { symbols as symbolsSchema } from "../db/schema/symbols.js"
 import refreshSymbol from "./utils/refreshSymbol.js"
 
 const __filename = fileURLToPath(import.meta.url)
@@ -225,37 +222,17 @@ function startServer() {
     })
 }
 
-//https://scanner.tradingview.com/symbol?symbol=NASDAQ%3AAAPL&fields=change%2CPerf.5D%2CPerf.W%2CPerf.1M%2CPerf.6M%2CPerf.YTD%2CPerf.Y%2CPerf.5Y%2CPerf.All&no_404=true
-//https://scanner.tradingview.com/symbol?symbol=TVC%3ACAC40&fields=price_52_week_high%2Cprice_52_week_low%2Csector%2Ccountry%2Cmarket%2CLow.1M%2CHigh.1M%2CPerf.W%2CPerf.1M%2CPerf.3M%2CPerf.6M%2CPerf.Y%2CPerf.YTD%2CRecommend.All%2Caverage_volume_10d_calc%2Caverage_volume_30d_calc%2Cnav_discount_premium%2Copen_interest%2Ccountry_code_fund&no_404=true&label-product=right-details
-//https://scanner.tradingview.com/symbol?symbol=EURONEXT%3ACHIP&fields=Perf.3Y%2CPerf.5Y%2Cnav_total_return.1M%2Cnav_total_return.3M%2Cnav_total_return.1Y%2Cnav_total_return.YTD%2Cnav_total_return.3Y%2Cnav_total_return.5Y&no_404=true&label-product=right-details
-
-//https://scanner.tradingview.com/bonds/scan
-//https://scanner.tradingview.com/america/scan
-//https://scanner.tradingview.com/france/scan
-//https://scanner.tradingview.com/germany/scan
-//https://scanner.tradingview.com/uk/scan
-
-// function getStocks() {
-//     const res = await fetch("", {
-
-//     })
-
-
-// }
-
 function main() {
     startServer()
 
-    saveNews()
-
-    // CronJob.from({
-    //     cronTime: "*/15 * * * *",
-    //     onTick: function () {
-    //         saveNews()
-    //     },
-    //     start: true,
-    //     timeZone: "Europe/Paris"
-    // })
+    CronJob.from({
+        cronTime: "*/5 * * * *",
+        onTick: function () {
+            saveNews()
+        },
+        start: true,
+        timeZone: "Europe/Paris"
+    })
 }
 
 main()
