@@ -2,12 +2,21 @@ import { vitePlugin as remix } from "@remix-run/dev"
 import { defineConfig } from "vite"
 import tsconfigPaths from "vite-tsconfig-paths"
 import { flatRoutes } from "remix-flat-routes"
-import react from "@vitejs/plugin-react"
+// import react from "@vitejs/plugin-react"
 import { remixPWA } from "@remix-pwa/dev"
 
 export default defineConfig({
+    server: {
+        port: 4000,
+    },
+    ssr: {
+
+        noExternal: ["react-charts", "remix-utils"]
+    },
     plugins: [
-        react(),
+        // react({
+            
+        // }),
         remix({
             routes: (defineRoutes) => {
                 return flatRoutes("routes", defineRoutes)
@@ -21,7 +30,7 @@ export default defineConfig({
                 v3_relativeSplatPath: true,
                 // eslint-disable-next-line camelcase
                 v3_throwAbortReason: true,
-            },
+            } 
         }),
         remixPWA({
             // workerBuildDirectory: "out",

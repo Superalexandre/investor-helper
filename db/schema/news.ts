@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm"
 import { int, sqliteTable, text } from "drizzle-orm/sqlite-core"
+import { symbols } from "./symbols"
 
 export const news = sqliteTable("news", {
     id: text("id")
@@ -26,9 +27,7 @@ export type News = typeof news.$inferSelect
 
 export const newsRelatedSymbols = sqliteTable("news_related_symbol", {
     newsId: text("news_id").references(() => news.id),
-    symbol: text("symbol")
-        .notNull(),
-    logoid: text("logoid"),
+    symbol: text("symbol").references(() => symbols.symbolId),
 })
 
 export const newsRelation = relations(news, ({ many }) => ({
@@ -44,8 +43,10 @@ export const newsArticle = sqliteTable("news_article", {
         .notNull(),
     textDescription: text("text_description")
         .notNull(),
+    jsonDescription: text("json_description")
+        .notNull(),
     shortDescription: text("short_description"),
     copyright: text("copyright"),
 })
 
-// export type NewsArticle = typeof newsArticle.$inferSelect
+export type NewsArticle = typeof newsArticle.$inferSelect

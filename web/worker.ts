@@ -5,12 +5,15 @@ import app from "./server.js"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
 import { CronJob } from "cron"
+import fs from "fs"
 
 import { news as newsSchema, newsRelatedSymbols as newsRelatedSymbolsSchema, newsArticle as newsArticleSchema } from "../db/schema/news.js"
 
 import { eq } from "drizzle-orm"
 import { fileURLToPath } from "url"
 import { dirname, join } from "path"
+import { symbols as symbolsSchema } from "../db/schema/symbols.js"
+import refreshSymbol from "./utils/refreshSymbol.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -69,28 +72,25 @@ async function getNews() {
 
         if (!jsonArticle) return console.error("No article found (jsonArticle)")
 
+        const jsonDescription = JSON.stringify(jsonArticle.story.astDescription)
         let htmlDescription = ""
         let textDescription = ""
 
         if (jsonArticle.story.astDescription) {
             for (const item of jsonArticle.story.astDescription.children) {
-                htmlDescription += `<${item.type}>`
-
                 if (item.children) {
-                    for (const child of item.children) {
-                        htmlDescription += child
-                        textDescription += child
-                    }
+                    const { text, html } = getChildren(item.children)
+    
+                    htmlDescription += html
+                    textDescription += text
                 }
-
-                htmlDescription += `</${item.type}>`
-                textDescription += "\n"
             }
         }
 
         newsItem.article = {
             htmlDescription: htmlDescription,
             textDescription: textDescription,
+            jsonDescription: jsonDescription,
             shortDescription: jsonArticle.story.shortDescription,
             copyright: jsonArticle.story.copyright,
         }
@@ -117,35 +117,41 @@ async function saveNews() {
             .from(newsSchema)
             .where(eq(newsSchema.id, news.id))
 
-        if (exists.length > 0) continue
+        // Insert only if the news does not exist (to refresh the symbols)
+        if (exists.length === 0) {
+            await db
+                .insert(newsSchema)
+                .values({
+                    id: news.id,
+                    title: news.title,
+                    storyPath: news.storyPath,
+                    sourceLogoId: news.sourceLogoId,
+                    published: news.published,
+                    source: news.source,
+                    urgency: news.urgency,
+                    provider: news.provider,
+                    link: news.link
+                })
+        }
 
-        await db
-            .insert(newsSchema)
-            .values({
-                id: news.id,
-                title: news.title,
-                storyPath: news.storyPath,
-                sourceLogoId: news.sourceLogoId,
-                published: news.published,
-                source: news.source,
-                urgency: news.urgency,
-                provider: news.provider,
-                link: news.link
-            })
 
         if (news.relatedSymbols && news.relatedSymbols.length > 0) {
             for (const symbol of news.relatedSymbols) {
-                await db
-                    .insert(newsRelatedSymbolsSchema)
-                    .values({
-                        newsId: news.id,
-                        symbol: symbol.symbol,
-                        logoid: symbol.logoid
-                    })
+                await refreshSymbol({ symbolId: symbol.symbol })
+
+                if (exists.length === 0) {
+                    await db
+                        .insert(newsRelatedSymbolsSchema)
+                        .values({
+                            newsId: news.id,
+                            symbol: symbol.symbol
+                        })
+                }
+
             }
         }
 
-        if (news.article) {
+        if (news.article && exists.length === 0) {
             await db
                 .insert(newsArticleSchema)
                 .values({
@@ -153,15 +159,61 @@ async function saveNews() {
                     date: news.published,
                     textDescription: news.article.textDescription,
                     htmlDescription: news.article.htmlDescription,
+                    jsonDescription: news.article.jsonDescription,
                     shortDescription: news.article.shortDescription,
                     copyright: news.article.copyright
                 })
         }
-        
+
         count++
     }
 
     console.log(`Inserted ${count} news`)
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getChildren(children: any) {
+    let text = ""
+    let html = ""
+
+    for (const child of children) {
+        if (child.type === "news-image") {
+            html += `<img src="https://s3.tradingview.com/news/image/${child.params.image.id}-resized.jpeg" alt="${child.params.image.alt ?? ""}" />`
+            text += child.params.image.alt
+
+            continue
+        }
+
+        if (typeof child === "string") {
+            html += `<p>${child}</p>`
+            text += `${child}\n`
+
+            continue
+        }
+
+        if (typeof child === "object") {
+            if (["symbol"].includes(child?.type)) {
+                html += `<a href="${child?.params.symbol}" class='symbol'>${child?.params.text}</a>`
+                text += child.text
+            } else if (["b", "p", "i"].includes(child?.type)) {
+                const { text: textDeepChildren, html: textDeepHtml } = getChildren(child.children)
+
+                html += `<${child.type}>${textDeepChildren}</${child.type}>`
+                text += textDeepHtml
+            } else if (["url"].includes(child?.type)) {
+                html += `<a href="${child.params.url}">${child.params.linkText}</a>`
+                text += `${child.params.linkText} (${child.params.url})`
+            } else {
+                console.error("Unknown child", child)
+            }
+
+            continue
+        }
+
+        console.error("Unknown type", child)
+    }
+
+    return { text, html }
 }
 
 function startServer() {
@@ -173,17 +225,37 @@ function startServer() {
     })
 }
 
+//https://scanner.tradingview.com/symbol?symbol=NASDAQ%3AAAPL&fields=change%2CPerf.5D%2CPerf.W%2CPerf.1M%2CPerf.6M%2CPerf.YTD%2CPerf.Y%2CPerf.5Y%2CPerf.All&no_404=true
+//https://scanner.tradingview.com/symbol?symbol=TVC%3ACAC40&fields=price_52_week_high%2Cprice_52_week_low%2Csector%2Ccountry%2Cmarket%2CLow.1M%2CHigh.1M%2CPerf.W%2CPerf.1M%2CPerf.3M%2CPerf.6M%2CPerf.Y%2CPerf.YTD%2CRecommend.All%2Caverage_volume_10d_calc%2Caverage_volume_30d_calc%2Cnav_discount_premium%2Copen_interest%2Ccountry_code_fund&no_404=true&label-product=right-details
+//https://scanner.tradingview.com/symbol?symbol=EURONEXT%3ACHIP&fields=Perf.3Y%2CPerf.5Y%2Cnav_total_return.1M%2Cnav_total_return.3M%2Cnav_total_return.1Y%2Cnav_total_return.YTD%2Cnav_total_return.3Y%2Cnav_total_return.5Y&no_404=true&label-product=right-details
+
+//https://scanner.tradingview.com/bonds/scan
+//https://scanner.tradingview.com/america/scan
+//https://scanner.tradingview.com/france/scan
+//https://scanner.tradingview.com/germany/scan
+//https://scanner.tradingview.com/uk/scan
+
+// function getStocks() {
+//     const res = await fetch("", {
+
+//     })
+
+
+// }
+
 function main() {
     startServer()
 
-    CronJob.from({
-        cronTime: "*/15 * * * *",
-        onTick: function () {
-            saveNews()
-        },
-        start: true,
-        timeZone: "Europe/Paris"
-    })
+    saveNews()
+
+    // CronJob.from({
+    //     cronTime: "*/15 * * * *",
+    //     onTick: function () {
+    //         saveNews()
+    //     },
+    //     start: true,
+    //     timeZone: "Europe/Paris"
+    // })
 }
 
 main()

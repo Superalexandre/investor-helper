@@ -1,0 +1,93 @@
+import { sqliteTable, text, int } from "drizzle-orm/sqlite-core"
+// import { createId } from "@paralleldrive/cuid2"
+import crypto from "node:crypto"
+import { v4 as uuidv4 } from "uuid"
+import { symbols } from "./symbols"
+
+export const users = sqliteTable("user", {
+    id: text("id")
+        .primaryKey()
+        .unique()
+        .notNull()
+        .$defaultFn(() => {
+            return uuidv4()
+        }),
+    token: text("token")
+        .unique()
+        .notNull()
+        .$defaultFn(() => {
+            return crypto.randomBytes(32).toString("hex")
+        }),
+    firstName: text("first_name")
+        .notNull(),
+    lastName: text("last_name")
+        .notNull(),
+    email: text("email")
+        .unique(),
+    password: text("password")
+        .notNull(),
+    createdAt: text("created_at")
+        .notNull()
+        .$defaultFn(() => new Date().toISOString()),
+    updatedAt: text("updated_at")
+        .$defaultFn(() => new Date().toISOString())
+        .notNull(),
+})
+
+export type User = typeof users.$inferSelect
+
+export const watchList = sqliteTable("watch_list", {
+    userId: text("user_id").references(() => users.id),
+    listId: text("list_id")
+        .notNull()
+        .unique()
+        .$defaultFn(() => {
+            return uuidv4()
+        }),
+    name: text("name")
+        .notNull(),
+    description: text("description"),
+    createdAt: text("created_at")
+        .notNull()
+        .$defaultFn(() => new Date().toISOString()),
+    updatedAt: text("updated_at")
+        .notNull()
+        .$defaultFn(() => new Date().toISOString()),
+})
+
+export type WatchList = typeof watchList.$inferSelect
+
+export const watchListSymbols = sqliteTable("watch_list_symbol", {
+    listId: text("list_id").references(() => watchList.listId),
+    symbol: text("symbol").references(() => symbols.symbolId),
+    logoid: text("logoid"),
+})
+
+export type WatchListSymbol = typeof watchListSymbols.$inferSelect
+
+export const wallet = sqliteTable("wallet", {
+    userId: text("user_id").references(() => users.id),
+    walletId: text("wallet_id")
+        .notNull()
+        .unique()
+        .$defaultFn(() => {
+            return uuidv4()
+        }),
+    name: text("name")
+        .notNull(),
+    description: text("description"),
+    createdAt: text("created_at")
+        .notNull()
+        .$defaultFn(() => new Date().toISOString()),
+    updatedAt: text("updated_at")
+        .notNull()
+        .$defaultFn(() => new Date().toISOString()),
+})
+
+export type Wallet = typeof wallet.$inferSelect
+
+export const walletSymbols = sqliteTable("wallet_symbol", {
+    walletId: text("wallet_id").references(() => wallet.walletId),
+    symbol: text("symbol").references(() => symbols.symbolId),
+    quantity: int("quantity")
+})
