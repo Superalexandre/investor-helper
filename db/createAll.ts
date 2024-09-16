@@ -5,6 +5,8 @@ import { hideBin } from "yargs/helpers"
 import { users as usersSchema } from "./schema/users.js"
 import { wallet as walletSchema } from "./schema/users.js"
 import { walletSymbols as walletSymbolsSchema } from "./schema/users.js"
+import bcrypt from "bcrypt"
+import crypto from "node:crypto"
 
 // node --loader ts-node/esm ./db/createAll.ts -u test -p test -m test@gmail.com
 
@@ -38,13 +40,31 @@ async function createUser() {
     const sqlite = new Database("./db/sqlite.db")
     const db = drizzle(sqlite)
 
+    
+    const saltRound = 10
+    const genSalt = await bcrypt.genSalt(saltRound)
+    const passwordHash = await bcrypt.hash(password, genSalt)
+
+    const algorithm = "aes-256-cbc"
+    const key = crypto.randomBytes(32)
+    const iv = crypto.randomBytes(16)
+
+    const cipher = crypto.createCipheriv(algorithm, key, iv)
+
+    // Encrypt the mail
+    let encrypted = cipher.update(mail, "utf8", "hex")
+    encrypted += cipher.final("hex")
+
+
     const user = await db
         .insert(usersSchema)
         .values({
+            username: username,
             firstName: username,
             lastName: username,
-            email: mail,
-            password
+            email: encrypted,
+            password: passwordHash,
+            salt: genSalt
         })
         .returning({
             id: usersSchema.id,

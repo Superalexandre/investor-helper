@@ -172,6 +172,35 @@ function GetDeepComponent(children: any, data: GroupedNews<NewsArticle>, { class
                         {child.params.linkText}
                     </Link>
                 )
+            } else if (["list"].includes(child?.type)) {
+                const ComponentResult = GetDeepComponent(child.children, data, {
+                    className: {
+                        badge: "inline-block align-middle",
+                        image: "mx-auto",
+                    },
+                    rawText: true
+                })
+
+                Component.push(
+                    <ul key={`${child.type}-${Component.length}`}>
+                        {ComponentResult}
+                    </ul>
+                )
+            } else if (["*"].includes(child?.type)) {
+                const ComponentResult = GetDeepComponent(child.children, data, {
+                    className: {
+                        badge: "inline-block align-middle",
+                        image: "mx-auto",
+                        text: "inline-block"
+                    },
+                    rawText: true
+                })
+
+                Component.push(
+                    <li key={`${child.type}-${Component.length}`} className="flex flex-row items-center">
+                        {ComponentResult}
+                    </li>
+                )
             } else {
                 console.error("Unknown child", child)
             }

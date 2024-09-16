@@ -30,7 +30,7 @@ export default async function refreshSymbol({
         const diff = nowDate.getTime() - lastUpdateDate.getTime()
         const diffMinutes = Math.floor(diff / 1000 / 60)
 
-        console.log(`Symbol ${symbolId} was last updated ${diffMinutes} minutes ago`)
+        // console.log(`Symbol ${symbolId} was last updated ${diffMinutes} minutes ago`)
 
         if (diffMinutes < 10) return
 

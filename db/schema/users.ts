@@ -18,6 +18,11 @@ export const users = sqliteTable("user", {
         .$defaultFn(() => {
             return crypto.randomBytes(32).toString("hex")
         }),
+    username: text("username")
+        .notNull()
+        .unique(),
+    displayName: text("display_name"),
+    avatar: text("avatar"),
     firstName: text("first_name")
         .notNull(),
     lastName: text("last_name")
@@ -25,6 +30,8 @@ export const users = sqliteTable("user", {
     email: text("email")
         .unique(),
     password: text("password")
+        .notNull(),
+    salt: text("salt")
         .notNull(),
     createdAt: text("created_at")
         .notNull()
@@ -101,8 +108,11 @@ export const walletSymbols = sqliteTable("wallet_symbol", {
     quantity: int("quantity")
         .notNull()
         .$default(() => 0),
+    buyPrice: int("buy_price"),
     addedAt: text("added_at")
         .notNull()
         .$defaultFn(() => new Date().toISOString()),
     soldAt: text("sold_at"),
 })
+
+export type WalletSymbol = typeof walletSymbols.$inferSelect

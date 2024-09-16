@@ -3,6 +3,7 @@ import { getNews } from "@/utils/getNews"
 import { ClientLoaderFunctionArgs, Link, useLoaderData } from "@remix-run/react"
 import {
     Card,
+    CardContent,
     CardFooter,
     CardHeader,
     CardTitle,
@@ -10,6 +11,7 @@ import {
 
 import { Badge } from "@/components/ui/badge"
 import { MdPriorityHigh } from "react-icons/md"
+import formatDate from "@/utils/formatDate"
 
 export async function loader({
     params,
@@ -63,7 +65,7 @@ export default function Index() {
                                 </CardHeader>
                             </Link>
                             {item.relatedSymbols && item.relatedSymbols.length > 0 ? (
-                                <CardFooter className="flex flex-row flex-wrap items-center gap-1.5">
+                                <CardContent className="flex flex-row flex-wrap items-center gap-1.5">
                                     {item.relatedSymbols?.map((symbol) => (
                                         <Link to={`/data/${symbol?.symbolId}`} key={symbol?.symbolId}>
                                             <Badge
@@ -83,8 +85,14 @@ export default function Index() {
                                             </Badge>
                                         </Link>
                                     ))}
-                                </CardFooter>
+                                </CardContent>
                             ) : null}
+
+                            <CardFooter>
+                                <p className="text-muted-foreground">
+                                    {formatDate(item.news.published * 1000)} - {item.news.source}
+                                </p>
+                            </CardFooter>
                         </Card>
                     </div>
                 ))}

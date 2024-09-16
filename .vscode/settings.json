@@ -1,13 +1,29 @@
 {
     "cSpell.words": [
+        "figi",
+        "fillgaps",
         "ical",
+        "intraday",
+        "isin",
         "levenshtein",
         "listbox",
         "logoid",
+        "minmov",
+        "minmove",
+        "pointvalue",
+        "postmarket",
+        "premarket",
+        "pricescale",
+        "replayable",
         "roboto",
+        "subsession",
+        "subsessions",
+        "tickbars",
         "timeframe",
         "traderepublic",
+        "typespecs",
         "uuidv",
-        "vitalets"
+        "vitalets",
+        "Watchlist"
     ]
 }

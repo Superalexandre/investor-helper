@@ -77,7 +77,7 @@ async function getNews() {
             for (const item of jsonArticle.story.astDescription.children) {
                 if (item.children) {
                     const { text, html } = getChildren(item.children)
-    
+
                     htmlDescription += html
                     textDescription += text
                 }
@@ -222,6 +222,22 @@ function startServer() {
     })
 }
 
+// function sendNotification() {
+
+//     sendNotifications({
+//         subscriptions: [{
+//             endpoint: "localhost:3000",
+//             keys: {
+//                 p256dh: "",
+//                 auth: ""
+//             }
+//         }],
+//         vapidDetails,
+//         notification,
+//     })
+
+// }
+
 function main() {
     startServer()
 
@@ -235,4 +251,12 @@ function main() {
     })
 }
 
-main()
+try {
+    main()
+} catch (err) {
+    console.error("Error starting server", err)
+}
+
+process.on("uncaughtException", (err) => {
+    console.error("Erreur non capturée :", err)
+})

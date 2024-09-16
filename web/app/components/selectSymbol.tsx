@@ -35,7 +35,7 @@ export default function SelectSymbol({
         setLoading(true)
 
         // eslint-disable-next-line no-secrets/no-secrets
-        fetch(`http://localhost:3000/api/search/symbol?search=${debouncedValue}`)
+        fetch(`/api/search/symbol?search=${debouncedValue}`)
             .then(response => response.json())
             .then(data => {
                 setResultSymbols(data.symbols as Symbol[])

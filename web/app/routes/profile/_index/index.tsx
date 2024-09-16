@@ -1,17 +1,31 @@
-import type { MetaFunction } from "@remix-run/node"
+import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Link, redirect, useLoaderData } from "@remix-run/react"
-import getUser from "@/utils/getUser"
+// import getUser from "@/utils/getUser"
 import NewWallet from "@/components/wallet/new"
+import { getUser } from "@/session.server"
+import { getWalletByUser } from "@/utils/getWallet"
 
-export async function loader() {
-    const { user, wallet, watchList } = await getUser({ id: "62d56f78-1b1b-411f-ba77-59d749e265ed" })
+export async function loader({ request }: LoaderFunctionArgs) {
+
+    const user = await getUser(request)
 
     if (!user) return redirect("/")
 
+    const wallet = await getWalletByUser(user)
+
+    // const { user, wallet, watchList } = await getUser({ id: "62d56f78-1b1b-411f-ba77-59d749e265ed" })
+
+    // if (!user) return redirect("/")
+
+    // return {
+    //     user: user,
+    //     wallet: wallet,
+    //     watchList: watchList
+    // }
     return {
-        user: user,
-        wallet: wallet,
-        watchList: watchList
+        user,
+        wallet,
+        watchList: []
     }
 }
 
@@ -24,6 +38,8 @@ export const meta: MetaFunction = () => {
 
 export default function Index() {
     const { user, wallet } = useLoaderData<typeof loader>()
+
+    console.log(user)
 
     return (
         <div>

@@ -37,14 +37,15 @@
                 "./app/*"
             ],
             "@/schema/*": [
-                "./db/schema/*"
-            ],
+                "../db/schema/*"
+            ]
         },
         // Vite takes care of building everything, not tsc.
         "noEmit": true
     },
     "ts-node": {
+        "experimentalSpecifierResolution": "node",
+        "transpileOnly": true,
         "esm": true,
-        "experimentalSpecifierResolution": "node"
     }
 }

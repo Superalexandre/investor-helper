@@ -27,6 +27,7 @@
         "@stylistic/eslint-plugin": "^2.7.2",
         "@typescript-eslint/eslint-plugin": "^8.4.0",
         "@typescript-eslint/parser": "^8.4.0",
+        "bcrypt": "^5.1.1",
         "better-sqlite3": "^11.2.1",
         "depcheck": "^1.4.7",
         "drizzle-kit": "^0.24.2",
@@ -42,6 +43,7 @@
         "yargs": "^17.7.2"
     },
     "devDependencies": {
+        "@types/bcrypt": "^5.0.2",
         "@types/better-sqlite3": "^7.6.11",
         "@types/react": "^18.3.5",
         "@types/uuid": "^10.0.0",

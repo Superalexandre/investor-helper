@@ -23,9 +23,11 @@ async function getNews({ page = 1, limit = 10 }: { page?: number; limit?: number
         .offset(limit * (page - 1))
         .orderBy(desc(newsSchema.published))
         .leftJoin(newsRelatedSymbolsSchema, eq(newsSchema.id, newsRelatedSymbolsSchema.newsId))
-        .innerJoin(symbolsSchema, eq(newsRelatedSymbolsSchema.symbol, symbolsSchema.symbolId))
+        .leftJoin(symbolsSchema, eq(newsRelatedSymbolsSchema.symbol, symbolsSchema.symbolId))
 
     const groupedNews = group(news as FullNews[])
+
+    console.log(news)
 
     return groupedNews
 }

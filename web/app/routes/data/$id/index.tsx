@@ -1,23 +1,26 @@
 import type { ActionFunctionArgs, MetaFunction } from "@remix-run/node"
 import { ClientLoaderFunctionArgs, Form, redirect, useActionData, useLoaderData } from "@remix-run/react"
-import getPrices from "@/utils/getPrices"
+import getPrices, { PeriodInfo } from "@/utils/getPrices"
 import { ClientOnly } from "remix-utils/client-only"
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Bar, CartesianGrid, ComposedChart, Line, XAxis, YAxis } from "recharts"
 import { Button } from "@/components/ui/button"
 import getSymbolData from "@/utils/getSymbol"
+// import { format } from "date-fns"
+import { toZonedTime, format as formatTz } from "date-fns-tz"
 
 export async function loader({
     params
 }: ClientLoaderFunctionArgs) {
     if (!params.id) return redirect("/")
 
-    const prices = await getPrices(params.id)
+    const { period: prices, periodInfo: marketInfo } = await getPrices(params.id)
     const symbol = await getSymbolData(params.id)
 
     return {
         prices: prices.reverse(),
-        symbol
+        symbol,
+        marketInfo
     }
 }
 
@@ -30,12 +33,13 @@ export async function action({
     const body = await request.formData()
     const timeframe = body.get("timeframe")
 
-    const prices = await getPrices(params.id, {
+    const { period: prices, periodInfo: marketInfo } = await getPrices(params.id, {
         timeframe: timeframe as string
     })
 
     return {
-        prices: prices.reverse()
+        prices: prices.reverse(),
+        marketInfo
     }
 }
 
@@ -47,10 +51,8 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Index() {
-    const { prices, symbol } = useLoaderData<typeof loader>()
+    const { prices, symbol, marketInfo } = useLoaderData<typeof loader>()
     const data = useActionData<typeof action>()
-
-
 
     const chartConfig = {
         close: {
@@ -66,17 +68,22 @@ export default function Index() {
         },
     } satisfies ChartConfig
 
+
     return (
         <div>
             <div>
-                <div className="flex flex-row items-center justify-center gap-2">
-                    <img
-                        src={"https://s3-symbol-logo.tradingview.com/" + symbol.logoid + ".svg"}
-                        alt={symbol.description}
-                        className="size-12 rounded-full"
-                    />
+                <div className="flex flex-col items-center justify-center gap-4 pt-4">
+                    <div className="flex flex-row items-center justify-center gap-2">
+                        <img
+                            src={"https://s3-symbol-logo.tradingview.com/" + symbol.logoid + ".svg"}
+                            alt={symbol.description}
+                            className="size-12 rounded-full"
+                        />
 
-                    <h1 className="text-center text-2xl">Graphique pour {symbol.description}</h1>
+                        <h1 className="text-center text-2xl">Graphique pour {symbol.description}</h1>
+                    </div>
+
+                    <DisplaySession marketInfo={marketInfo} />
                 </div>
 
                 <Form method="POST">
@@ -182,5 +189,108 @@ export default function Index() {
             </div>
         </div>
 
+    )
+}
+
+function DisplaySession({ marketInfo }: { marketInfo: PeriodInfo }) {
+    const [, city] = marketInfo.timezone.split("/")
+
+    const sessionFrench: Record<string, string> = {
+        "regular": "Marché ouvert",
+        "premarket": "Pré-marché",
+        "postmarket": "Post-marché",
+        "extended": "Marché fermé",
+    }
+
+    // const sessionColors: Record<string, string> = {
+    //     "regular": "bg-green-500",
+    //     "premarket": "bg-yellow-500",
+    //     "postmarket": "bg-blue-500",
+    //     "extended": "bg-gray-500",
+    // }
+
+    // const date = new Date()
+    const date = toZonedTime(new Date(), marketInfo.timezone)
+    const prettyDate = formatTz(date, "HH:mm", { timeZone: marketInfo.timezone })
+
+    const orderSessions = ["premarket", "regular", "postmarket", "extended"]
+
+    const orderedSessions = orderSessions.map((session) => {
+        return marketInfo.subsessions.find((subsession) => subsession.id === session)
+    }).filter((session) => session !== undefined)
+
+    // for (const session of orderedSessions) {
+    //     // session.session : "0400-0930"
+    //     if (!session) continue
+
+    //     const [start, end] = session.session.split("-")
+    //     const prettyStart = start.slice(0, 2) + ":" + start.slice(2)
+    //     const prettyEnd = end.slice(0, 2) + ":" + end.slice(2)
+
+    //     console.log(`${sessionFrench[session.id]} de ${prettyStart} à ${prettyEnd}`)
+    // }
+
+    // Display the active session
+    const activeSession = orderedSessions.find((session) => {
+        if (!session) return false
+
+        const [start, end] = session.session.split("-")
+        const now = date.getHours() * 100 + date.getMinutes()
+
+        return now >= parseInt(start) && now <= parseInt(end)
+    })
+
+    // Get the time until the market open, or the time until the market close
+    // const now = date.getHours() * 100 + date.getMinutes()
+    // const [start, end] = orderedSessions[1].session.split("-")
+    // const marketOpen = parseInt(start)
+    // const marketClose = parseInt(end)
+
+    // let timeUntil: number
+    // if (now < marketOpen) {
+    //     timeUntil = marketOpen - now
+    // } else {
+    //     timeUntil = marketClose - now
+    // }
+
+    // console.log(timeUntil)
+
+    // Check if the market will open or close soon
+    const typeFrench: Record<string, string> = {
+        "open": "Ouverture",
+        "close": "Fermeture",
+    }
+    const type = activeSession?.id === "regular" ? "close" : "open"
+    let timeUntil: number
+
+    if (type === "open") {
+        const [start] = orderedSessions[1].session.split("-")
+        const marketOpen = parseInt(start)
+        const now = date.getHours() * 100 + date.getMinutes()
+
+        timeUntil = marketOpen - now
+    } else {
+        const [end] = orderedSessions[1].session.split("-")
+        const marketClose = parseInt(end)
+        const now = date.getHours() * 100 + date.getMinutes()
+
+        timeUntil = marketClose - now
+    }
+
+    const prettyTimeUntil = Math.floor(timeUntil / 100) + "h" + (timeUntil % 100) + "m"
+
+    return (
+        <div className="flex flex-col items-center justify-start">
+            <p className="">Il est {prettyDate} à {city}</p>
+            {/* <div className="flex flex-row items-center justify-center gap-2">
+                {orderedSessions.map((session) => (
+                    <div>
+                        <div className={cn("h-2 w-14 rounded-md", sessionColors[session.id])}></div>
+                    </div>
+                ))}
+            </div> */}
+            <p>Session active : {sessionFrench[activeSession?.id ?? "extended"]}</p>
+            <p>{typeFrench[type]} dans {prettyTimeUntil}</p>
+        </div>
     )
 }
