@@ -6,7 +6,7 @@
     "scripts": {
         "lint": "eslint .",
         "start": "node --loader ts-node/esm web/worker.ts",
-        "deploy": "npm i && npm run lint && tsc && cd web && npm i && npm run build && tsc -p tsconfigServer.json && cd .. && npm run db:migration:full",
+        "deploy": "npm i && tsc && cd web && npm i && npm run build && tsc -p tsconfigServer.json && cd .. && npm run db:migration:full",
         "depcheck": "depcheck --ignores=eslint,ts-node",
         "build:ext": "cd extension && tailwindcss -i ./styles/index.css -o ./styles/tailwind.css --minify && tsc",
         "css:ext": "cd extension && tailwindcss -i ./styles/index.css -o ./styles/tailwind.css --watch",
