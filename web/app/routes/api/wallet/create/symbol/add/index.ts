@@ -1,8 +1,8 @@
 import { getUser } from "@/session.server"
-import { ActionFunction, ActionFunctionArgs, json, redirect } from "@remix-run/node"
+import { ActionFunction, ActionFunctionArgs, json, /*redirect*/ } from "@remix-run/node"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
-import { wallet as walletSchema, walletSymbols as walletSymbolsSchema } from "../../../../../../../../db/schema/users"
+import { wallet as walletSchema /*, walletSymbols as walletSymbolsSchema*/ } from "../../../../../../../../db/schema/users"
 import { eq } from "drizzle-orm"
 
 export const action: ActionFunction = async ({ request }: ActionFunctionArgs) => {
@@ -37,7 +37,7 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
         return json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const body = await request.formData()
+    // const body = await request.formData()
 
     // const allSymbols = body.getAll("symbol").filter((s) => s !== "")
     // for (const symbol of allSymbols) {
