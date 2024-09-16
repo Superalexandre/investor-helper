@@ -7,13 +7,13 @@
             "ESNext"
         ],
         "target": "ES2022",
-        "module": "Node16",
+        "module": "ESNext",
         "skipLibCheck": true,
         "incremental": true,
         "isolatedModules": true,
         "esModuleInterop": true,
         "jsx": "react-jsx",
-        "moduleResolution": "node16",
+        "moduleResolution": "node",
         "resolveJsonModule": true,
         "strict": true,
         "allowJs": true,
@@ -21,11 +21,17 @@
         "baseUrl": ".",
         "paths": {
             "@/*": ["*"]
-        }
+        },
+        "types": [
+            "@remix-run/node",
+            "vite/client",
+            "remix-hono/handler"
+        ]
     },
     "include": [
         "worker.ts",
-        "server.ts"
+        "server.ts",
+        "remix-hono/handler"
     ],
     "exclude": [
         "node_modules",
