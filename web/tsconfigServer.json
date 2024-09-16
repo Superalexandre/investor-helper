@@ -1,0 +1,17 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "outDir": "./",
+        "module": "commonjs",
+        "target": "es6",
+        "rootDir": "./src",
+        "baseUrl": "./src",
+        "paths": {
+        "@/*": ["*"]
+        }
+    },
+    "include": [
+        "./worker.ts",
+        "./server.ts"
+    ]
+}

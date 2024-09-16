@@ -45,7 +45,6 @@ export default function SelectSymbol({
     }, [debouncedValue])
 
     const normalizeSymbol = (symbol: string) => {
-        // Remove the <em> </em> tags
         return symbol.replace(/<[^>]*>/g, "")
     }
 

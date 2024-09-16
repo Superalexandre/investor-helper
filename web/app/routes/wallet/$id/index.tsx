@@ -40,6 +40,7 @@ export async function loader({
 
     const prices = []
     let walletValue = 0
+    let moneyWin = 0
 
     for (const symbol of walletSymbols) {
         const [priceResult, symbolData] = await Promise.all([
@@ -51,6 +52,7 @@ export async function loader({
         const lastPrice = price[price.length - 1]
 
         walletValue += lastPrice.close * symbol.quantity
+        moneyWin += (lastPrice.close - (symbol.buyPrice ?? 0)) * symbol.quantity
 
         prices.push({
             symbol: {
@@ -67,6 +69,7 @@ export async function loader({
         walletSymbols: walletSymbols,
         // prices: prices,
         prices: prices,
+        moneyWin: moneyWin
     }
 }
 
@@ -82,7 +85,7 @@ export function HydrateFallback() {
 }
 
 export default function Index() {
-    const { walletValue, wallet, prices } = useLoaderData<typeof loader>()
+    const { walletValue, wallet, prices, moneyWin } = useLoaderData<typeof loader>()
 
     return (
         <div className="flex flex-col items-center justify-center">
@@ -92,7 +95,10 @@ export default function Index() {
             <p>{new Intl.NumberFormat("fr-FR", {
                 style: "currency",
                 currency: "EUR",
-            }).format(walletValue)}</p>
+            }).format(walletValue)} ({new Intl.NumberFormat("fr-FR", {
+                style: "currency",
+                currency: "EUR",
+            }).format(moneyWin)})</p>
 
             {/* <AddNotification /> */}
 

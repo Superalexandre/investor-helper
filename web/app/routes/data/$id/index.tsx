@@ -277,7 +277,12 @@ function DisplaySession({ marketInfo }: { marketInfo: PeriodInfo }) {
         timeUntil = marketClose - now
     }
 
-    const prettyTimeUntil = Math.floor(timeUntil / 100) + "h" + (timeUntil % 100) + "m"
+    timeUntil = Math.abs(timeUntil)
+
+    const prettyHours = Math.floor(timeUntil / 60)
+    const prettyMinutes = timeUntil % 60
+
+    const prettyTimeUntil = `${prettyHours}h ${prettyMinutes}m`
 
     return (
         <div className="flex flex-col items-center justify-start">

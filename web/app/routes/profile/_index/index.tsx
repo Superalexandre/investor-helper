@@ -39,8 +39,6 @@ export const meta: MetaFunction = () => {
 export default function Index() {
     const { user, wallet } = useLoaderData<typeof loader>()
 
-    console.log(user)
-
     return (
         <div>
             <p>User : {user.id}</p>
