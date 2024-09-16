@@ -9,7 +9,7 @@
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "remix-serve ./build/server/index.js",
     "typecheck": "tsc",
-    "worker": "node --trace-deprecation --loader ts-node/esm worker.ts "
+    "worker": "node --loader ts-node/esm worker.ts "
   },
   "dependencies": {
     "@hono/node-server": "^1.12.2",

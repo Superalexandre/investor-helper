@@ -13,11 +13,13 @@
         "isolatedModules": true,
         "esModuleInterop": true,
         "jsx": "react-jsx",
-        "moduleResolution": "Bundler",
+        "moduleResolution": "node",
         "resolveJsonModule": true,
         "strict": true,
         "allowJs": true,
         "forceConsistentCasingInFileNames": true,
+        "transpileOnly": true,
+        "esm": true,
         "baseUrl": ".",
         "paths": {
         "@/*": ["*"]
