@@ -1,37 +1,5 @@
-interface Symbol {
-    
-    // "High.1M",
-    // "Low.1M",
-    // "Perf.1M",
-    // "Perf.3M",
-    // "Perf.6M",
-    // "Perf.W",
-    // "Perf.Y",
-    // "Perf.YTD",
-    // "Recommend.All",
-    // "average_volume_10d_calc",
-    // "average_volume_30d_calc",
-    // "country",
-    // "country_code_fund",
-    // "market",
-    // "nav_discount_premium",
-    // "open_interest",
-    // "price_52_week_high",
-    // "price_52_week_low",
-    // "sector",
-    // "logoid",
-    // "name",
-    // "description",
-
+interface RawSymbol {
     ["High.1M"]: number,
-    // Low1M: number,
-    // Perf1M: number,
-    // Perf3M: number,
-    // Perf6M: number,
-    // PerfW: number,
-    // PerfY: number,
-    // PerfYTD: number,
-    // RecommendAll: number,
     ["Low.1M"]: number,
     ["Perf.1M"]: number,
     ["Perf.3M"]: number,
@@ -46,7 +14,7 @@ interface Symbol {
     country_code_fund: string,
     market: string,
     nav_discount_premium: number,
-    openInterest: number,
+    open_interest: number,
     price_52_week_high: number,
     price_52_week_low: number,
     sector: string,
@@ -54,7 +22,6 @@ interface Symbol {
     name: string,
     description: string,
 }
-
 
 export default async function getSymbolData(symbolId: string) {
     const fields = [
@@ -92,7 +59,7 @@ export default async function getSymbolData(symbolId: string) {
 
     const data = await res.json()
 
-    return data as Symbol
+    return data as RawSymbol
 }
 
-export type { Symbol }
+export type { RawSymbol }

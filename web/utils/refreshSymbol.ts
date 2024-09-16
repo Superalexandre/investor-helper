@@ -60,7 +60,8 @@ export default async function refreshSymbol({
                 price52WeekHigh: symbolData["price_52_week_high"],
                 price52WeekLow: symbolData["price_52_week_low"],
                 sector: symbolData["sector"],
-                name: symbolData["description"],
+                name: symbolData["name"],
+                description: symbolData["description"],
             })
             .where(eq(symbolsSchema.symbolId, symbolId))
         return

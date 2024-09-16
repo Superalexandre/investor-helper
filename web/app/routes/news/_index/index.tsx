@@ -67,21 +67,21 @@ export default function Index() {
                             {item.relatedSymbols && item.relatedSymbols.length > 0 ? (
                                 <CardContent className="flex flex-row flex-wrap items-center gap-1.5">
                                     {item.relatedSymbols?.map((symbol) => (
-                                        <Link to={`/data/${symbol?.symbolId}`} key={symbol?.symbolId}>
+                                        <Link to={`/data/${symbol?.symbol.symbolId}`} key={symbol?.symbol.symbolId}>
                                             <Badge
-                                                key={symbol?.symbolId}
+                                                key={symbol?.symbol.symbolId}
                                                 variant="default"
                                                 className="flex h-8 flex-row items-center justify-center"
                                             >
-                                                {symbol?.logoid ?
+                                                {symbol?.symbol.symbolId ?
                                                     <img
-                                                        src={"https://s3-symbol-logo.tradingview.com/" + symbol?.logoid + ".svg"}
-                                                        alt={symbol?.symbolId}
+                                                        src={"https://s3-symbol-logo.tradingview.com/" + symbol?.symbol.logoid + ".svg"}
+                                                        alt={symbol?.symbol.symbolId}
                                                         className="mr-1.5 size-6 rounded-full"
                                                     />
                                                     : null
                                                 }
-                                                {symbol?.name}
+                                                {symbol?.symbol.name}
                                             </Badge>
                                         </Link>
                                     ))}

@@ -1,13 +1,12 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-// import { cn } from "@/lib/utils"
 import { getNewsById } from "@/utils/getNews"
-import type { GroupedNews } from "@/utils/getNews"
 import type { MetaFunction } from "@remix-run/node"
 import { ClientLoaderFunctionArgs, Link, redirect, useLoaderData } from "@remix-run/react"
 import { MdArrowBack } from "react-icons/md"
-import { NewsArticle } from "../../../../../db/schema/news"
+import { NewsRelatedSymbol } from "../../../../../db/schema/news"
 import { cn } from "@/lib/utils"
+import { Symbol } from "@/schema/symbols"
 
 export async function loader({
     params,
@@ -17,10 +16,11 @@ export async function loader({
     // Redirect to the news page if the id is not provided
     if (!id) return redirect("/news")
 
-    const news = await getNewsById({ id })
+    const { news, relatedSymbols } = await getNewsById({ id })
 
     return {
-        news
+        news,
+        relatedSymbols
     }
 }
 
@@ -32,9 +32,7 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Index() {
-    const { news } = useLoaderData<typeof loader>()
-
-    const newsData = news[0]
+    const { news, relatedSymbols } = useLoaderData<typeof loader>()
 
     return (
         <div className="relative flex w-full flex-col items-center">
@@ -48,21 +46,21 @@ export default function Index() {
 
             <div className="px-8 lg:w-3/4">
                 <div className="flex flex-col items-center justify-center pb-8">
-                    <p className="pt-4 text-center text-2xl font-bold">{newsData.news.title}</p>
+                    <p className="pt-4 text-center text-2xl font-bold">{news.news.title}</p>
 
-                    <p className="text-muted-foreground text-center">{formatDateTime(newsData.news.published * 1000)}</p>
+                    <p className="text-muted-foreground text-center">{formatDateTime(news.news.published * 1000)}</p>
                 </div>
 
                 <div className="flex flex-col">
                     <div className="flex flex-col justify-between gap-8">
                         <ConvertHtmlToReact
-                            json={newsData.newsArticle.jsonDescription}
-                            newsData={newsData}
+                            json={news.news_article.jsonDescription}
+                            relatedSymbols={relatedSymbols}
                         />
                     </div>
 
                     <div className="my-10">
-                        <p className="text-muted-foreground">Source : {newsData.newsArticle.copyright || newsData.news.source}</p>
+                        <p className="text-muted-foreground">Source : {news.news_article.copyright || news.news.source}</p>
                     </div>
                 </div>
             </div>
@@ -70,13 +68,18 @@ export default function Index() {
     )
 }
 
-function ConvertHtmlToReact({ json, newsData }: { json: string, newsData: GroupedNews<NewsArticle> }) {
+interface FullSymbol {
+    symbol: Symbol
+    news_related_symbol: NewsRelatedSymbol
+}
+
+function ConvertHtmlToReact({ json, relatedSymbols }: { json: string, relatedSymbols: FullSymbol[] }) {
     const convertedJson = JSON.parse(json)
 
     const Component = []
 
     if (convertedJson.children) {
-        Component.push(GetDeepComponent(convertedJson.children, newsData))
+        Component.push(GetDeepComponent(convertedJson.children, relatedSymbols))
     }
 
     return Component
@@ -90,7 +93,7 @@ interface Params {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function GetDeepComponent(children: any, data: GroupedNews<NewsArticle>, { className, rawText }: Params = {}) {
+function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], { className, rawText }: Params = {}) {
     const Component = []
 
     for (const child of children) {
@@ -125,7 +128,7 @@ function GetDeepComponent(children: any, data: GroupedNews<NewsArticle>, { class
 
         if (typeof child === "object") {
             if (["symbol"].includes(child?.type)) {
-                const relatedSymbolsData = data.relatedSymbols?.find(symbol => symbol?.symbolId === child.params?.symbol)
+                const relatedSymbolsData = relatedSymbols.find(({symbol}) => symbol.symbolId === child.params?.symbol)
 
                 Component.push(
                     <Link to={`/data/${child.params?.symbol}`} key={`${child.params?.symbol}-${Component.length}`} className={className?.badge}>
@@ -133,10 +136,10 @@ function GetDeepComponent(children: any, data: GroupedNews<NewsArticle>, { class
                             variant="default"
                             className="flex h-8 flex-row items-center justify-center"
                         >
-                            {relatedSymbolsData?.logoid ?
+                            {relatedSymbolsData?.symbol.logoid ?
                                 <img
                                     id={child.params?.symbol}
-                                    src={"https://s3-symbol-logo.tradingview.com/" + relatedSymbolsData?.logoid + ".svg"}
+                                    src={"https://s3-symbol-logo.tradingview.com/" + relatedSymbolsData?.symbol.logoid + ".svg"}
                                     alt={child.params?.symbol}
                                     className="mr-1.5 size-6 rounded-full"
                                 />
@@ -147,7 +150,7 @@ function GetDeepComponent(children: any, data: GroupedNews<NewsArticle>, { class
                     </Link>
                 )
             } else if (["b", "p", "i"].includes(child?.type)) {
-                const ComponentResult = GetDeepComponent(child.children, data, {
+                const ComponentResult = GetDeepComponent(child.children, relatedSymbols, {
                     className: {
                         badge: "inline-block align-middle",
                         image: "mx-auto",
@@ -173,7 +176,7 @@ function GetDeepComponent(children: any, data: GroupedNews<NewsArticle>, { class
                     </Link>
                 )
             } else if (["list"].includes(child?.type)) {
-                const ComponentResult = GetDeepComponent(child.children, data, {
+                const ComponentResult = GetDeepComponent(child.children, relatedSymbols, {
                     className: {
                         badge: "inline-block align-middle",
                         image: "mx-auto",
@@ -187,7 +190,7 @@ function GetDeepComponent(children: any, data: GroupedNews<NewsArticle>, { class
                     </ul>
                 )
             } else if (["*"].includes(child?.type)) {
-                const ComponentResult = GetDeepComponent(child.children, data, {
+                const ComponentResult = GetDeepComponent(child.children, relatedSymbols, {
                     className: {
                         badge: "inline-block align-middle",
                         image: "mx-auto",

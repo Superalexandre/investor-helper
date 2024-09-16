@@ -40,8 +40,6 @@ async function getWalletById({ id, token }: { id: string, token: string }) {
         .from(walletSymbolsSchema)
         .where(eq(walletSymbolsSchema.walletId, wallet.walletId))
 
-    console.log(walletSymbols)
-
     return {
         wallet,
         walletSymbols: walletSymbols || []

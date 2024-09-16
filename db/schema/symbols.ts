@@ -26,6 +26,7 @@ export const symbols = sqliteTable("symbol", {
     price52WeekLow: int("price_52_week_low"),
     sector: text("sector"),
     name: text("name"),
+    description: text("description"),
 })
 
 // export type NewsRelatedSymbol = typeof newsRelatedSymbols.$inferSelect

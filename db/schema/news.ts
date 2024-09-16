@@ -39,10 +39,10 @@ export type NewsRelatedSymbol = typeof newsRelatedSymbols.$inferSelect
 export const newsArticle = sqliteTable("news_article", {
     newsId: text("news_id").references(() => news.id),
     date: int("date"),
-    htmlDescription: text("html_description")
-        .notNull(),
-    textDescription: text("text_description")
-        .notNull(),
+    // htmlDescription: text("html_description")
+    //     .notNull(),
+    // textDescription: text("text_description")
+    //     .notNull(),
     jsonDescription: text("json_description")
         .notNull(),
     shortDescription: text("short_description"),

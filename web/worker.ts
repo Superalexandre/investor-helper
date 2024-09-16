@@ -70,23 +70,10 @@ async function getNews() {
         if (!jsonArticle) return console.error("No article found (jsonArticle)")
 
         const jsonDescription = JSON.stringify(jsonArticle.story.astDescription)
-        let htmlDescription = ""
-        let textDescription = ""
-
-        if (jsonArticle.story.astDescription) {
-            for (const item of jsonArticle.story.astDescription.children) {
-                if (item.children) {
-                    const { text, html } = getChildren(item.children)
-
-                    htmlDescription += html
-                    textDescription += text
-                }
-            }
-        }
 
         newsItem.article = {
-            htmlDescription: htmlDescription,
-            textDescription: textDescription,
+            // htmlDescription: htmlDescription,
+            // textDescription: textDescription,
             jsonDescription: jsonDescription,
             shortDescription: jsonArticle.story.shortDescription,
             copyright: jsonArticle.story.copyright,
@@ -154,8 +141,6 @@ async function saveNews() {
                 .values({
                     newsId: news.id,
                     date: news.published,
-                    textDescription: news.article.textDescription,
-                    htmlDescription: news.article.htmlDescription,
                     jsonDescription: news.article.jsonDescription,
                     shortDescription: news.article.shortDescription,
                     copyright: news.article.copyright
@@ -166,51 +151,6 @@ async function saveNews() {
     }
 
     console.log(`Inserted ${count} news`)
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getChildren(children: any) {
-    let text = ""
-    let html = ""
-
-    for (const child of children) {
-        if (child.type === "news-image") {
-            html += `<img src="https://s3.tradingview.com/news/image/${child.params.image.id}-resized.jpeg" alt="${child.params.image.alt ?? ""}" />`
-            text += child.params.image.alt
-
-            continue
-        }
-
-        if (typeof child === "string") {
-            html += `<p>${child}</p>`
-            text += `${child}\n`
-
-            continue
-        }
-
-        if (typeof child === "object") {
-            if (["symbol"].includes(child?.type)) {
-                html += `<a href="${child?.params.symbol}" class='symbol'>${child?.params.text}</a>`
-                text += child.text
-            } else if (["b", "p", "i"].includes(child?.type)) {
-                const { text: textDeepChildren, html: textDeepHtml } = getChildren(child.children)
-
-                html += `<${child.type}>${textDeepChildren}</${child.type}>`
-                text += textDeepHtml
-            } else if (["url"].includes(child?.type)) {
-                html += `<a href="${child.params.url}">${child.params.linkText}</a>`
-                text += `${child.params.linkText} (${child.params.url})`
-            } else {
-                console.error("Unknown child", child)
-            }
-
-            continue
-        }
-
-        console.error("Unknown type", child)
-    }
-
-    return { text, html }
 }
 
 function startServer() {

@@ -2,7 +2,7 @@ import { vitePlugin as remix } from "@remix-run/dev"
 import { defineConfig } from "vite"
 import tsconfigPaths from "vite-tsconfig-paths"
 import { flatRoutes } from "remix-flat-routes"
-// import react from "@vitejs/plugin-react"
+import react from "@vitejs/plugin-react"
 import { remixPWA } from "@remix-pwa/dev"
 // import external from "rollup-plugin-peer-deps-external"
 // import { nodePolyfills } from "vite-plugin-node-polyfills"
@@ -16,11 +16,10 @@ export default defineConfig({
         // modulePreload: {
         //     polyfill: true
         // },
-        rollupOptions: {
-            external: ["react", "react-dom", "bcrypt", "crypto"],
-        }
+        // rollupOptions: {
+        //     external: ["react", "react-dom", "bcrypt", "crypto"],
+        // }
     },
-    envDir: "../",
     server: {
         port: 4000,
     },
@@ -28,8 +27,7 @@ export default defineConfig({
         noExternal: ["react-charts", "remix-utils"]
     },
     plugins: [
-        // react(),
-        // nodePolyfills(),
+        isProduction && react(),
         remix({
             routes: (defineRoutes) => {
                 return flatRoutes("routes", defineRoutes)

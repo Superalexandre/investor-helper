@@ -5,7 +5,7 @@ import { compress } from "hono/compress"
 import { remix } from "remix-hono/handler"
 
 import calendar from "./api/calendar.js"
-import news from "./api/news.js"
+// import news from "./api/news.js"
 // import search from "./app/routes/api/search.js"
 import "dotenv/config"
 
@@ -15,7 +15,7 @@ const app = new Hono()
 
 app.use(compress())
 app.route("/api/calendar", calendar)
-app.route("/api/news", news)
+// app.route("/api/news", news)
 // app.route("/api/search", search)
 app.use("/*", serveStatic({ root: "./build/client" }))
 app.use("/build/*", serveStatic({ root: isDev ? "./public/build" : "./build/client" }))

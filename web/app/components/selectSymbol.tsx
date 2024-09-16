@@ -7,7 +7,7 @@ import { MdDelete } from "react-icons/md"
 import { useDebounceValue } from "usehooks-ts"
 import { Label } from "./ui/label"
 
-interface Symbol {
+interface SelectSymbolType {
     symbol: string
     description: string
     exchange: string
@@ -17,14 +17,14 @@ export default function SelectSymbol({
     selectedSymbol,
     setSelectedSymbol
 }: {
-    selectedSymbol: Symbol[]
-    setSelectedSymbol: Dispatch<SetStateAction<Symbol[]>>
+    selectedSymbol: SelectSymbolType[]
+    setSelectedSymbol: Dispatch<SetStateAction<SelectSymbolType[]>>
 }) {
     const refInput = useRef<HTMLInputElement>(null)
     const [debouncedValue, setValue] = useDebounceValue("", 750)
 
     const [, setLoading] = useState(false)
-    const [resultSymbols, setResultSymbols] = useState<Symbol[]>([])
+    const [resultSymbols, setResultSymbols] = useState<SelectSymbolType[]>([])
 
     useEffect(() => {
         if (!debouncedValue) {
@@ -38,7 +38,7 @@ export default function SelectSymbol({
         fetch(`/api/search/symbol?search=${debouncedValue}`)
             .then(response => response.json())
             .then(data => {
-                setResultSymbols(data.symbols as Symbol[])
+                setResultSymbols(data.symbols as SelectSymbolType[])
                 setLoading(false)
             })
 
@@ -105,4 +105,4 @@ export default function SelectSymbol({
     )
 }
 
-export type { Symbol }
+export type { SelectSymbolType }

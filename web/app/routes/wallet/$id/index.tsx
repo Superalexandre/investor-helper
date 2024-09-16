@@ -10,16 +10,16 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { useMemo, useState } from "react"
-import SelectSymbol, { Symbol as SymbolSelect } from "@/components/selectSymbol"
+import SelectSymbol, { SelectSymbolType } from "@/components/selectSymbol"
 import getPrices, { Period } from "@/utils/getPrices"
 import { ClientOnly } from "remix-utils/client-only"
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Line, LineChart, XAxis, YAxis } from "recharts"
 import { WalletSymbol } from "../../../../../db/schema/users"
-import getSymbolData, { Symbol } from "@/utils/getSymbol"
+import getSymbolData, { RawSymbol } from "@/utils/getSymbol"
 import { getUser } from "@/session.server"
 
-type FullSymbol = Symbol & WalletSymbol
+type FullSymbol = RawSymbol & WalletSymbol
 
 export async function loader({
     params,
@@ -262,7 +262,7 @@ export function ChartWallet({ prices }: { prices: Prices[] }) {
 }
 
 export function FindSymbols({ triggerText }: { triggerText: string }) {
-    const [selectedSymbol, setSelectedSymbol] = useState<SymbolSelect[]>([])
+    const [selectedSymbol, setSelectedSymbol] = useState<SelectSymbolType[]>([])
 
     return (
         <Dialog>
