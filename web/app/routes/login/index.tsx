@@ -71,12 +71,10 @@ export default function Index() {
     return (
         <div className="flex h-screen w-screen flex-1 flex-col items-center justify-center">
             <Card className="size-1/2">
-                <CardTitle>
-                    <h1 className="mt-2 flex flex-row items-center justify-center gap-2 text-center text-3xl font-bold text-white">
-                        <MdLogin size={30} />
+                <CardTitle className="flex flex-row items-center justify-center gap-2 pb-8 pt-4 text-center text-3xl font-bold text-white">
+                    <MdLogin size={30} />
 
-                        Connexion
-                    </h1>
+                    Connexion
                 </CardTitle>
                 <CardContent className="h-full">
                     <Form

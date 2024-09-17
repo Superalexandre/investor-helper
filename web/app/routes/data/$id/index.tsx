@@ -199,8 +199,6 @@ export default function Index() {
 function DisplaySession({ marketInfo }: { marketInfo: PeriodInfo }) {
     const [, city] = marketInfo.timezone.split("/")
 
-    console.log(marketInfo)
-
     const sessionFrench: Record<string, string> = {
         "regular": "Marché ouvert",
         "premarket": "Pré-marché",
