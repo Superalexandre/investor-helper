@@ -7,3 +7,5 @@ node_modules
 *.tsbuildinfo
 # Million Lint
 .million
+
+!postcss.config.js

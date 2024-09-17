@@ -31,6 +31,7 @@ const _plugins = [
 ]
 
 // if (!isProduction) _plugins.unshift(MillionLint.vite({
+//     rsc: true,
 //     dev: true,
 //     framework: "react"
 // }))
