@@ -47,8 +47,8 @@ export async function action({
 
 export const meta: MetaFunction = () => {
     return [
-        { title: "New Remix App" },
-        { name: "description", content: "Welcome to Remix!" },
+        { title: "Investor Helper - Data" },
+        // { name: "description", content: "Welcome to Remix!" },
     ]
 }
 
@@ -76,11 +76,13 @@ export default function Index() {
             <div>
                 <div className="flex flex-col items-center justify-center gap-4 pt-4">
                     <div className="flex flex-row items-center justify-center gap-2">
-                        <img
-                            src={"https://s3-symbol-logo.tradingview.com/" + symbol.logoid + ".svg"}
-                            alt={symbol.description}
-                            className="size-12 rounded-full"
-                        />
+                        {symbol.logoid && symbol.logoid !== null && symbol.logoid !== "" ? (
+                            <img
+                                src={"https://s3-symbol-logo.tradingview.com/" + symbol.logoid + ".svg"}
+                                alt={symbol.description}
+                                className="size-12 rounded-full"
+                            />
+                        ) : null}
 
                         <h1 className="text-center text-2xl">Graphique pour {symbol.description}</h1>
                     </div>
@@ -197,19 +199,14 @@ export default function Index() {
 function DisplaySession({ marketInfo }: { marketInfo: PeriodInfo }) {
     const [, city] = marketInfo.timezone.split("/")
 
+    console.log(marketInfo)
+
     const sessionFrench: Record<string, string> = {
         "regular": "Marché ouvert",
         "premarket": "Pré-marché",
         "postmarket": "Post-marché",
         "extended": "Marché fermé",
     }
-
-    // const sessionColors: Record<string, string> = {
-    //     "regular": "bg-green-500",
-    //     "premarket": "bg-yellow-500",
-    //     "postmarket": "bg-blue-500",
-    //     "extended": "bg-gray-500",
-    // }
 
     // const date = new Date()
     const date = toZonedTime(new Date(), marketInfo.timezone)
@@ -221,41 +218,17 @@ function DisplaySession({ marketInfo }: { marketInfo: PeriodInfo }) {
         return marketInfo.subsessions.find((subsession) => subsession.id === session)
     }).filter((session) => session !== undefined)
 
-    // for (const session of orderedSessions) {
-    //     // session.session : "0400-0930"
-    //     if (!session) continue
-
-    //     const [start, end] = session.session.split("-")
-    //     const prettyStart = start.slice(0, 2) + ":" + start.slice(2)
-    //     const prettyEnd = end.slice(0, 2) + ":" + end.slice(2)
-
-    //     console.log(`${sessionFrench[session.id]} de ${prettyStart} à ${prettyEnd}`)
-    // }
-
     // Display the active session
-    const activeSession = orderedSessions.find((session) => {
+    const activeSession = marketInfo.type !== "spot" ? orderedSessions.find((session) => {
         if (!session) return false
 
         const [start, end] = session.session.split("-")
         const now = date.getHours() * 100 + date.getMinutes()
 
         return now >= parseInt(start) && now <= parseInt(end)
-    })
+    }) : orderedSessions[0]
 
-    // Get the time until the market open, or the time until the market close
-    // const now = date.getHours() * 100 + date.getMinutes()
-    // const [start, end] = orderedSessions[1].session.split("-")
-    // const marketOpen = parseInt(start)
-    // const marketClose = parseInt(end)
-
-    // let timeUntil: number
-    // if (now < marketOpen) {
-    //     timeUntil = marketOpen - now
-    // } else {
-    //     timeUntil = marketClose - now
-    // }
-
-    // console.log(timeUntil)
+    const regularSession = orderedSessions.find((session) => session.id === "regular") ?? orderedSessions[0]
 
     // Check if the market will open or close soon
     const typeFrench: Record<string, string> = {
@@ -263,41 +236,66 @@ function DisplaySession({ marketInfo }: { marketInfo: PeriodInfo }) {
         "close": "Fermeture",
     }
     const type = activeSession?.id === "regular" ? "close" : "open"
-    let timeUntil: number
 
-    if (type === "open") {
-        const [start] = orderedSessions[1].session.split("-")
-        const marketOpen = parseInt(start)
-        const now = date.getHours() * 100 + date.getMinutes()
+    // let timeUntil: number = 0
+    let prettyTimeUntil: string = ""
 
-        timeUntil = marketOpen - now
-    } else {
-        const [end] = orderedSessions[1].session.split("-")
-        const marketClose = parseInt(end)
-        const now = date.getHours() * 100 + date.getMinutes()
+    if (marketInfo.type !== "spot") {
+        if (type === "open") {
+            const [start] = regularSession.session.split("-")
+            const marketOpen = parseInt(start)
 
-        timeUntil = marketClose - now
+            const marketOpenHours = Math.floor(marketOpen / 100)
+            const marketOpenMinutes = marketOpen % 100
+
+            const currentHours = date.getHours()
+            const currentMinutes = date.getMinutes()
+
+            let hoursUntilOpen = marketOpenHours - currentHours
+            let minutesUntilOpen = marketOpenMinutes - currentMinutes
+
+            if (minutesUntilOpen < 0) {
+                hoursUntilOpen -= 1
+                minutesUntilOpen += 60
+            }
+
+            if (hoursUntilOpen < 0 || (hoursUntilOpen === 0 && minutesUntilOpen < 0)) {
+                hoursUntilOpen += 24
+            }
+
+            // timeUntil = hoursUntilOpen * 60 + minutesUntilOpen
+            prettyTimeUntil = `${hoursUntilOpen}h ${minutesUntilOpen}m`
+        } else {
+            const [, end] = regularSession.session.split("-")
+            const marketClose = parseInt(end)
+
+            const marketCloseHours = Math.floor(marketClose / 100)
+            const marketCloseMinutes = marketClose % 100
+
+            const currentHours = date.getHours()
+            const currentMinutes = date.getMinutes()
+
+            let hoursRemaining = marketCloseHours - currentHours
+            let minutesRemaining = marketCloseMinutes - currentMinutes
+
+            if (minutesRemaining < 0) {
+                hoursRemaining -= 1
+                minutesRemaining += 60
+            }
+
+            // timeUntil = hoursRemaining * 60 + minutesRemaining
+            prettyTimeUntil = `${hoursRemaining}h ${minutesRemaining}m`
+        }
     }
-
-    timeUntil = Math.abs(timeUntil)
-
-    const prettyHours = Math.floor(timeUntil / 60)
-    const prettyMinutes = timeUntil % 60
-
-    const prettyTimeUntil = `${prettyHours}h ${prettyMinutes}m`
 
     return (
         <div className="flex flex-col items-center justify-start">
             <p className="">Il est {prettyDate} à {city}</p>
-            {/* <div className="flex flex-row items-center justify-center gap-2">
-                {orderedSessions.map((session) => (
-                    <div>
-                        <div className={cn("h-2 w-14 rounded-md", sessionColors[session.id])}></div>
-                    </div>
-                ))}
-            </div> */}
             <p>Session active : {sessionFrench[activeSession?.id ?? "extended"]}</p>
-            <p>{typeFrench[type]} dans {prettyTimeUntil}</p>
+
+            {prettyTimeUntil !== "" ? (
+                <p>{typeFrench[type]} dans {prettyTimeUntil}</p>
+            ) : null}
         </div>
     )
 }

@@ -9,7 +9,7 @@ import * as zod from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 
 import login from "./login"
-import { ActionFunctionArgs, json, LoaderFunctionArgs } from "@remix-run/node"
+import { ActionFunctionArgs, json, LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Button } from "@/components/ui/button"
 import { getUser } from "@/session.server"
 
@@ -37,6 +37,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     return null
 }
+
 export async function action({ request }: ActionFunctionArgs) {
     const { errors, data, receivedValues: defaultValues } = await getValidatedFormData<FormData>(request, resolver)
 
@@ -46,6 +47,14 @@ export async function action({ request }: ActionFunctionArgs) {
 
     return result
 }
+
+export const meta: MetaFunction = () => {
+    return [
+        { title: "Investor Helper - Connexion" },
+        // { name: "description", content: "Welcome to Remix!" },
+    ]
+}
+
 export default function Index() {
     const [showPassword, setShowPassword] = useState(false)
     const [params,] = useSearchParams()

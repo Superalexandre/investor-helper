@@ -26,8 +26,8 @@ export async function loader({
 
 export const meta: MetaFunction = () => {
     return [
-        { title: "New Remix App" },
-        { name: "description", content: "Welcome to Remix!" },
+        { title: "Investor Helper - Actualité" },
+        // { name: "description", content: "Welcome to Remix!" },
     ]
 }
 
@@ -136,7 +136,7 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], { classNa
                             variant="default"
                             className="flex h-8 flex-row items-center justify-center"
                         >
-                            {relatedSymbolsData?.symbol.logoid ?
+                            {relatedSymbolsData?.symbol.logoid && relatedSymbolsData?.symbol.logoid !== null && relatedSymbolsData?.symbol.logoid !== "" ?
                                 <img
                                     id={child.params?.symbol}
                                     src={"https://s3-symbol-logo.tradingview.com/" + relatedSymbolsData?.symbol.logoid + ".svg"}
@@ -145,7 +145,10 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], { classNa
                                 />
                                 : null
                             }
-                            {child.params?.symbol}
+
+                            <p>
+                                {child.params?.symbol}
+                            </p>
                         </Badge>
                     </Link>
                 )

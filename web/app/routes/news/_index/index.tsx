@@ -33,6 +33,7 @@ export async function loader({
 export const meta: MetaFunction = () => {
     return [
         { title: "Investor Helper - Les actualités" },
+        // { name: "description", content: "Les dernières actualités du monde de la finance" },
     ]
 }
 
@@ -73,7 +74,7 @@ export default function Index() {
                                                 variant="default"
                                                 className="flex h-8 flex-row items-center justify-center"
                                             >
-                                                {symbol?.symbol.symbolId ?
+                                                {symbol?.symbol.symbolId && symbol?.symbol.logoid !== null && symbol?.symbol.logoid !== "" ?
                                                     <img
                                                         src={"https://s3-symbol-logo.tradingview.com/" + symbol?.symbol.logoid + ".svg"}
                                                         alt={symbol?.symbol.symbolId}

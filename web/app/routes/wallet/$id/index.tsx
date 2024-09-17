@@ -75,8 +75,8 @@ export async function loader({
 
 export const meta: MetaFunction = () => {
     return [
-        { title: "New Remix App" },
-        { name: "description", content: "Welcome to Remix!" },
+        { title: "Investor Helper - Votre portefeuille" },
+        // { name: "description", content: "Welcome to Remix!" },
     ]
 }
 
