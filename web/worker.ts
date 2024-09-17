@@ -116,6 +116,8 @@ async function saveNews() {
                     provider: news.provider,
                     link: news.link
                 })
+
+            count++
         }
 
 
@@ -146,8 +148,6 @@ async function saveNews() {
                     copyright: news.article.copyright
                 })
         }
-
-        count++
     }
 
     console.log(`Inserted ${count} news`)
