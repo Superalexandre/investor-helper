@@ -1,6 +1,6 @@
 import { relations } from "drizzle-orm"
 import { int, sqliteTable, text } from "drizzle-orm/sqlite-core"
-import { symbols } from "./symbols"
+import { symbols } from "./symbols.js"
 
 export const news = sqliteTable("news", {
     id: text("id")

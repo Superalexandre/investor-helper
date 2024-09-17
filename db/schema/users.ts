@@ -2,7 +2,7 @@ import { sqliteTable, text, int } from "drizzle-orm/sqlite-core"
 // import { createId } from "@paralleldrive/cuid2"
 import crypto from "node:crypto"
 import { v4 as uuidv4 } from "uuid"
-import { symbols } from "./symbols"
+import { symbols } from "./symbols.js"
 
 export const users = sqliteTable("user", {
     id: text("id")

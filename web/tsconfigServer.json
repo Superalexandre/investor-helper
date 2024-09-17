@@ -7,13 +7,13 @@
             "ESNext"
         ],
         "target": "ES2022",
-        "module": "ESNext",
+        "module": "nodenext",
         "skipLibCheck": true,
         "incremental": true,
         "isolatedModules": true,
         "esModuleInterop": true,
         "jsx": "react-jsx",
-        "moduleResolution": "node",
+        "moduleResolution": "nodenext",
         "resolveJsonModule": true,
         "strict": true,
         "allowJs": true,
@@ -24,8 +24,7 @@
         },
         "types": [
             "@remix-run/node",
-            "vite/client",
-            "remix-hono/handler"
+            "vite/client"
         ]
     },
     "include": [
