@@ -13,6 +13,8 @@ const isDev = process.env.NODE_ENV === "development"
 
 const app = new Hono()
 
+console.log("NODE_ENV", process.env.NODE_ENV)
+
 app.use(compress())
 app.route("/api/calendar", calendar)
 // app.route("/api/news", news)

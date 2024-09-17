@@ -17,6 +17,8 @@ export async function loader({
     const { period: prices, periodInfo: marketInfo } = await getPrices(params.id)
     const symbol = await getSymbolData(params.id)
 
+    if (!symbol || !prices || !marketInfo) return redirect("/")
+
     return {
         prices: prices.reverse(),
         symbol,
