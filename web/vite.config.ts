@@ -30,7 +30,9 @@ const _plugins = [
     remixPWA(), 
     tsconfigPaths()
 ]
-_plugins.unshift(MillionLint.vite())
+
+if (!isProduction) _plugins.unshift(MillionLint.vite())
+
 export default defineConfig({
     build: {
         // modulePreload: {
