@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { MdPriorityHigh } from "react-icons/md"
 import formatDate from "@/utils/formatDate"
+import SymbolLogo from "@/components/symbolLogo"
 
 export async function loader({
     params,
@@ -74,14 +75,19 @@ export default function Index() {
                                                 variant="default"
                                                 className="flex h-8 flex-row items-center justify-center"
                                             >
-                                                {symbol?.symbol.symbolId && symbol?.symbol.logoid !== null && symbol?.symbol.logoid !== "" ?
+                                                <SymbolLogo
+                                                    symbol={symbol?.symbol}
+                                                    className="mr-1.5 size-6 rounded-full"
+                                                />
+
+                                                {/* {symbol?.symbol.symbolId && symbol?.symbol.logoid !== null && symbol?.symbol.logoid !== "" ?
                                                     <img
                                                         src={"https://s3-symbol-logo.tradingview.com/" + symbol?.symbol.logoid + ".svg"}
                                                         alt={symbol?.symbol.symbolId}
                                                         className="mr-1.5 size-6 rounded-full"
                                                     />
                                                     : null
-                                                }
+                                                } */}
                                                 {symbol?.symbol.name}
                                             </Badge>
                                         </Link>

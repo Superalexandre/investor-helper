@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import getSymbolData from "@/utils/getSymbol"
 // import { format } from "date-fns"
 import { toZonedTime, format as formatTz } from "date-fns-tz"
+import SymbolLogo from "@/components/symbolLogo"
 
 export async function loader({
     params
@@ -76,13 +77,19 @@ export default function Index() {
             <div>
                 <div className="flex flex-col items-center justify-center gap-4 pt-4">
                     <div className="flex flex-row items-center justify-center gap-2">
-                        {symbol.logoid && symbol.logoid !== null && symbol.logoid !== "" ? (
+                        {/* {symbol.logoid && symbol.logoid !== null && symbol.logoid !== "" ? (
                             <img
                                 src={"https://s3-symbol-logo.tradingview.com/" + symbol.logoid + ".svg"}
                                 alt={symbol.description}
                                 className="size-12 rounded-full"
                             />
-                        ) : null}
+                        ) : null} */}
+                        <SymbolLogo
+                            symbol={symbol}
+                            className="size-12 rounded-full"
+                            alt={symbol.description}
+                        />
+
 
                         <h1 className="text-center text-2xl">Graphique pour {symbol.description}</h1>
                     </div>

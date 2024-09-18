@@ -11,20 +11,30 @@ interface SelectSymbolType {
     symbol: string
     description: string
     exchange: string
+    logoid: string
+    price: number
+    quantity: number
+    currency_code: string
 }
 
-export default function SelectSymbol({
-    selectedSymbol,
-    setSelectedSymbol
+export function normalizeSymbol(symbol: string) {
+    return symbol.replace(/<[^>]*>/g, "")
+}
+
+export function SearchSymbol({
+    onClick,
+    replace,
+    required
 }: {
-    selectedSymbol: SelectSymbolType[]
-    setSelectedSymbol: Dispatch<SetStateAction<SelectSymbolType[]>>
-}) {
+    onClick?: (symbol: SelectSymbolType) => void,
+    replace?: boolean
+    required?: boolean
+} = { replace: false, required: false }) {
     const refInput = useRef<HTMLInputElement>(null)
+    const [resultSymbols, setResultSymbols] = useState<SelectSymbolType[]>([])
     const [debouncedValue, setValue] = useDebounceValue("", 750)
 
     const [, setLoading] = useState(false)
-    const [resultSymbols, setResultSymbols] = useState<SelectSymbolType[]>([])
 
     useEffect(() => {
         if (!debouncedValue) {
@@ -43,10 +53,60 @@ export default function SelectSymbol({
 
     }, [debouncedValue])
 
-    const normalizeSymbol = (symbol: string) => {
-        return symbol.replace(/<[^>]*>/g, "")
-    }
+    return (
+        <div className="relative">
+            <Label htmlFor="symbol">Symbole</Label>
+            <Input
+                id="symbol"
+                name="symbol"
+                ref={refInput}
+                type="text"
+                placeholder="Rechercher un symbole"
+                onChange={event => setValue(event.target.value)}
+                required={required}
+            />
 
+            {resultSymbols && resultSymbols.length > 0 ? (
+                <Card className="absolute left-0 top-full z-10 mt-1 h-32 w-full overflow-x-hidden overflow-y-scroll">
+                    {resultSymbols.map((symbol, i) => (
+                        <Button
+                            variant="outline"
+                            key={normalizeSymbol(symbol.symbol) + "-" + i}
+                            onClick={() => {
+                                if (refInput.current && !replace) refInput.current.value = ""
+
+                                if (refInput.current && replace) {
+                                    console.log("replace", symbol)
+                                 
+                                    refInput.current.value = `${normalizeSymbol(symbol.description)} (${normalizeSymbol(symbol.symbol)})`
+                                }
+
+                                setValue("")
+                                setResultSymbols([])
+
+                                if (onClick !== undefined) onClick(symbol)
+                            }}
+                            className="flex w-full flex-row items-center justify-between border-none p-2"
+                        >
+                            <p>{normalizeSymbol(symbol.description)} ({normalizeSymbol(symbol.symbol)})</p>
+
+                            <p>{symbol.exchange}</p>
+                        </Button>
+                    ))}
+                </Card>
+            ) : null}
+        </div>
+    )
+
+}
+
+export default function SelectSymbol({
+    selectedSymbol,
+    setSelectedSymbol
+}: {
+    selectedSymbol: SelectSymbolType[]
+    setSelectedSymbol: Dispatch<SetStateAction<SelectSymbolType[]>>
+}) {
     return (
         <div className="flex flex-col gap-2">
             <div className="flex flex-row flex-wrap gap-2">
@@ -64,40 +124,9 @@ export default function SelectSymbol({
                 ))}
             </div>
 
-            <div className="relative">
-                <Label htmlFor="symbol">Symbole</Label>
-                <Input
-                    id="symbol"
-                    name="symbol"
-                    ref={refInput}
-                    type="text"
-                    placeholder="Rechercher un symbole"
-                    onChange={event => setValue(event.target.value)}
-                />
-
-                {resultSymbols && resultSymbols.length > 0 ? (
-                    <Card className="absolute left-0 top-full z-10 mt-1 h-32 w-full overflow-x-hidden overflow-y-scroll">
-                        {resultSymbols.map((symbol, i) => (
-                            <Button
-                                variant="outline"
-                                key={normalizeSymbol(symbol.symbol) + "-" + i}
-                                onClick={() => {
-                                    if (refInput.current) refInput.current.value = ""
-
-                                    setValue("")
-                                    setResultSymbols([])
-                                    setSelectedSymbol((prev) => [...prev, symbol])
-                                }}
-                                className="flex w-full flex-row items-center justify-between border-none p-2"
-                            >
-                                <p>{normalizeSymbol(symbol.description)} ({normalizeSymbol(symbol.symbol)})</p>
-
-                                <p>{symbol.exchange}</p>
-                            </Button>
-                        ))}
-                    </Card>
-                ) : null}
-            </div>
+            <SearchSymbol 
+                onClick={(symbol) => setSelectedSymbol((prev) => [...prev, symbol])}
+            />
         </div>
 
     )

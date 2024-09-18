@@ -106,7 +106,8 @@ async function createUser() {
             .values({
                 walletId: walletId,
                 symbol: symbol,
-                quantity: 0
+                quantity: 0,
+                currency: "USD",
             })
     }
 

@@ -7,6 +7,7 @@ import { MdArrowBack } from "react-icons/md"
 import { NewsRelatedSymbol } from "../../../../../db/schema/news"
 import { cn } from "@/lib/utils"
 import { Symbol } from "@/schema/symbols"
+import SymbolLogo from "@/components/symbolLogo"
 
 export async function loader({
     params,
@@ -136,7 +137,12 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], { classNa
                             variant="default"
                             className="flex h-8 flex-row items-center justify-center"
                         >
-                            {relatedSymbolsData?.symbol.logoid && relatedSymbolsData?.symbol.logoid !== null && relatedSymbolsData?.symbol.logoid !== "" ?
+                            <SymbolLogo
+                                symbol={relatedSymbolsData?.symbol}
+                                className="mr-1.5 size-6 rounded-full"
+                            />
+
+                            {/* {relatedSymbolsData?.symbol.logoid && relatedSymbolsData?.symbol.logoid !== null && relatedSymbolsData?.symbol.logoid !== "" ?
                                 <img
                                     id={child.params?.symbol}
                                     src={"https://s3-symbol-logo.tradingview.com/" + relatedSymbolsData?.symbol.logoid + ".svg"}
@@ -144,7 +150,7 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], { classNa
                                     className="mr-1.5 size-6 rounded-full"
                                 />
                                 : null
-                            }
+                            } */}
 
                             <p>
                                 {child.params?.symbol}

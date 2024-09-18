@@ -1,17 +1,20 @@
 import { getUser } from "@/session.server"
-import { ActionFunction, ActionFunctionArgs, json, /*redirect*/ } from "@remix-run/node"
+import { ActionFunction, ActionFunctionArgs, json, redirect, /*redirect*/ } from "@remix-run/node"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
-import { wallet as walletSchema /*, walletSymbols as walletSymbolsSchema*/ } from "../../../../../../../../db/schema/users"
+import { wallet as walletSchema, walletSymbols as walletSymbolsSchema } from "../../../../../../../db/schema/users"
 import { eq } from "drizzle-orm"
+import { normalizeSymbol } from "@/components/selectSymbol"
 
 export const action: ActionFunction = async ({ request }: ActionFunctionArgs) => {
     const user = await getUser(request)
     if (!user) return json({ error: "Unauthorized" }, { status: 401 })
 
+    const body = await request.formData()
+
     // Get the wallet id from the query string
     const url = new URL(request.url)
-    const walletId = url.searchParams.get("walletId")
+    const walletId = url.searchParams.get("walletId") || body.get("walletId") as string
 
     if (!walletId) {
         return json({ error: "Missing walletId" }, { status: 400 })
@@ -37,18 +40,27 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
         return json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // const body = await request.formData()
 
-    // const allSymbols = body.getAll("symbol").filter((s) => s !== "")
-    // for (const symbol of allSymbols) {
-    //     await db
-    //         .insert(walletSymbolsSchema)
-    //         .values({
-    //             // walletId: wallet[0].walletId,
-    //             symbol: symbol.toString(),
-    //             quantity: 0
-    //         })
-    // }
+    const allSymbols = body.getAll("symbol").filter((s) => s !== "")
+    const values = []
+    for (const symbol of allSymbols) {
+        const symbolJson = JSON.parse(symbol as string)
 
-    // return redirect(`/wallet/${wallet[0].walletId}`)
+        console.log(symbolJson)
+
+        values.push({
+            walletId: wallet.walletId,
+            symbol: `${(symbolJson.exchange as string).toUpperCase()}:${normalizeSymbol(symbolJson.symbol)}`,
+            quantity: symbolJson.quantity,
+            buyPrice: symbolJson.price,
+            currency: symbolJson.currency_code,
+        })
+
+    }
+
+    await db
+        .insert(walletSymbolsSchema)
+        .values(values)
+
+    return redirect(`/wallet/${wallet.walletId}`)
 }

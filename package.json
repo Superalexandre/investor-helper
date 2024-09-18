@@ -13,7 +13,7 @@
         "duplicate": "npx jscpd ./web -i '**/*.json' -l 20",
         "db:generate": "drizzle-kit generate",
         "db:migrate": "drizzle-kit migrate",
-        "db:migration:full": "npm run db:generate && node --no-warnings --loader ts-node/esm ./db/migrate.ts",
+        "db:migration:full": "tsc && npm run db:generate && node --no-warnings --loader ts-node/esm ./db/migrate.ts",
         "db:revert": "drizzle-kit drop",
         "create:user": "node --loader ts-node/esm ./db/createUser.ts"
     },

@@ -47,7 +47,8 @@ async function addSymbols() {
             .values({
                 walletId: uuid,
                 symbol: name as string,
-                quantity: 0
+                quantity: 0,
+                currency: "USD",
             })
     }
 

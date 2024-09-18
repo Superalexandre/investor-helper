@@ -105,6 +105,8 @@ export const walletSymbols = sqliteTable("wallet_symbol", {
         .references(() => wallet.walletId),
     symbol: text("symbol")
         .notNull(),
+    currency: text("currency")
+        .notNull(),
     quantity: int("quantity")
         .notNull()
         .$default(() => 0),
