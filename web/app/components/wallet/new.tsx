@@ -2,12 +2,14 @@ import { Dialog, DialogTitle, DialogTrigger } from "@radix-ui/react-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DialogClose, DialogContent, DialogFooter, DialogHeader } from "../ui/dialog"
-import { useState } from "react"
 import { Label } from "@/components/ui/label"
-import { SelectSymbolType } from "../selectSymbol"
-import { Form, useSubmit } from "@remix-run/react"
+import { Form } from "@remix-run/react"
 
-export default function NewWallet() {
+export default function NewWallet({
+    className
+}: {
+    className?: string
+}) {
     // const [open, setOpen] = useState(false)
 
     // const handleCreateWallet = (event: React.FormEvent<HTMLFormElement>) => {
@@ -35,7 +37,12 @@ export default function NewWallet() {
     return (
         <Dialog>
             <DialogTrigger>
-                <Button variant="default">Créer un portefeuille</Button>
+                <Button 
+                    variant="default"
+                    className={className}
+                >
+                    Créer un portefeuille
+                </Button>
             </DialogTrigger>
             <DialogContent>
                 <Form 
@@ -66,7 +73,7 @@ export default function NewWallet() {
                             />
                         </div>
                     </div>
-                    <DialogFooter>
+                    <DialogFooter className="mt-3 flex flex-row gap-3 lg:gap-0">
                         <Button 
                             variant="default" 
                             type="submit"

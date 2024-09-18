@@ -10,9 +10,12 @@ import {
 } from "@/components/ui/card"
 
 import { Badge } from "@/components/ui/badge"
-import { MdPriorityHigh } from "react-icons/md"
+// import { MdPriorityHigh } from "react-icons/md"
 import formatDate from "@/utils/formatDate"
 import SymbolLogo from "@/components/symbolLogo"
+import { NewsRelatedSymbol } from "@/schema/news"
+import { Symbol } from "@/schema/symbols"
+import { useState } from "react"
 
 export async function loader({
     params,
@@ -51,14 +54,12 @@ export default function Index() {
                 </Button> */}
             </div>
 
-            <div className="flex flex-col space-y-6 p-10">
+            <div className="flex flex-col space-y-6 p-4 lg:p-10">
                 {news.map((item) => (
                     <div className="relative" key={item.news.id}>
-                        <Badge variant="destructive" className="absolute -right-[10px] -top-[10px]">
+                        {/* <Badge variant="destructive" className="absolute -right-[10px] -top-[10px]">
                             <MdPriorityHigh className="size-5" />
-
-                        </Badge>
-
+                        </Badge> */}
 
                         <Card>
                             <Link to={`/news/${item.news.id}`}>
@@ -66,34 +67,10 @@ export default function Index() {
                                     <CardTitle>{item.news.title}</CardTitle>
                                 </CardHeader>
                             </Link>
-                            {item.relatedSymbols && item.relatedSymbols.length > 0 ? (
-                                <CardContent className="flex flex-row flex-wrap items-center gap-1.5">
-                                    {item.relatedSymbols?.map((symbol) => (
-                                        <Link to={`/data/${symbol?.symbol.symbolId}`} key={symbol?.symbol.symbolId}>
-                                            <Badge
-                                                key={symbol?.symbol.symbolId}
-                                                variant="default"
-                                                className="flex h-8 flex-row items-center justify-center"
-                                            >
-                                                <SymbolLogo
-                                                    symbol={symbol?.symbol}
-                                                    className="mr-1.5 size-6 rounded-full"
-                                                />
 
-                                                {/* {symbol?.symbol.symbolId && symbol?.symbol.logoid !== null && symbol?.symbol.logoid !== "" ?
-                                                    <img
-                                                        src={"https://s3-symbol-logo.tradingview.com/" + symbol?.symbol.logoid + ".svg"}
-                                                        alt={symbol?.symbol.symbolId}
-                                                        className="mr-1.5 size-6 rounded-full"
-                                                    />
-                                                    : null
-                                                } */}
-                                                {symbol?.symbol.name}
-                                            </Badge>
-                                        </Link>
-                                    ))}
-                                </CardContent>
-                            ) : null}
+                            <CardContent>
+                                <DisplaySymbols symbolList={item.relatedSymbols} />
+                            </CardContent>
 
                             <CardFooter>
                                 <p className="text-muted-foreground">
@@ -104,6 +81,63 @@ export default function Index() {
                     </div>
                 ))}
             </div>
+        </div>
+    )
+}
+
+interface FullSymbol {
+    symbol: Symbol
+    news_related_symbol: NewsRelatedSymbol
+}
+
+function DisplaySymbols({
+    symbolList,
+}: {
+    symbolList: FullSymbol[]
+}) {
+    if (!symbolList || symbolList.length <= 0) return null
+
+    const [viewAll, setViewAll] = useState(false)
+    const symbolCount = symbolList.length
+    
+    const displaySymbols = viewAll ? symbolList : symbolList.slice(0, 5)
+
+    return (
+        <div className="flex flex-row flex-wrap items-center gap-1.5">
+            {displaySymbols.map((symbol) => (
+                <Link to={`/data/${symbol.symbol.symbolId}`} key={symbol.symbol.symbolId}>
+                    <Badge
+                        key={symbol.symbol.symbolId}
+                        variant="default"
+                        className="flex h-8 flex-row items-center justify-center"
+                    >
+                        <SymbolLogo
+                            symbol={symbol.symbol}
+                            className="mr-1.5 size-6 rounded-full"
+                        />
+
+                        {symbol.symbol.name}
+                    </Badge>
+                </Link>
+            ))}
+
+            {symbolList.length > 5 && !viewAll ? (
+                <Badge
+                    variant="default"
+                    className="flex h-8 flex-row items-center justify-center hover:cursor-pointer"
+                    onClick={() => setViewAll(true)}
+                >
+                    Voir tout ({symbolCount})
+                </Badge>
+            ) : symbolList.length > 5 && viewAll ? (
+                <Badge
+                    variant="default"
+                    className="flex h-8 flex-row items-center justify-center hover:cursor-pointer"
+                    onClick={() => setViewAll(false)}
+                >
+                    Réduire
+                </Badge>
+            ) : null}
         </div>
     )
 }

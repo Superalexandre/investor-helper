@@ -1,5 +1,5 @@
 import type { ActionFunctionArgs, MetaFunction } from "@remix-run/node"
-import { ClientLoaderFunctionArgs, Form, redirect, useActionData, useLoaderData } from "@remix-run/react"
+import { ClientLoaderFunctionArgs, Form, Link, redirect, useActionData, useLoaderData } from "@remix-run/react"
 import getPrices, { PeriodInfo } from "@/utils/getPrices"
 import { ClientOnly } from "remix-utils/client-only"
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
@@ -9,6 +9,7 @@ import getSymbolData from "@/utils/getSymbol"
 // import { format } from "date-fns"
 import { toZonedTime, format as formatTz } from "date-fns-tz"
 import SymbolLogo from "@/components/symbolLogo"
+import { MdArrowBack } from "react-icons/md"
 
 export async function loader({
     params
@@ -73,131 +74,129 @@ export default function Index() {
 
 
     return (
-        <div>
-            <div>
-                <div className="flex flex-col items-center justify-center gap-4 pt-4">
-                    <div className="flex flex-row items-center justify-center gap-2">
-                        {/* {symbol.logoid && symbol.logoid !== null && symbol.logoid !== "" ? (
-                            <img
-                                src={"https://s3-symbol-logo.tradingview.com/" + symbol.logoid + ".svg"}
-                                alt={symbol.description}
-                                className="size-12 rounded-full"
-                            />
-                        ) : null} */}
-                        <SymbolLogo
-                            symbol={symbol}
-                            className="size-12 rounded-full"
-                            alt={symbol.description}
-                        />
+        <div className="relative">
+            <Button asChild variant="default">
+                <Link to="/news" className="left-0 top-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute">
+                    <MdArrowBack className="size-6" />
+
+                    Retour
+                </Link>
+            </Button>
 
 
-                        <h1 className="text-center text-2xl">Graphique pour {symbol.description}</h1>
-                    </div>
+            <div className="flex flex-col items-center justify-center gap-4 pt-4">
+                <div className="flex flex-col items-center justify-center gap-2 lg:flex-row">
+                    <SymbolLogo
+                        symbol={symbol}
+                        className="size-12 rounded-full"
+                        alt={symbol.description}
+                    />
 
-                    <DisplaySession marketInfo={marketInfo} />
+                    <h1 className="text-center text-2xl">Graphique pour {symbol.description}</h1>
                 </div>
 
-                <Form method="POST">
-                    <Button variant="outline" name="timeframe" value="1">1 minutes</Button>
-                    {/* <Button variant="outline" name="timeframe" value="3">3</Button> */}
-                    {/* <Button variant="outline" name="timeframe" value="5">5</Button> */}
-                    {/* <Button variant="outline" name="timeframe" value="15">15</Button> */}
-                    {/* <Button variant="outline" name="timeframe" value="30">30</Button> */}
-                    {/* <Button variant="outline" name="timeframe" value="45">45</Button> */}
-                    <Button variant="outline" name="timeframe" value="60">1h</Button>
-                    <Button variant="outline" name="timeframe" value="120">2h</Button>
-                    {/* <Button variant="outline" name="timeframe" value="180">180</Button> */}
-                    {/* <Button variant="outline" name="timeframe" value="240">240</Button> */}
-                    <Button variant="outline" name="timeframe" value="1D">1D</Button>
-                    <Button variant="outline" name="timeframe" value="1W">1W</Button>
-                    <Button variant="outline" name="timeframe" value="1M">1M</Button>
-                    {/* <Button variant="outline" name="timeframe" value="W">W</Button> */}
-                    {/* <Button variant="outline" name="timeframe" value="M">M</Button> */}
-                </Form>
-
-                <ClientOnly fallback={<p>Chargement...</p>}>
-                    {() => (
-                        <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-                            <ComposedChart
-                                data={data?.prices ?? prices}
-                                accessibilityLayer
-                            >
-                                <CartesianGrid
-                                    vertical={false}
-                                />
-
-                                <XAxis
-                                    dataKey="time"
-                                    tickFormatter={(timestamp) => new Date(timestamp * 1000).toLocaleString("fr-FR")}
-
-                                    tickLine={false}
-                                    axisLine={false}
-                                    tickMargin={8}
-                                    scale="auto"
-                                />
-
-                                <YAxis
-                                    dataKey="close"
-                                    yAxisId="left"
-                                    tickLine={false}
-                                    axisLine={false}
-                                    scale="linear"
-                                />
-
-                                <YAxis
-                                    dataKey="volume"
-                                    yAxisId="right"
-                                    orientation="right"
-                                    hide
-                                    scale="auto"
-                                />
-
-                                <Bar
-                                    yAxisId="right"
-                                    dataKey="volume"
-                                    fill="var(--color-volume)"
-                                    radius={8}
-                                />
-
-                                <Line
-                                    yAxisId="left"
-                                    dataKey="close"
-                                    type="natural"
-                                    stroke="var(--color-close)"
-                                    strokeWidth={2}
-                                    dot={false}
-                                    className="z-10"
-                                />
-
-                                <ChartLegend
-                                    content={
-                                        <ChartLegendContent
-                                            onClick={(dataKey) => {
-                                                console.log(dataKey)
-                                            }}
-                                        />
-                                    }
-                                />
-                                <ChartTooltip
-                                    cursor={false}
-                                    content={<ChartTooltipContent
-                                        indicator="dot"
-                                        labelFormatter={(value, dataLabel) => {
-                                            return new Date(dataLabel[0].payload.time * 1000).toLocaleString("fr-FR", {
-                                                day: "numeric",
-                                                month: "short",
-                                                year: "numeric",
-                                                hour: "numeric",
-                                                minute: "numeric",
-                                            })
-                                        }}
-                                    />}
-                                />
-                            </ComposedChart>
-                        </ChartContainer>
-                    )}
-                </ClientOnly>
+                <DisplaySession marketInfo={marketInfo} />
             </div>
+
+            <Form method="POST">
+                <Button variant="outline" name="timeframe" value="1">1 minutes</Button>
+                {/* <Button variant="outline" name="timeframe" value="3">3</Button> */}
+                {/* <Button variant="outline" name="timeframe" value="5">5</Button> */}
+                {/* <Button variant="outline" name="timeframe" value="15">15</Button> */}
+                {/* <Button variant="outline" name="timeframe" value="30">30</Button> */}
+                {/* <Button variant="outline" name="timeframe" value="45">45</Button> */}
+                <Button variant="outline" name="timeframe" value="60">1h</Button>
+                <Button variant="outline" name="timeframe" value="120">2h</Button>
+                {/* <Button variant="outline" name="timeframe" value="180">180</Button> */}
+                {/* <Button variant="outline" name="timeframe" value="240">240</Button> */}
+                <Button variant="outline" name="timeframe" value="1D">1D</Button>
+                <Button variant="outline" name="timeframe" value="1W">1W</Button>
+                <Button variant="outline" name="timeframe" value="1M">1M</Button>
+                <Button variant="outline" name="timeframe" value="12M">1Y</Button>
+            </Form>
+
+            <ClientOnly fallback={<p>Chargement...</p>}>
+                {() => (
+                    <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+                        <ComposedChart
+                            data={data?.prices ?? prices}
+                            accessibilityLayer
+                        >
+                            <CartesianGrid
+                                vertical={false}
+                            />
+
+                            <XAxis
+                                dataKey="time"
+                                tickFormatter={(timestamp) => new Date(timestamp * 1000).toLocaleString("fr-FR")}
+
+                                tickLine={false}
+                                axisLine={false}
+                                tickMargin={8}
+                                scale="auto"
+                            />
+
+                            <YAxis
+                                dataKey="close"
+                                yAxisId="left"
+                                tickLine={false}
+                                axisLine={false}
+                                scale="linear"
+                            />
+
+                            <YAxis
+                                dataKey="volume"
+                                yAxisId="right"
+                                orientation="right"
+                                hide
+                                scale="auto"
+                            />
+
+                            <Bar
+                                yAxisId="right"
+                                dataKey="volume"
+                                fill="var(--color-volume)"
+                                radius={8}
+                            />
+
+                            <Line
+                                yAxisId="left"
+                                dataKey="close"
+                                type="natural"
+                                stroke="var(--color-close)"
+                                strokeWidth={2}
+                                dot={false}
+                                className="z-10"
+                            />
+
+                            <ChartLegend
+                                content={
+                                    <ChartLegendContent
+                                        onClick={(dataKey) => {
+                                            console.log(dataKey)
+                                        }}
+                                    />
+                                }
+                            />
+                            <ChartTooltip
+                                cursor={false}
+                                content={<ChartTooltipContent
+                                    indicator="dot"
+                                    labelFormatter={(value, dataLabel) => {
+                                        return new Date(dataLabel[0].payload.time * 1000).toLocaleString("fr-FR", {
+                                            day: "numeric",
+                                            month: "short",
+                                            year: "numeric",
+                                            hour: "numeric",
+                                            minute: "numeric",
+                                        })
+                                    }}
+                                />}
+                            />
+                        </ComposedChart>
+                    </ChartContainer>
+                )}
+            </ClientOnly>
         </div>
 
     )

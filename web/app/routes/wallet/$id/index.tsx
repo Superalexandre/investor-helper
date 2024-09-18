@@ -311,6 +311,12 @@ export function AddSymbols({ triggerText, walletId }: { triggerText: string, wal
         setOpen(false)
     }
 
+    // overflow: hidden;
+    // text-overflow: ellipsis;
+    // white-space: nowrap;
+    // width: 10%;
+    // max-width: 130px;
+
     return (
         <Dialog open={open} onOpenChange={(openChange) => setOpen(openChange)}>
             <DialogTrigger asChild>
@@ -318,17 +324,15 @@ export function AddSymbols({ triggerText, walletId }: { triggerText: string, wal
                     {triggerText}
                 </Button>
             </DialogTrigger>
-            <DialogContent className="">
-                <Form onSubmit={handleSubmit}>
+            <DialogContent>
+                <Form onSubmit={handleSubmit} className="flex flex-col gap-2">
                     <DialogHeader>
                         <DialogTitle>Composé votre portefeuille</DialogTitle>
                     </DialogHeader>
 
                     <div className="flex max-h-96 flex-col overflow-auto">
-                        {selectedSymbol.length > 0 ? selectedSymbol.map((symbol, i) => (
+                        {selectedSymbol.length > 0 ? [...selectedSymbol, ...selectedSymbol, ...selectedSymbol].map((symbol, i) => (
                             <div className="flex flex-row items-center gap-2" key={`${normalizeSymbol(symbol.symbol)}-${i}`}>
-                                {/* <img src={"https://s3-symbol-logo.tradingview.com/" + symbol.logoid + ".svg"} alt="" className="size-5 rounded-sm" /> */}
-
                                 <SymbolLogo symbol={symbol} className="size-5 rounded-sm" />
 
                                 <p>{normalizeSymbol(symbol.description)} ({normalizeSymbol(symbol.symbol)})</p>
@@ -348,7 +352,7 @@ export function AddSymbols({ triggerText, walletId }: { triggerText: string, wal
                     <FindSymbols
                         selectedSymbol={selectedSymbol}
                         setSelectedSymbol={setSelectedSymbol}
-
+                        className="w-full"
                     />
 
 
@@ -380,10 +384,12 @@ export function AddSymbols({ triggerText, walletId }: { triggerText: string, wal
 }
 
 export function FindSymbols({
-    setSelectedSymbol
+    setSelectedSymbol,
+    className
 }: {
     selectedSymbol: SelectSymbolType[],
-    setSelectedSymbol: Dispatch<SetStateAction<SelectSymbolType[]>>
+    setSelectedSymbol: Dispatch<SetStateAction<SelectSymbolType[]>>,
+    className?: string
 }) {
     const [open, setOpen] = useState(false)
     const [tempSelectedSymbol, setTempSelectedSymbol] = useState<SelectSymbolType>()
@@ -413,6 +419,7 @@ export function FindSymbols({
                 <Button
                     variant="outline"
                     onClick={() => setOpen(true)}
+                    className={className}
                 >
                     Ajouter un symbole
                 </Button>

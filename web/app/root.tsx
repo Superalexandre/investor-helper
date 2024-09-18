@@ -1,17 +1,25 @@
 import { LinksFunction } from "@remix-run/node"
 import {
+    ClientLoaderFunctionArgs,
     Links,
     Meta,
     Outlet,
     Scripts,
     ScrollRestoration,
+    useLoaderData,
 } from "@remix-run/react"
 
 import stylesheet from "@/tailwind.css?url"
 import Header from "./components/header"
-// import { useNetworkConnectivity } from "@remix-pwa/client"
-// import { toast } from "sonner"
-// import { ManifestLink, useSWEffect } from "@remix-pwa/sw"
+import { getUser } from "./session.server"
+
+export async function loader({
+    request
+}: ClientLoaderFunctionArgs) {
+    const user = await getUser(request)
+
+    return { logged: user !== null }
+}
 
 export const links: LinksFunction = () => [
     { rel: "stylesheet", href: stylesheet },
@@ -19,6 +27,7 @@ export const links: LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
     // useSWEffect()
+    const { logged } = useLoaderData<typeof loader>()
 
     return (
         <html lang="en" className="dark">
@@ -32,7 +41,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <meta name="theme-color" content="#000000" />
             </head>
             <body className="flex min-h-screen flex-col">
-                <Header />
+                <Header 
+                    logged={logged}
+                />
 
                 {children}
 

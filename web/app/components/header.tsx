@@ -1,53 +1,94 @@
+import { MdAdd, MdCalendarMonth, MdHome, MdLogin, MdLogout, MdMenu, MdNewspaper, MdPerson } from "react-icons/md"
 import {
-    NavigationMenu,
-    NavigationMenuItem,
-    NavigationMenuLink,
-    NavigationMenuList,
-    navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu"
-import { cn } from "@/lib/utils"
-import { MdCalendarMonth, MdHome, MdNewspaper } from "react-icons/md"
+    Sheet,
+    SheetContent,
+    SheetTrigger,
+} from "@/components/ui/sheet"
+import { Link } from "@remix-run/react"
 
-export default function Header() {
+export default function Header({
+    logged
+}: {
+    logged: boolean
+} = { logged: false }) {
+    const menuItems = [
+        {
+            key: "home",
+            icon: MdHome,
+            label: "Accueil",
+            href: "/"
+        },
+        {
+            key: "news",
+            icon: MdNewspaper,
+            label: "News",
+            href: "/news"
+        },
+        {
+            key: "calendar",
+            icon: MdCalendarMonth,
+            label: "Calendrier",
+            href: "/calendar"
+        },
+        {
+            key: "profile",
+            icon: MdPerson,
+            label: "Profile",
+            href: "/profile",
+            hidden: !logged
+        },
+        {
+            key: "logout",
+            icon: MdLogout,
+            label: "Déconnexion",
+            href: "/logout",
+            hidden: !logged
+        },
+        {
+            key: "login",
+            icon: MdLogin,
+            label: "Connexion",
+            href: "/login",
+            hidden: logged
+        },
+        {
+            key: "register",
+            icon: MdAdd,
+            label: "Inscription",
+            href: "/register",
+            hidden: logged
+        }
+    ]
+
     return (
-        <header className="bg-slate-900 p-3">
-            <NavigationMenu>
-                <NavigationMenuList>
-                    <NavigationMenuItem key="home">
-                        <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "cursor-pointer")} href="/">
-                            <MdHome className="mr-2 inline-block" />
-                            
-                            Accueil
-                        </NavigationMenuLink>
-                    </NavigationMenuItem>
-                    <NavigationMenuItem key="news">
-                        <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "cursor-pointer")} href="/news">
-                            <MdNewspaper className="mr-2 inline-block" />
-
-                            News
-                        </NavigationMenuLink>
-                    </NavigationMenuItem>
-                    <NavigationMenuItem key="calendar">
-                        <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "cursor-pointer")} href="/calendar">
-                            <MdCalendarMonth className="mr-2 inline-block" />
-                            
-                            Calendrier
-                        </NavigationMenuLink>
-                    </NavigationMenuItem>
-                </NavigationMenuList>
-                {/* <NavigationMenuList>
-                    <NavigationMenuItem>
-                        <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "cursor-pointer")} href="/login">
-                            Se connecter
-                        </NavigationMenuLink>
-                    </NavigationMenuItem>
-                    <NavigationMenuItem>
-                        <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "cursor-pointer")} href="/register">
-                            S'inscrire
-                        </NavigationMenuLink>
-                    </NavigationMenuItem>
-                </NavigationMenuList> */}
-            </NavigationMenu>
+        <header className="h-16 bg-slate-900 p-3">
+            <nav className="hidden h-full flex-row items-center gap-4 lg:flex">
+                {menuItems.map((menuItem) => (
+                    menuItem.hidden ? null : (
+                        <Link to={menuItem.href} key={menuItem.key} className="flex flex-row items-center">
+                            {menuItem.icon ? <menuItem.icon className="mr-2 inline-block" /> : null}
+                            {menuItem.label}
+                        </Link>
+                    )
+                ))}
+            </nav>
+            <Sheet>
+                <SheetTrigger className="block h-full lg:hidden">
+                    <MdMenu className="size-6" />
+                </SheetTrigger>
+                <SheetContent side="left" className="flex flex-col items-center gap-10 pt-16">
+                    {menuItems.map((menuItem) => (
+                        menuItem.hidden ? null : (
+                            <div key={menuItem.key}>
+                                <Link to={menuItem.href} className="flex flex-row items-center text-xl">
+                                    {menuItem.icon ? <menuItem.icon className="mr-2 inline-block" /> : null}
+                                    {menuItem.label}
+                                </Link>
+                            </div>
+                        )
+                    ))}
+                </SheetContent>
+            </Sheet>
         </header>
     )
 }

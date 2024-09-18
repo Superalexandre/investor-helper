@@ -48,9 +48,11 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 
         console.log(symbolJson)
 
+        const prefix = symbolJson["prefix"]?.toUpperCase() ?? (symbolJson.exchange as string).toUpperCase()
+
         values.push({
             walletId: wallet.walletId,
-            symbol: `${(symbolJson.exchange as string).toUpperCase()}:${normalizeSymbol(symbolJson.symbol)}`,
+            symbol: `${prefix}:${normalizeSymbol(symbolJson.symbol)}`,
             quantity: symbolJson.quantity,
             buyPrice: symbolJson.price,
             currency: symbolJson.currency_code,

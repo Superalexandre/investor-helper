@@ -40,25 +40,29 @@ export default function Index() {
     const { user, wallet } = useLoaderData<typeof loader>()
 
     return (
-        <div>
-            <p>User : {user.id}</p>
+        <div className="flex w-full flex-col items-center justify-center gap-10">
+            <div>
+                <p>User : {user.id}</p>
+            </div>
 
-            <p>Votre portefeuille</p>
-            {wallet.length > 0 ? wallet.map((w) => (
-                <Link
-                    key={w.walletId}
-                    to={`/wallet/${w.walletId}`}
-                >
-                    {w.name}
-                </Link>
-            )) : (
-                <div>
+            <div className="flex flex-col items-center justify-center gap-1">
+                <h1 className="text-xl font-bold">Vos portefeuilles</h1>
+
+                {wallet.length > 0 ? wallet.map((w) => (
+                    <Link
+                        key={w.walletId}
+                        to={`/wallet/${w.walletId}`}
+                    >
+                        {w.name}
+                    </Link>
+                )) : (
                     <p>Vous n'avez pas de portefeuille</p>
+                )}
 
-                    <NewWallet />
-                </div>
-
-            )}
+                <NewWallet 
+                    className="mt-4"
+                />
+            </div>
 
             {/* <p>Vos listes surveillés</p>
             {watchList.length > 0 ? watchList.map((w) => (
