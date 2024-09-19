@@ -76,8 +76,6 @@ export function SearchSymbol({
                                 if (refInput.current && !replace) refInput.current.value = ""
 
                                 if (refInput.current && replace) {
-                                    console.log("replace", symbol)
-                                 
                                     refInput.current.value = `${normalizeSymbol(symbol.description)} (${normalizeSymbol(symbol.symbol)})`
                                 }
 

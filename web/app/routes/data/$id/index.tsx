@@ -257,7 +257,7 @@ function FullChart({ prices }: { prices: Period[] }) {
 
     return (
 
-        <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+        <ChartContainer config={chartConfig} className="min-h-[200px] w-full overflow-hidden">
             <ComposedChart
                 data={prices}
                 accessibilityLayer
@@ -316,10 +316,8 @@ function FullChart({ prices }: { prices: Period[] }) {
                             renderHidden
                             onClick={(item) => {
                                 const config = chartConfig[item.dataKey as string]
-                                console.log(item.dataKey, config)
 
                                 if (config && config.onClick) config.onClick()
-
                             }}
                         />
                     }

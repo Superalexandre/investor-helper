@@ -199,7 +199,7 @@ export function ChartWallet({ prices }: { prices: Prices[] }) {
     return (
         <ClientOnly fallback={<p>Chargement...</p>}>
             {() => (
-                <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+                <ChartContainer config={chartConfig} className="min-h-[200px] w-full overflow-hidden">
                     <LineChart data={totalPrices}>
 
                         <XAxis
@@ -228,15 +228,8 @@ export function ChartWallet({ prices }: { prices: Prices[] }) {
                             dot={false}
                         />
 
-                        <ChartLegend
-                            content={
-                                <ChartLegendContent
-                                    onClick={(dataKey) => {
-                                        console.log(dataKey)
-                                    }}
-                                />
-                            }
-                        />
+                        <ChartLegend content={<ChartLegendContent />} />
+
                         <ChartTooltip
                             cursor={false}
                             content={<ChartTooltipContent

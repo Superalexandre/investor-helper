@@ -46,8 +46,6 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
     for (const symbol of allSymbols) {
         const symbolJson = JSON.parse(symbol as string)
 
-        console.log(symbolJson)
-
         const prefix = symbolJson["prefix"]?.toUpperCase() ?? (symbolJson.exchange as string).toUpperCase()
 
         values.push({
