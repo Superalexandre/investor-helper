@@ -1,8 +1,8 @@
 import type { ActionFunctionArgs, MetaFunction } from "@remix-run/node"
 import { ClientLoaderFunctionArgs, Form, Link, redirect, useActionData, useLoaderData } from "@remix-run/react"
-import getPrices, { PeriodInfo } from "@/utils/getPrices"
+import getPrices, { Period, PeriodInfo } from "@/utils/getPrices"
 import { ClientOnly } from "remix-utils/client-only"
-import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Bar, CartesianGrid, ComposedChart, Line, XAxis, YAxis } from "recharts"
 import { Button } from "@/components/ui/button"
 import getSymbolData from "@/utils/getSymbol"
@@ -10,6 +10,7 @@ import getSymbolData from "@/utils/getSymbol"
 import { toZonedTime, format as formatTz } from "date-fns-tz"
 import SymbolLogo from "@/components/symbolLogo"
 import { MdArrowBack } from "react-icons/md"
+import { useState } from "react"
 
 export async function loader({
     params
@@ -58,21 +59,6 @@ export default function Index() {
     const { prices, symbol, marketInfo } = useLoaderData<typeof loader>()
     const data = useActionData<typeof action>()
 
-    const chartConfig = {
-        close: {
-            label: "Prix",
-            color: "hsl(var(--chart-1))",
-        },
-        time: {
-            label: "Date",
-        },
-        volume: {
-            label: "Volume",
-            color: "hsl(var(--chart-2))",
-        },
-    } satisfies ChartConfig
-
-
     return (
         <div className="relative">
             <Button asChild variant="default">
@@ -117,84 +103,9 @@ export default function Index() {
 
             <ClientOnly fallback={<p>Chargement...</p>}>
                 {() => (
-                    <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-                        <ComposedChart
-                            data={data?.prices ?? prices}
-                            accessibilityLayer
-                        >
-                            <CartesianGrid
-                                vertical={false}
-                            />
-
-                            <XAxis
-                                dataKey="time"
-                                tickFormatter={(timestamp) => new Date(timestamp * 1000).toLocaleString("fr-FR")}
-
-                                tickLine={false}
-                                axisLine={false}
-                                tickMargin={8}
-                                scale="auto"
-                            />
-
-                            <YAxis
-                                dataKey="close"
-                                yAxisId="left"
-                                tickLine={false}
-                                axisLine={false}
-                                scale="linear"
-                            />
-
-                            <YAxis
-                                dataKey="volume"
-                                yAxisId="right"
-                                orientation="right"
-                                hide
-                                scale="auto"
-                            />
-
-                            <Bar
-                                yAxisId="right"
-                                dataKey="volume"
-                                fill="var(--color-volume)"
-                                radius={8}
-                            />
-
-                            <Line
-                                yAxisId="left"
-                                dataKey="close"
-                                type="natural"
-                                stroke="var(--color-close)"
-                                strokeWidth={2}
-                                dot={false}
-                                className="z-10"
-                            />
-
-                            <ChartLegend
-                                content={
-                                    <ChartLegendContent
-                                        onClick={(dataKey) => {
-                                            console.log(dataKey)
-                                        }}
-                                    />
-                                }
-                            />
-                            <ChartTooltip
-                                cursor={false}
-                                content={<ChartTooltipContent
-                                    indicator="dot"
-                                    labelFormatter={(value, dataLabel) => {
-                                        return new Date(dataLabel[0].payload.time * 1000).toLocaleString("fr-FR", {
-                                            day: "numeric",
-                                            month: "short",
-                                            year: "numeric",
-                                            hour: "numeric",
-                                            minute: "numeric",
-                                        })
-                                    }}
-                                />}
-                            />
-                        </ComposedChart>
-                    </ChartContainer>
+                    <FullChart 
+                        prices={data?.prices ?? prices}
+                    />
                 )}
             </ClientOnly>
         </div>
@@ -302,4 +213,134 @@ function DisplaySession({ marketInfo }: { marketInfo: PeriodInfo }) {
             ) : null}
         </div>
     )
+}
+
+interface FullConfig {
+    [x: string]: {
+        label?: React.ReactNode;
+        icon?: React.ComponentType;
+    } & ({
+        color?: string;
+        theme?: never;
+    } | {
+        color?: never;
+        theme: Record<"light" | "dark", string>;
+    }) & ({
+        display?: boolean;
+        onClick?: () => void;
+    } | {
+        display?: never;
+        onClick?: never;
+    });
+}
+
+function FullChart({ prices }: { prices: Period[] }) {
+    const [displayVolume, setDisplayVolume] = useState(true)
+
+    const chartConfig: FullConfig = {
+        close: {
+            label: "Prix",
+            color: "hsl(var(--chart-1))",
+        },
+        time: {
+            label: "Date",
+        },
+        volume: {
+            label: "Volume",
+            color: "hsl(var(--chart-2))",
+            display: displayVolume,
+            onClick: () => {
+                setDisplayVolume(!displayVolume)
+            }
+        },
+    }
+
+    return (
+
+        <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+            <ComposedChart
+                data={prices}
+                accessibilityLayer
+            >
+                <CartesianGrid
+                    vertical={false}
+                />
+
+                <XAxis
+                    dataKey="time"
+                    tickFormatter={(timestamp) => new Date(timestamp * 1000).toLocaleString("fr-FR")}
+
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    scale="auto"
+                />
+
+                <YAxis
+                    dataKey="close"
+                    yAxisId="left"
+                    tickLine={false}
+                    axisLine={false}
+                    scale="linear"
+                />
+
+                <YAxis
+                    dataKey="volume"
+                    yAxisId="right"
+                    orientation="right"
+                    hide
+                    scale="auto"
+                />
+
+                <Bar
+                    yAxisId="right"
+                    dataKey="volume"
+                    fill="var(--color-volume)"
+                    radius={8}
+                    hide={!displayVolume}
+                />
+
+                <Line
+                    yAxisId="left"
+                    dataKey="close"
+                    type="natural"
+                    stroke="var(--color-close)"
+                    strokeWidth={2}
+                    dot={false}
+                    className="z-10"
+                />
+
+                <ChartLegend
+                    content={
+                        <ChartLegendContent
+                            renderHidden
+                            onClick={(item) => {
+                                const config = chartConfig[item.dataKey as string]
+                                console.log(item.dataKey, config)
+
+                                if (config && config.onClick) config.onClick()
+
+                            }}
+                        />
+                    }
+                />
+                <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent
+                        indicator="dot"
+                        labelFormatter={(value, dataLabel) => {
+                            return new Date(dataLabel[0].payload.time * 1000).toLocaleString("fr-FR", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                                hour: "numeric",
+                                minute: "numeric",
+                            })
+                        }}
+                    />}
+                />
+            </ComposedChart>
+        </ChartContainer>
+    )
+
 }

@@ -266,11 +266,13 @@ const ChartLegendContent = React.forwardRef<
     React.ComponentProps<"div"> &
     Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
         hideIcon?: boolean
-        nameKey?: string
+        nameKey?: string,
+        onClick?: (item: any) => void
+        renderHidden: boolean
     }
 >(
     (
-        { className, hideIcon = false, payload, verticalAlign = "bottom", nameKey },
+        { className, hideIcon = false, payload, verticalAlign = "bottom", nameKey, onClick, renderHidden },
         ref
     ) => {
         const { config } = useChart()
@@ -292,12 +294,16 @@ const ChartLegendContent = React.forwardRef<
                     const key = `${nameKey || item.dataKey || "value"}`
                     const itemConfig = getPayloadConfigFromPayload(config, item, key)
 
+                    // ! Dangerous
+                    const configFromItem = config[item.dataKey as any] as any
+
                     return (
                         <div
                             key={item.value}
                             className={cn(
                                 "flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground"
                             )}
+                            onClick={() => onClick?.(item)}
                         >
                             {itemConfig?.icon && !hideIcon ? (
                                 <itemConfig.icon />
@@ -309,7 +315,11 @@ const ChartLegendContent = React.forwardRef<
                                     }}
                                 />
                             )}
-                            {itemConfig?.label}
+                            <span 
+                                className={renderHidden && configFromItem["display"] === false ? "line-through" : ""}
+                            >
+                                {itemConfig?.label}
+                            </span>
                         </div>
                     )
                 })}

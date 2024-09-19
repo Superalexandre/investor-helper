@@ -17,13 +17,9 @@ export default function SymbolLogo({
 }) {
     if (!symbol) return fallback || null
 
-    console.log(symbol)
-
     const source = symbol["logoid"] || symbol["base_currency_logoid"] 
  
     if (!source) return fallback || null
-
-    console.log(source)
 
     return (
         <img
