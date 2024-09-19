@@ -82,6 +82,9 @@ interface PeriodInfo {
     }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let client: any
+
 export default function getPrices(symbolId: string, {
     range = 100,
     timeframe = "D"
@@ -91,9 +94,9 @@ export default function getPrices(symbolId: string, {
 } = {}) {
     // Create promise to resolve when the chart is loaded
     return new Promise<{ period: Period[], periodInfo: PeriodInfo }>((resolve, reject) => {
-        const client = new TradingView.Client() // Creates a websocket client
-
-        const chart = new client.Session.Chart() // Init a Chart session
+        if (!client) client = new TradingView.Client()
+        // if (!chart) chart = new client.Session.Chart()
+        const chart = new client.Session.Chart()
 
         chart.setMarket(symbolId, { // Set the market
             timeframe,

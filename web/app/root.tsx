@@ -1,6 +1,6 @@
-import { LinksFunction } from "@remix-run/node"
+import { LinksFunction, LoaderFunctionArgs } from "@remix-run/node"
 import {
-    ClientLoaderFunctionArgs,
+    // ClientLoaderFunctionArgs,
     Links,
     Meta,
     Outlet,
@@ -15,7 +15,7 @@ import { getUser } from "./session.server"
 
 export async function loader({
     request
-}: ClientLoaderFunctionArgs) {
+}: LoaderFunctionArgs) {
     const user = await getUser(request)
 
     return { logged: user !== null }

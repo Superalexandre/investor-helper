@@ -47,15 +47,27 @@ export async function loader({
     let walletValue = 0
     let moneyWin = 0
 
-    for (const symbol of walletSymbols) {
-        const [priceResult, symbolData] = await Promise.all([
-            getPrices(symbol.symbol),
-            getSymbolData(symbol.symbol)
-        ])
+    const results = await Promise.all(
+        walletSymbols.map(async (symbol) => {
+            const [priceResult, symbolData] = await Promise.all([
+                getPrices(symbol.symbol),
+                getSymbolData(symbol.symbol)
+            ])
 
-        const price = priceResult.period
-        const lastPrice = price[price.length - 1]
+            const price = priceResult.period
+            const lastPrice = price[0]
 
+            return {
+                symbol,
+                symbolData,
+                lastPrice,
+                price
+            }
+        })
+    )
+
+    // Traiter les résultats après résolution de toutes les promesses
+    for (const { symbol, symbolData, lastPrice, price } of results) {
         walletValue += lastPrice.close * symbol.quantity
         moneyWin += (lastPrice.close - (symbol.buyPrice ?? 0)) * symbol.quantity
 
@@ -72,7 +84,6 @@ export async function loader({
         walletValue: walletValue,
         wallet: wallet,
         walletSymbols: walletSymbols,
-        // prices: prices,
         prices: prices,
         moneyWin: moneyWin
     }
@@ -86,7 +97,9 @@ export const meta: MetaFunction = () => {
 }
 
 export function HydrateFallback() {
-    return <p>Loading Game...</p>
+    return (
+        <p>Chargement...</p>
+    )
 }
 
 export default function Index() {
@@ -331,7 +344,7 @@ export function AddSymbols({ triggerText, walletId }: { triggerText: string, wal
                     </DialogHeader>
 
                     <div className="flex max-h-96 flex-col overflow-auto">
-                        {selectedSymbol.length > 0 ? [...selectedSymbol, ...selectedSymbol, ...selectedSymbol].map((symbol, i) => (
+                        {selectedSymbol.length > 0 ? selectedSymbol.map((symbol, i) => (
                             <div className="flex flex-row items-center gap-2" key={`${normalizeSymbol(symbol.symbol)}-${i}`}>
                                 <SymbolLogo symbol={symbol} className="size-5 rounded-sm" />
 

@@ -5,12 +5,14 @@ import {
     SheetTrigger,
 } from "@/components/ui/sheet"
 import { Link } from "@remix-run/react"
+import { useState } from "react"
 
 export default function Header({
     logged
 }: {
     logged: boolean
 } = { logged: false }) {
+    const [open, setOpen] = useState(false)
     const menuItems = [
         {
             key: "home",
@@ -72,7 +74,7 @@ export default function Header({
                     )
                 ))}
             </nav>
-            <Sheet>
+            <Sheet open={open} onOpenChange={(openChange) => setOpen(openChange)}>
                 <SheetTrigger className="block h-full lg:hidden">
                     <MdMenu className="size-6" />
                 </SheetTrigger>
@@ -80,7 +82,7 @@ export default function Header({
                     {menuItems.map((menuItem) => (
                         menuItem.hidden ? null : (
                             <div key={menuItem.key}>
-                                <Link to={menuItem.href} className="flex flex-row items-center text-xl">
+                                <Link to={menuItem.href} className="flex flex-row items-center text-xl" onClick={() => setOpen(false)}>
                                     {menuItem.icon ? <menuItem.icon className="mr-2 inline-block" /> : null}
                                     {menuItem.label}
                                 </Link>

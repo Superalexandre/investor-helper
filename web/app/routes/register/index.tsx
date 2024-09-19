@@ -91,8 +91,8 @@ export default function Index() {
     })
 
     return (
-        <div className="flex h-screen w-screen flex-1 flex-col items-center justify-center">
-            <Card className="size-1/2">
+        <div className="flex h-screen w-screen flex-1 flex-col items-center justify-center p-4">
+            <Card className="size-full lg:size-1/2">
                 <CardTitle className="flex flex-row items-center justify-center gap-2 pb-8 pt-4 text-center text-3xl font-bold text-white">
                     <MdAdd size={30} />
 
