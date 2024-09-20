@@ -168,11 +168,11 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], { classNa
                 })
 
                 Component.push(
-                    <p 
+                    <div
                         key={`${child.type}-${Component.length}-${child.children.length}`}
                     >
                         {ComponentResult}
-                    </p>
+                    </div>
                 )
 
             } else if (["url"].includes(child?.type)) {
