@@ -1,5 +1,5 @@
 import type { ActionFunctionArgs, MetaFunction } from "@remix-run/node"
-import { ClientLoaderFunctionArgs, Form, Link, redirect, useActionData, useLoaderData } from "@remix-run/react"
+import { ClientLoaderFunctionArgs, Form, Link, redirect, useActionData, useLoaderData, useSubmit } from "@remix-run/react"
 import getPrices, { Period, PeriodInfo } from "@/utils/getPrices"
 import { ClientOnly } from "remix-utils/client-only"
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
@@ -11,13 +11,18 @@ import { toZonedTime, format as formatTz } from "date-fns-tz"
 import SymbolLogo from "@/components/symbolLogo"
 import { MdArrowBack } from "react-icons/md"
 import { useState } from "react"
+import { Select } from "@/components/ui/select"
+import { SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export async function loader({
     params
 }: ClientLoaderFunctionArgs) {
     if (!params.id) return redirect("/")
 
-    const { period: prices, periodInfo: marketInfo } = await getPrices(params.id)
+    const { period: prices, periodInfo: marketInfo } = await getPrices(params.id, {
+        timeframe: "30",
+        range: 48
+    })
     const symbol = await getSymbolData(params.id)
 
     if (!symbol || !prices || !marketInfo) return redirect("/")
@@ -36,10 +41,13 @@ export async function action({
     if (!params.id) return redirect("/")
 
     const body = await request.formData()
-    const timeframe = body.get("timeframe")
+    if (!body.get("timeframe")) return redirect("/")
+
+    const [timeframe, range] = body.get("timeframe")?.toString().split("-") ?? ["1D", "100"]
 
     const { period: prices, periodInfo: marketInfo } = await getPrices(params.id, {
-        timeframe: timeframe as string
+        timeframe: timeframe as string,
+        range: parseInt(range)
     })
 
     return {
@@ -58,6 +66,15 @@ export const meta: MetaFunction = () => {
 export default function Index() {
     const { prices, symbol, marketInfo } = useLoaderData<typeof loader>()
     const data = useActionData<typeof action>()
+    const submit = useSubmit()
+
+    const handleSubmit = (value: string) => {
+        const formData = new FormData()
+
+        formData.append("timeframe", value)
+
+        submit(formData, { method: "post" })
+    }
 
     return (
         <div className="relative">
@@ -84,26 +101,30 @@ export default function Index() {
                 <DisplaySession marketInfo={marketInfo} />
             </div>
 
-            <Form method="POST">
-                <Button variant="outline" name="timeframe" value="1">1 minutes</Button>
-                {/* <Button variant="outline" name="timeframe" value="3">3</Button> */}
-                {/* <Button variant="outline" name="timeframe" value="5">5</Button> */}
-                {/* <Button variant="outline" name="timeframe" value="15">15</Button> */}
-                {/* <Button variant="outline" name="timeframe" value="30">30</Button> */}
-                {/* <Button variant="outline" name="timeframe" value="45">45</Button> */}
-                <Button variant="outline" name="timeframe" value="60">1h</Button>
-                <Button variant="outline" name="timeframe" value="120">2h</Button>
-                {/* <Button variant="outline" name="timeframe" value="180">180</Button> */}
-                {/* <Button variant="outline" name="timeframe" value="240">240</Button> */}
-                <Button variant="outline" name="timeframe" value="1D">1D</Button>
-                <Button variant="outline" name="timeframe" value="1W">1W</Button>
-                <Button variant="outline" name="timeframe" value="1M">1M</Button>
-                <Button variant="outline" name="timeframe" value="12M">1Y</Button>
+            <Form className="w-80" method="POST">
+                <div className="mx-4">
+                    <Select name="timeframe" defaultValue="30-48" onValueChange={(value) => handleSubmit(value)}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Choisir un intervalle" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="1-360">Intervale 1 minutes sur la journée</SelectItem>
+                            <SelectItem value="30-48">Intervale 30min sur la journée</SelectItem>
+                            <SelectItem value="60-24">Intervale 1h sur la journée</SelectItem>
+                            <SelectItem value="120-12">Intervale 2h sur la journée</SelectItem>
+                            <SelectItem value="1W-30">Intervale d'une semaine sur un mois</SelectItem>
+                            <SelectItem value="1D-31">Dernier mois</SelectItem>
+                            <SelectItem value="1D-365">Dernière années</SelectItem>
+                            <SelectItem value="1D-7">Dernière semaine</SelectItem>
+                            <SelectItem value="12M-100">Tout les temps</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </Form>
 
             <ClientOnly fallback={<p>Chargement...</p>}>
                 {() => (
-                    <FullChart 
+                    <FullChart
                         prices={data?.prices ?? prices}
                     />
                 )}

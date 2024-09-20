@@ -92,15 +92,15 @@ export default function getPrices(symbolId: string, {
     range?: number
     timeframe?: string
 } = {}) {
-    // Create promise to resolve when the chart is loaded
     return new Promise<{ period: Period[], periodInfo: PeriodInfo }>((resolve, reject) => {
         if (!client) client = new TradingView.Client()
         // if (!chart) chart = new client.Session.Chart()
         const chart = new client.Session.Chart()
 
-        chart.setMarket(symbolId, { // Set the market
-            timeframe,
-            range
+        chart.setMarket(symbolId, {
+            timeframe: timeframe as TimeFrame,
+            range,
+            // type: "HeikinAshi" as ChartType
         })
 
         chart.onError((...err: unknown[]) => {
@@ -108,8 +108,7 @@ export default function getPrices(symbolId: string, {
             reject(err)
         })
 
-        chart.onSymbolLoaded(() => { // When the symbol is successfully loaded
-        })
+        // chart.onSymbolLoaded(() => {})
 
         chart.onUpdate(() => { // When price changes
             if (!chart.periods[0]) return

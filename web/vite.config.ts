@@ -26,7 +26,9 @@ const _plugins = [
             v3_throwAbortReason: true
         }
     }), 
-    remixPWA(), 
+    remixPWA({
+        ignoredSWRouteFiles: ["routes/api/*"],
+    }), 
     tsconfigPaths()
 ]
 

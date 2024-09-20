@@ -407,7 +407,7 @@ export function FindSymbols({
 
     const handleSave = () => {
         const price = parseFloat(refBuyPrice.current?.value || "0")
-        const quantity = parseInt(refQuantity.current?.value || "0")
+        const quantity = parseFloat(refQuantity.current?.value || "0")
 
         if (tempSelectedSymbol) {
             setSelectedSymbol((prev) => [...prev, {
