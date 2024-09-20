@@ -4,6 +4,7 @@ import getWalletById from "@/utils/getWallet"
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
@@ -334,6 +335,7 @@ export function AddSymbols({ triggerText, walletId }: { triggerText: string, wal
                 <Form onSubmit={handleSubmit} className="flex flex-col gap-2">
                     <DialogHeader>
                         <DialogTitle>Composé votre portefeuille</DialogTitle>
+                        <DialogDescription className="hidden">Ajouter des symboles à votre portefeuille</DialogDescription>
                     </DialogHeader>
 
                     <div className="flex max-h-96 flex-col overflow-auto">
@@ -410,8 +412,8 @@ export function FindSymbols({
         if (tempSelectedSymbol) {
             setSelectedSymbol((prev) => [...prev, {
                 ...tempSelectedSymbol,
-                price,
-                quantity
+                price: price <= 0 ? 0 : price,
+                quantity: quantity <= 0 ? 0 : quantity
             }])
 
             setTempSelectedSymbol(undefined)
@@ -430,9 +432,10 @@ export function FindSymbols({
                     Ajouter un symbole
                 </Button>
             </DialogTrigger>
-            <DialogContent className="">
+            <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Rechercher une action, une crypto</DialogTitle>
+                    <DialogDescription className="hidden">Rechercher un symbole</DialogDescription>
                 </DialogHeader>
 
                 <div className="flex flex-col gap-4">
@@ -443,10 +446,6 @@ export function FindSymbols({
                         replace
                         required
                     />
-                    {/* <SelectSymbol
-                        selectedSymbol={selectedSymbol}
-                        setSelectedSymbol={setSelectedSymbol}
-                    /> */}
 
                     <Label htmlFor="quantity">Quantité</Label>
                     <Input
@@ -455,6 +454,8 @@ export function FindSymbols({
                         placeholder="Quantité"
                         required
                         ref={refQuantity}
+                        step="any"
+                        min="0"
                     />
 
                     <Label htmlFor="buyPrice">Prix d'achat</Label>
@@ -464,6 +465,8 @@ export function FindSymbols({
                         placeholder="Prix d'achat"
                         required
                         ref={refBuyPrice}
+                        step="any"
+                        min="0"
                     />
 
                     <DialogFooter className="flex flex-row justify-center gap-2">

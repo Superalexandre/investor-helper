@@ -23,7 +23,7 @@ export default function SymbolLogo({
 
     return (
         <img
-            src={`https://s3-symbol-logo.tradingview.com/${source}.svg`}
+            src={`/api/image?name=${source}`}
             alt={alt || "Icon"}
             className={className}
         />

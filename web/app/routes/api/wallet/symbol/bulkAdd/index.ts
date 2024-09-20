@@ -51,16 +51,18 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
         values.push({
             walletId: wallet.walletId,
             symbol: `${prefix}:${normalizeSymbol(symbolJson.symbol)}`,
-            quantity: symbolJson.quantity,
-            buyPrice: symbolJson.price,
+            quantity: symbolJson.quantity <= 0 ? 0 : symbolJson.quantity,
+            buyPrice: symbolJson.price <= 0 ? 0 : symbolJson.price,
             currency: symbolJson.currency_code,
         })
 
     }
 
-    await db
-        .insert(walletSymbolsSchema)
-        .values(values)
+    if (values.length > 0) {
+        await db
+            .insert(walletSymbolsSchema)
+            .values(values)
+    }
 
     return redirect(`/wallet/${wallet.walletId}`)
 }

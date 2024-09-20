@@ -1,7 +1,7 @@
 import { Dialog, DialogTitle, DialogTrigger } from "@radix-ui/react-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { DialogClose, DialogContent, DialogFooter, DialogHeader } from "../ui/dialog"
+import { DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader } from "../ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Form } from "@remix-run/react"
 
@@ -25,7 +25,7 @@ export default function NewWallet({
     //     // Add the selected symbol to the form data
     //     for (const symbol of selectedSymbol) {
     //         console.log(symbol)
-         
+
     //         formData.append("symbol", `${symbol.exchange}:${normalizeSymbol(symbol.symbol)}`)
     //     }
 
@@ -36,10 +36,11 @@ export default function NewWallet({
 
     return (
         <Dialog>
-            <DialogTrigger>
+            <DialogTrigger asChild>
                 <Button 
                     variant="default"
                     className={className}
+                    // asChild
                 >
                     Créer un portefeuille
                 </Button>
@@ -51,7 +52,7 @@ export default function NewWallet({
                 >
                     <DialogHeader className="pb-4">
                         <DialogTitle>Créer un portefeuille</DialogTitle>
-                        {/* <DialogDescription>Créer un nouveau portefeuille</DialogDescription> */}
+                        <DialogDescription className="hidden">Créer un nouveau portefeuille</DialogDescription>
                     </DialogHeader>
                     <div className="flex flex-col gap-6">
                         <div className="flex flex-col gap-2">
@@ -92,6 +93,6 @@ export default function NewWallet({
                     </DialogFooter>
                 </Form>
             </DialogContent>
-        </Dialog>
+        </Dialog >
     )
 }

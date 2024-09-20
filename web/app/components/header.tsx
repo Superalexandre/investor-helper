@@ -2,6 +2,8 @@ import { MdAdd, MdCalendarMonth, MdHome, MdLogin, MdLogout, MdMenu, MdNewspaper,
 import {
     Sheet,
     SheetContent,
+    SheetDescription,
+    SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
 import { Link } from "@remix-run/react"
@@ -79,6 +81,9 @@ export default function Header({
                     <MdMenu className="size-6" />
                 </SheetTrigger>
                 <SheetContent side="left" className="flex flex-col items-center gap-10 pt-16">
+                    <SheetTitle className="hidden">Menu</SheetTitle>
+                    <SheetDescription className="hidden">Navigation principale</SheetDescription>
+
                     {menuItems.map((menuItem) => (
                         menuItem.hidden ? null : (
                             <div key={menuItem.key}>

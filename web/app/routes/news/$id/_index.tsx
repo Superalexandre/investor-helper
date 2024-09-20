@@ -36,7 +36,7 @@ export default function Index() {
     const { news, relatedSymbols } = useLoaderData<typeof loader>()
 
     return (
-        <div className="relative flex w-full flex-col items-center">
+        <div className="relative flex w-full flex-col items-center overflow-hidden">
             <Button asChild variant="default">
                 <Link to="/news" className="left-0 top-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute">
                     <MdArrowBack className="size-6" />
@@ -152,9 +152,9 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], { classNa
                                 : null
                             } */}
 
-                            <p>
+                            <span>
                                 {child.params?.symbol}
-                            </p>
+                            </span>
                         </Badge>
                     </Link>
                 )
