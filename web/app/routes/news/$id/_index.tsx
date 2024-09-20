@@ -8,6 +8,7 @@ import { NewsRelatedSymbol } from "../../../../../db/schema/news"
 import { cn } from "@/lib/utils"
 import { Symbol } from "@/schema/symbols"
 import SymbolLogo from "@/components/symbolLogo"
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
 
 export async function loader({
     params,
@@ -37,13 +38,15 @@ export default function Index() {
 
     return (
         <div className="relative flex w-full flex-col items-center overflow-hidden">
-            <Button asChild variant="default">
-                <Link to="/news" className="left-0 top-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute">
-                    <MdArrowBack className="size-6" />
+            <div className="w-full">
+                <Button asChild variant="default">
+                    <Link to="/news" className="left-0 top-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute">
+                        <MdArrowBack className="size-6" />
 
-                    Retour
-                </Link>
-            </Button>
+                        Retour
+                    </Link>
+                </Button>
+            </div>
 
             <div className="px-8 lg:w-3/4">
                 <div className="flex flex-col items-center justify-center pb-8">
@@ -142,16 +145,6 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], { classNa
                                 className="mr-1.5 size-6 rounded-full"
                             />
 
-                            {/* {relatedSymbolsData?.symbol.logoid && relatedSymbolsData?.symbol.logoid !== null && relatedSymbolsData?.symbol.logoid !== "" ?
-                                <img
-                                    id={child.params?.symbol}
-                                    src={"https://s3-symbol-logo.tradingview.com/" + relatedSymbolsData?.symbol.logoid + ".svg"}
-                                    alt={child.params?.symbol}
-                                    className="mr-1.5 size-6 rounded-full"
-                                />
-                                : null
-                            } */}
-
                             <span>
                                 {child.params?.symbol}
                             </span>
@@ -212,6 +205,66 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], { classNa
                     <li key={`${child.type}-${Component.length}`} className="flex flex-row items-center">
                         {ComponentResult}
                     </li>
+                )
+            } else if (["table"].includes(child?.type)) {
+                const ComponentResult = GetDeepComponent(child.children, relatedSymbols, {
+                    className: {
+                        badge: "inline-block align-middle",
+                        image: "mx-auto",
+                        text: "inline-block"
+                    },
+                    rawText: true
+                })
+
+                Component.push(
+                    <Table key={`${child.type}-${Component.length}`} className="table-auto">
+                        {ComponentResult}
+                    </Table>
+                )
+            } else if (["table-body"].includes(child?.type)) {
+                const ComponentResult = GetDeepComponent(child.children, relatedSymbols, {
+                    className: {
+                        badge: "inline-block align-middle",
+                        image: "mx-auto",
+                        text: "inline-block"
+                    },
+                    rawText: true
+                })
+
+                Component.push(
+                    <TableBody key={`${child.type}-${Component.length}`}>
+                        {ComponentResult}
+                    </TableBody>
+                )
+            } else if (["tr", "table-row"].includes(child?.type)) {
+                const ComponentResult = GetDeepComponent(child.children, relatedSymbols, {
+                    className: {
+                        badge: "inline-block align-middle",
+                        image: "mx-auto",
+                        text: "inline-block"
+                    },
+                    rawText: true
+                })
+
+                Component.push(
+                    <TableRow key={`${child.type}-${Component.length}`}>
+                        {ComponentResult}
+                    </TableRow>
+                )
+            } else if (["table-data-cell"].includes(child?.type)) {
+                const ComponentResult = GetDeepComponent(child.children, relatedSymbols, {
+                    className: {
+                        badge: "inline-block align-middle",
+                        image: "mx-auto",
+                        text: "inline-block"
+                    },
+                    rawText: true
+                })
+
+                Component.push(
+                    <TableCell key={`${child.type}-${Component.length}`}>
+                        {ComponentResult}
+                    </TableCell>
                 )
             } else {
                 console.error("Unknown child", child)
