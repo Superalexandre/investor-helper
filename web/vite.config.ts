@@ -26,9 +26,7 @@ const _plugins = [
             v3_throwAbortReason: true
         }
     }), 
-    remixPWA({
-        ignoredSWRouteFiles: ["routes/api/*"],
-    }), 
+    remixPWA(), 
     tsconfigPaths()
 ]
 
@@ -44,7 +42,7 @@ export default defineConfig({
         port: 4000
     },
     ssr: {
-        noExternal: ["react-charts", "remix-utils"]
+        noExternal: ["react-charts", "remix-utils", "date-fns"]
     },
     plugins: _plugins
 })
