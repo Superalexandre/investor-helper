@@ -11,19 +11,24 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Dispatch, FormEvent, SetStateAction, useMemo, useRef, useState } from "react"
+import { Dispatch, FormEvent, SetStateAction, useRef, useState } from "react"
 import { normalizeSymbol, SearchSymbol, SelectSymbolType } from "@/components/selectSymbol"
-import getPrices, { Period } from "@/utils/getPrices"
+import getPrices, { closeClient, Period } from "@/utils/getPrices"
 import { ClientOnly } from "remix-utils/client-only"
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { Line, LineChart, XAxis, YAxis } from "recharts"
+import { Line, LineChart, ReferenceLine, XAxis, YAxis } from "recharts"
 import { WalletSymbol } from "../../../../../db/schema/users"
 import getSymbolData, { RawSymbol } from "@/utils/getSymbol"
 import { getUser } from "@/session.server"
-import { MdArrowBack, MdDelete } from "react-icons/md"
+import { MdArrowBack, MdCalendarToday, MdDelete } from "react-icons/md"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import SymbolLogo from "@/components/symbolLogo"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
+import { Calendar } from "@/components/ui/calendar"
+import { format, formatDistanceStrict } from "date-fns"
+import { fr } from "date-fns/locale"
 
 type FullSymbol = RawSymbol & WalletSymbol
 
@@ -44,49 +49,131 @@ export async function loader({
 
     const { wallet, walletSymbols } = resultWallet
 
-    const prices = []
-    let walletValue = 0
-    let moneyWin = 0
+    const moneyInvested = walletSymbols.reduce((acc, symbol) => acc + (symbol.buyPrice ?? 0) * symbol.quantity, 0)
+    const prices: { symbol: FullSymbol, data: Period[] }[] = []
+    const totalPricesResult: TotalPrices[] = []
 
-    const results = await Promise.all(
+    let walletValue = 0
+    let moneyWinFirst = 0
+    let moneyWinLast = 0
+
+    await Promise.all(
         walletSymbols.map(async (symbol) => {
+            if (!symbol.symbol || symbol.quantity <= 0) return
+
             const [priceResult, symbolData] = await Promise.all([
-                getPrices(symbol.symbol),
+                getPrices(symbol.symbol, {
+                    timeframe: "1D",
+                    range: 21
+                }),
                 getSymbolData(symbol.symbol)
             ])
 
+            const buyAt = new Date(symbol.buyAt).getTime()
+            const buyPrice = symbol.buyPrice ?? 0
             const price = priceResult.period
-            const lastPrice = price[0]
 
-            return {
-                symbol,
-                symbolData,
-                lastPrice,
-                price
+            // Firstprice is the first price of the period, we will find it end check if the symbol was bought at this time
+            let firstPrice = null
+            for (let i = 0; i < price.length; i++) {
+                if (price[i].time * 1000 <= buyAt) {
+                    firstPrice = price[i]
+                    break
+                }
+            }
+
+            const lastPrice = price[0]
+            const firstPriceClose = firstPrice?.close ?? price[price.length - 1].close
+
+            walletValue += lastPrice.close * symbol.quantity
+
+            moneyWinFirst += (firstPriceClose) * symbol.quantity
+            moneyWinLast += (lastPrice.close) * symbol.quantity
+            const moneyWin = (lastPrice.close) * symbol.quantity - (firstPriceClose) * symbol.quantity
+
+            console.log({
+                firstPriceFound: firstPrice?.close,
+                symbol: symbol.symbol,
+                firstResult: (firstPriceClose - buyPrice) * symbol.quantity,
+                lastResult: (lastPrice.close - buyPrice) * symbol.quantity,
+                moneyWin
+            })
+
+            prices.push({
+                symbol: {
+                    ...symbol,
+                    ...symbolData
+                } as FullSymbol,
+                data: price
+            })
+
+
+            for (let i = 0; i < price.length; i++) {
+                if (!totalPricesResult[i]) {
+                    const formattedTime = new Date(price[i].time * 1000)
+                    formattedTime.setHours(0, 0, 0, 0)
+
+                    totalPricesResult[i] = {
+                        time: formattedTime.getTime(),
+                        close: 0,
+                        volume: 0,
+                        performance: 0,
+                        details: []
+                    }
+                }
+
+                totalPricesResult[i].close += price[i].close * symbol.quantity
+                totalPricesResult[i].volume += price[i].volume
+
+                // Check time and win
+                if (price[i].time * 1000 >= buyAt) {
+                    totalPricesResult[i].performance += (price[i].close - buyPrice) * symbol.quantity
+                    // totalPricesResult[i].performance += price[i].close * symbol.quantity
+                }
+
+                totalPricesResult[i].details.push({
+                    ...symbolData,
+                    ...symbol,
+                    price: price[i].close,
+                    value: price[i].close * symbol.quantity,
+                })
             }
         })
     )
 
-    // Traiter les résultats après résolution de toutes les promesses
-    for (const { symbol, symbolData, lastPrice, price } of results) {
-        walletValue += lastPrice.close * symbol.quantity
-        moneyWin += (lastPrice.close - (symbol.buyPrice ?? 0)) * symbol.quantity
+    closeClient()
 
-        prices.push({
-            symbol: {
-                ...symbol,
-                ...symbolData
-            } as FullSymbol,
-            data: price
-        })
-    }
+    // Get from to dates
+    const from = prices.reduce((acc, price) => {
+        const first = price.data[price.data.length - 1].time
+        return first < acc ? first : acc
+    }, prices.length > 0 ? prices[0].data[prices[0].data.length - 1].time : 0)
+
+    const to = prices.reduce((acc, price) => {
+        const last = price.data[0].time
+        return last > acc ? last : acc
+    }, prices.length > 0 ? prices[0].data[0].time : 0)
+
+    const difference = formatDistanceStrict(from * 1000, to * 1000, {
+        locale: fr
+    })
+
+    console.log({
+        moneyWinLast,
+        moneyWinFirst,
+        result: moneyWinFirst - moneyWinLast,
+        result2: moneyWinLast - moneyWinFirst
+    })
 
     return {
         walletValue: walletValue,
         wallet: wallet,
         walletSymbols: walletSymbols,
-        prices: prices,
-        moneyWin: moneyWin
+        // prices: prices,
+        moneyWin: moneyWinLast - moneyWinFirst,
+        moneyInvested,
+        difference,
+        totalPrices: totalPricesResult.reverse()
     }
 }
 
@@ -104,28 +191,76 @@ export function HydrateFallback() {
 }
 
 export default function Index() {
-    const { walletValue, wallet, prices, moneyWin } = useLoaderData<typeof loader>()
+    const { walletSymbols, walletValue, wallet, moneyInvested, moneyWin, difference, totalPrices } = useLoaderData<typeof loader>()
 
     return (
         <div className="relative flex flex-col items-center justify-center">
-            <Button asChild variant="default">
-                <Link to="/profile" className="left-0 top-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute">
-                    <MdArrowBack className="size-6" />
+            <div className="w-full">
+                <Button asChild variant="default">
+                    <Link to="/profile" className="left-0 top-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute">
+                        <MdArrowBack className="size-6" />
 
-                    Retour
-                </Link>
-            </Button>
+                        Retour
+                    </Link>
+                </Button>
+            </div>
 
-            <h1 className="pt-4 text-center text-2xl font-bold">
-                {wallet.name}
-            </h1>
-            <p>{new Intl.NumberFormat("fr-FR", {
-                style: "currency",
-                currency: "EUR",
-            }).format(walletValue)} ({new Intl.NumberFormat("fr-FR", {
-                style: "currency",
-                currency: "EUR",
-            }).format(moneyWin)})</p>
+            <div className="flex flex-col gap-4">
+                <h1 className="flex flex-col items-center pt-0 text-center text-2xl font-bold lg:pt-4">
+                    {wallet.name}
+
+                    <span className="text-muted-foreground text-base font-normal">
+                        {wallet.description}
+                    </span>
+                </h1>
+
+                <div className="flex flex-col justify-center gap-2">
+                    <div>
+                        <p className="text-center">Investissement total</p>
+                        <p className="text-center font-bold">
+                            {new Intl.NumberFormat("fr-FR", {
+                                style: "currency",
+                                currency: "EUR",
+                            }).format(moneyInvested)}
+                        </p>
+                    </div>
+
+                    <div>
+                        <p className="text-center">Gain total de votre portefeuille</p>
+                        <p className="flex flex-row items-center justify-center gap-2 text-center font-bold">
+                            {new Intl.NumberFormat("fr-FR", {
+                                style: "currency",
+                                currency: "EUR",
+                            }).format(walletValue)}
+
+                            <div>
+                                <span>(</span>
+                                <span className={`${walletValue - moneyInvested > 0 ? "text-green-500" : "text-red-500"}`}>
+                                    {walletValue - moneyInvested < 0 ? "" : "+"}
+                                    {new Intl.NumberFormat("fr-FR", {
+                                        style: "currency",
+                                        currency: "EUR",
+                                    }).format(walletValue - moneyInvested)}
+                                </span>
+                                <span>)</span>
+                            </div>
+                        </p>
+                    </div>
+
+
+                    <div>
+                        <p className="text-center">Performance sur {difference}</p>
+                        <p className={`${moneyWin > 0 ? "text-green-500" : "text-red-500"} text-center font-bold`}>
+                            {moneyWin < 0 ? "" : "+"}
+                            {new Intl.NumberFormat("fr-FR", {
+                                style: "currency",
+                                currency: "EUR",
+                            }).format(moneyWin)}
+                        </p>
+                    </div>
+
+                </div>
+            </div>
 
             {/* <AddNotification /> */}
 
@@ -134,15 +269,20 @@ export default function Index() {
                 walletId={wallet.walletId}
             />
 
-            <ChartWallet prices={prices} />
+            <ChartWallet 
+                // prices={prices} 
+                walletSymbolsList={walletSymbols} 
+            
+                totalPrices={totalPrices}
+            />
         </div>
     )
 }
 
-interface Prices {
-    symbol: FullSymbol,
-    data: Period[]
-}
+// interface Prices {
+//     symbol: FullSymbol,
+//     data: Period[]
+// }
 
 interface TotalPrices {
     time: number,
@@ -151,10 +291,11 @@ interface TotalPrices {
     details: Array<FullSymbol & {
         price: number,
         value: number
-    }>
+    }>,
+    performance: number
 }
 
-export function ChartWallet({ prices }: { prices: Prices[] }) {
+export function ChartWallet({ totalPrices, walletSymbolsList }: { totalPrices: TotalPrices[], walletSymbolsList: WalletSymbol[] }) {
     const chartConfig = {
         close: {
             label: "Prix",
@@ -169,33 +310,12 @@ export function ChartWallet({ prices }: { prices: Prices[] }) {
         },
     } satisfies ChartConfig
 
-    const totalPrices = useMemo(() => {
-        const totalPricesResult: TotalPrices[] = []
+    // const totalPrices = useMemo(() => {
+    //     const totalPricesResult: TotalPrices[] = []
 
-        for (const price of prices) {
-            for (let i = 0; i < price.data.length; i++) {
-                if (!totalPricesResult[i]) {
-                    totalPricesResult[i] = {
-                        time: price.data[i].time,
-                        close: 0,
-                        volume: 0,
-                        details: []
-                    }
-                }
 
-                totalPricesResult[i].close += price.data[i].close * price.symbol.quantity
-                totalPricesResult[i].volume += price.data[i].volume
-
-                totalPricesResult[i].details.push({
-                    ...price.symbol,
-                    price: price.data[i].close,
-                    value: price.data[i].close * price.symbol.quantity
-                })
-            }
-        }
-
-        return totalPricesResult.reverse()
-    }, [prices])
+    //     return totalPricesResult.reverse()
+    // }, [prices])
 
     return (
         <ClientOnly fallback={<p>Chargement...</p>}>
@@ -205,7 +325,11 @@ export function ChartWallet({ prices }: { prices: Prices[] }) {
 
                         <XAxis
                             dataKey="time"
-                            tickFormatter={(timestamp) => new Date(timestamp * 1000).toLocaleString("fr-FR")}
+                            tickFormatter={(timestamp) => new Date(timestamp).toLocaleString("fr-FR", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                            })}
 
                             tickLine={false}
                             axisLine={false}
@@ -214,20 +338,34 @@ export function ChartWallet({ prices }: { prices: Prices[] }) {
                         />
 
                         <YAxis
-                            dataKey="close"
+                            dataKey="performance"
                             tickLine={false}
                             axisLine={false}
                             scale="auto"
-                        // scale="linear"
                         />
 
                         <Line
-                            type="natural"
-                            dataKey="close"
+                            type="monotone"
+                            dataKey="performance"
                             stroke="var(--color-close)"
                             strokeWidth={2}
                             dot={false}
                         />
+
+                        {walletSymbolsList.map((symbol) => {
+                            const x = new Date(symbol.buyAt)
+                            x.setHours(0, 0, 0, 0)
+
+                            return (
+                                <ReferenceLine
+                                    x={x.getTime()}
+                                    stroke="red"
+                                    label={() => (
+                                        <p>{"Achat de " + symbol.symbol}</p>
+                                    )}
+                                />
+                            )
+                        })}
 
                         <ChartLegend content={<ChartLegendContent />} />
 
@@ -236,16 +374,21 @@ export function ChartWallet({ prices }: { prices: Prices[] }) {
                             content={<ChartTooltipContent
                                 indicator="dot"
                                 labelFormatter={(value, dataLabel) => {
-                                    return new Date(dataLabel[0].payload.time * 1000).toLocaleString("fr-FR", {
+                                    return new Date(dataLabel[0].payload.time).toLocaleString("fr-FR", {
+                                        weekday: "long",
                                         day: "numeric",
                                         month: "short",
                                         year: "numeric",
-                                        hour: "numeric",
-                                        minute: "numeric",
+                                        // hour: "numeric",
+                                        // minute: "numeric",
                                     })
                                 }}
 
                                 formatter={(value, name, payload) => {
+                                    console.log(payload.payload.time)
+
+                                    const time = new Date(payload.payload.time).getTime()
+
                                     return (
                                         <div className="flex flex-col gap-6">
                                             <div className="flex flex-row items-center gap-2">
@@ -269,7 +412,7 @@ export function ChartWallet({ prices }: { prices: Prices[] }) {
                                                             fallback={<div className="size-6"></div>}
                                                         />
 
-                                                        <p>
+                                                        <p className={`${new Date(detail.buyAt).getTime() >= time ? "text-red-500" : "text-green-500"}`}>
                                                             {detail.description} - {new Intl.NumberFormat("fr-FR", {
                                                                 style: "currency",
                                                                 currency: "EUR",
@@ -401,6 +544,7 @@ export function FindSymbols({
 }) {
     const [open, setOpen] = useState(false)
     const [tempSelectedSymbol, setTempSelectedSymbol] = useState<SelectSymbolType>()
+    const [date, setDate] = useState<Date>()
 
     const refQuantity = useRef<HTMLInputElement>(null)
     const refBuyPrice = useRef<HTMLInputElement>(null)
@@ -413,11 +557,13 @@ export function FindSymbols({
             setSelectedSymbol((prev) => [...prev, {
                 ...tempSelectedSymbol,
                 price: price <= 0 ? 0 : price,
-                quantity: quantity <= 0 ? 0 : quantity
+                quantity: quantity <= 0 ? 0 : quantity,
+                buyAt: date?.toISOString() ?? new Date().toISOString()
             }])
 
             setTempSelectedSymbol(undefined)
             setOpen(false)
+            setDate(undefined)
         }
     }
 
@@ -468,6 +614,34 @@ export function FindSymbols({
                         step="any"
                         min="0"
                     />
+
+                    <Label htmlFor="buyAt">Date d'achat</Label>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "justify-start text-left font-normal",
+                                    !date && "text-muted-foreground"
+                                )}
+                            >
+                                <MdCalendarToday className="mr-2 size-4" />
+                                {date ? format(date, "PPP") : <span>Date d'achat</span>}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                            <Calendar
+                                mode="single"
+                                locale={fr}
+                                selected={date}
+                                onSelect={setDate}
+                                initialFocus
+                                disabled={(dateValue) => {
+                                    return dateValue > new Date() || dateValue < new Date("1970-01-01")
+                                }}
+                            />
+                        </PopoverContent>
+                    </Popover>
 
                     <DialogFooter className="flex flex-row justify-center gap-2">
                         <Button

@@ -111,6 +111,9 @@ export const walletSymbols = sqliteTable("wallet_symbol", {
         .notNull()
         .$default(() => 0),
     buyPrice: int("buy_price"),
+    buyAt: text("buy_at")
+        .notNull()
+        .$defaultFn(() => new Date().toISOString()),
     addedAt: text("added_at")
         .notNull()
         .$defaultFn(() => new Date().toISOString()),

@@ -79,7 +79,7 @@ export default function Index() {
     return (
         <div className="relative">
             <Button asChild variant="default">
-                <Link to="/news" className="left-0 top-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute">
+                <Link to="/news" className="left-0 top-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center xl:absolute">
                     <MdArrowBack className="size-6" />
 
                     Retour
@@ -112,10 +112,11 @@ export default function Index() {
                             <SelectItem value="30-48">Intervale 30min sur la journée</SelectItem>
                             <SelectItem value="60-24">Intervale 1h sur la journée</SelectItem>
                             <SelectItem value="120-12">Intervale 2h sur la journée</SelectItem>
+                            <SelectItem value="60-170">Intervale 1h sur la semaine</SelectItem>
                             <SelectItem value="1W-30">Intervale d'une semaine sur un mois</SelectItem>
-                            <SelectItem value="1D-31">Dernier mois</SelectItem>
-                            <SelectItem value="1D-365">Dernière années</SelectItem>
                             <SelectItem value="1D-7">Dernière semaine</SelectItem>
+                            <SelectItem value="1D-31">Dernier mois</SelectItem>
+                            <SelectItem value="1D-365">Dernière année</SelectItem>
                             <SelectItem value="12M-100">Tout les temps</SelectItem>
                         </SelectContent>
                     </Select>
@@ -299,7 +300,7 @@ function FullChart({ prices }: { prices: Period[] }) {
 
                 <YAxis
                     dataKey="close"
-                    yAxisId="left"
+                    yAxisId="close"
                     tickLine={false}
                     axisLine={false}
                     scale="linear"
@@ -307,14 +308,15 @@ function FullChart({ prices }: { prices: Period[] }) {
 
                 <YAxis
                     dataKey="volume"
-                    yAxisId="right"
+                    yAxisId="volume"
                     orientation="right"
                     hide
-                    scale="auto"
+                    includeHidden={!displayVolume}
                 />
 
                 <Bar
-                    yAxisId="right"
+                    layout="vertical"
+                    yAxisId="volume"
                     dataKey="volume"
                     fill="var(--color-volume)"
                     radius={8}
@@ -322,9 +324,9 @@ function FullChart({ prices }: { prices: Period[] }) {
                 />
 
                 <Line
-                    yAxisId="left"
+                    yAxisId="close"
                     dataKey="close"
-                    type="natural"
+                    type="basis"
                     stroke="var(--color-close)"
                     strokeWidth={2}
                     dot={false}

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { MdDelete } from "react-icons/md"
 import { useDebounceValue } from "usehooks-ts"
 import { Label } from "./ui/label"
+import { cn } from "@/lib/utils"
 
 interface SelectSymbolType {
     symbol: string
@@ -15,6 +16,7 @@ interface SelectSymbolType {
     price: number
     quantity: number
     currency_code: string
+    prefix?: string
 }
 
 export function normalizeSymbol(symbol: string) {
@@ -23,16 +25,27 @@ export function normalizeSymbol(symbol: string) {
 
 export function SearchSymbol({
     onClick,
-    replace,
-    required
+    // onBlur = "none",
+    // onFocus = "none",
+    replace = false,
+    required = false,
+    placeholder = "Rechercher un symbole",
+    displayLabel = true,
+    resultSize = "h-32"
 }: {
     onClick?: (symbol: SelectSymbolType) => void,
+    onBlur?: "none" | "hidden" | "clear",
+    onFocus?: "none" | "hidden",
     replace?: boolean
     required?: boolean
-} = { replace: false, required: false }) {
+    placeholder?: string,
+    displayLabel?: boolean
+    resultSize?: string
+}) {
     const refInput = useRef<HTMLInputElement>(null)
     const [resultSymbols, setResultSymbols] = useState<SelectSymbolType[]>([])
     const [debouncedValue, setValue] = useDebounceValue("", 750)
+    const [hidden, setHidden] = useState(true)
 
     const [, setLoading] = useState(false)
 
@@ -49,25 +62,40 @@ export function SearchSymbol({
             .then(data => {
                 setResultSymbols(data.symbols as SelectSymbolType[])
                 setLoading(false)
+                setHidden(false)
             })
 
     }, [debouncedValue])
 
     return (
-        <div className="relative">
-            <Label htmlFor="symbol">Symbole</Label>
+        <div className="relative w-full"
+        >
+            {displayLabel ? <Label htmlFor="symbol">Symbole</Label> : null}
             <Input
+                className="w-full"
                 id="symbol"
                 name="symbol"
                 ref={refInput}
                 type="text"
-                placeholder="Rechercher un symbole"
+                placeholder={placeholder}
                 onChange={event => setValue(event.target.value)}
                 required={required}
+                // onBlur={() => {
+                //     if (onBlur === "hidden") setHidden(true)
+
+                //     if (onBlur === "clear") setValue("")
+
+                //     if (onBlur === "none") return
+                // }}
+                // onFocus={() => {
+                //     if (onFocus === "hidden") setHidden(false)
+
+                //     if (onFocus === "none") return
+                // }}
             />
 
             {resultSymbols && resultSymbols.length > 0 ? (
-                <Card className="absolute left-0 top-full z-10 mt-1 h-32 w-full overflow-x-hidden overflow-y-scroll">
+                <Card className={cn("absolute left-0 top-full z-10 mt-1 w-full overflow-x-hidden overflow-y-scroll", resultSize, hidden ? "hidden" : "block")}>
                     {resultSymbols.map((symbol, i) => (
                         <Button
                             variant="outline"
@@ -123,7 +151,15 @@ export default function SelectSymbol({
             </div>
 
             <SearchSymbol 
-                onClick={(symbol) => setSelectedSymbol((prev) => [...prev, symbol])}
+                onClick={(symbol) => {
+                    symbol = {
+                        ...symbol,
+                        description: normalizeSymbol(symbol.description),
+                        symbol: normalizeSymbol(symbol.symbol)
+                    }
+
+                    setSelectedSymbol((prev) => [...prev, symbol])
+                }}
             />
         </div>
 

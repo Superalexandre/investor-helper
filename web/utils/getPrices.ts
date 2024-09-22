@@ -121,6 +121,14 @@ export default function getPrices(symbolId: string, {
     })
 }
 
+export function closeClient() {
+    if (client) {
+        client.end()
+    
+        client = null
+    }
+}
+
 export type { Period, PeriodInfo }
 
 // eslint-disable-next-line no-secrets/no-secrets

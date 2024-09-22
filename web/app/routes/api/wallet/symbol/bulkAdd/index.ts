@@ -2,7 +2,7 @@ import { getUser } from "@/session.server"
 import { ActionFunction, ActionFunctionArgs, json, redirect, /*redirect*/ } from "@remix-run/node"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
-import { wallet as walletSchema, walletSymbols as walletSymbolsSchema } from "../../../../../../../db/schema/users"
+import { wallet as walletSchema, walletSymbols as walletSymbolsSchema, } from "../../../../../../../db/schema/users"
 import { eq } from "drizzle-orm"
 import { normalizeSymbol } from "@/components/selectSymbol"
 
@@ -54,6 +54,7 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
             quantity: symbolJson.quantity <= 0 ? 0 : symbolJson.quantity,
             buyPrice: symbolJson.price <= 0 ? 0 : symbolJson.price,
             currency: symbolJson.currency_code,
+            buyAt: symbolJson.buyAt,
         })
 
     }
