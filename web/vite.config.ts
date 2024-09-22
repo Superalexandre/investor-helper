@@ -4,7 +4,7 @@ import { defineConfig } from "vite"
 import tsconfigPaths from "vite-tsconfig-paths"
 import { flatRoutes } from "remix-flat-routes"
 import react from "@vitejs/plugin-react"
-import { remixPWA } from "@remix-pwa/dev"
+// import { remixPWA } from "@remix-pwa/dev"
 
 const isProduction = process.env.NODE_ENV === "production"
 
@@ -26,7 +26,7 @@ const _plugins = [
             v3_throwAbortReason: true
         }
     }), 
-    remixPWA(), 
+    // remixPWA(), 
     tsconfigPaths()
 ]
 
@@ -42,7 +42,7 @@ export default defineConfig({
         port: 4000
     },
     ssr: {
-        noExternal: ["react-charts", "remix-utils", "date-fns"]
+        noExternal: ["react-charts", "remix-utils"]
     },
     plugins: _plugins
 })
