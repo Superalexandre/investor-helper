@@ -13,6 +13,29 @@ import { MdArrowBack } from "react-icons/md"
 import { useState } from "react"
 import { Select } from "@/components/ui/select"
 import { SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { fr } from "date-fns/locale"
+import { formatDistanceStrict } from "date-fns"
+import currencies from "../../../../../lang/currencies"
+
+function differences(prices: Period[]) {
+    const differencePrice = Math.floor(prices[0].close - prices[prices.length - 1].close)
+
+    // Difference in percent can be up to 100% (double the price)
+    const differencePercent = Math.floor((differencePrice / prices[0].close) * 100)
+
+    const from = prices[0].time * 1000
+    const to = prices[prices.length - 1].time * 1000
+
+    const differenceTime = formatDistanceStrict(from, to, {
+        locale: fr
+    })
+
+    return {
+        differencePrice,
+        differencePercent,
+        differenceTime
+    }
+}
 
 export async function loader({
     params
@@ -21,16 +44,24 @@ export async function loader({
 
     const { period: prices, periodInfo: marketInfo } = await getPrices(params.id, {
         timeframe: "30",
-        range: 48
+        range: 192
     })
     const symbol = await getSymbolData(params.id)
 
     if (!symbol || !prices || !marketInfo) return redirect("/")
 
+    const { differencePrice, differencePercent, differenceTime } = differences(prices)
+
+    const prettySymbol = currencies[symbol.currency].symbol_native ?? symbol.currency
+
     return {
         prices: prices.reverse(),
         symbol,
-        marketInfo
+        prettySymbol,
+        marketInfo,
+        differencePrice,
+        differencePercent,
+        differenceTime
     }
 }
 
@@ -50,9 +81,14 @@ export async function action({
         range: parseInt(range)
     })
 
+    const { differencePrice, differencePercent, differenceTime } = differences(prices)
+
     return {
         prices: prices.reverse(),
-        marketInfo
+        marketInfo,
+        differencePrice,
+        differencePercent,
+        differenceTime
     }
 }
 
@@ -64,9 +100,23 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Index() {
-    const { prices, symbol, marketInfo } = useLoaderData<typeof loader>()
+    const { prices, symbol, marketInfo, differencePrice, differencePercent, differenceTime, prettySymbol } = useLoaderData<typeof loader>()
+
     const data = useActionData<typeof action>()
     const submit = useSubmit()
+
+    const diffPrice = data?.differencePrice ?? differencePrice
+    const diffPercent = data?.differencePercent ?? differencePercent
+    const diffTime = data?.differenceTime ?? differenceTime
+
+    const isPositive = diffPrice > 0
+
+    const priceClass = isPositive ? "text-green-500" : "text-red-500"
+
+    const formattedDiffPrice = `${isPositive ? "+" : ""}${diffPrice}`
+    const formattedDiffPercent = `${isPositive ? "+" : ""}${diffPercent}%`
+
+    const lastClose = data?.prices[data?.prices.length - 1].close ?? prices[prices.length - 1].close
 
     const handleSubmit = (value: string) => {
         const formData = new FormData()
@@ -99,22 +149,43 @@ export default function Index() {
                 </div>
 
                 <DisplaySession marketInfo={marketInfo} />
+
+                <div className="flex flex-col items-center justify-center gap-2">
+                    <div className="flex flex-row items-center justify-center gap-1">
+                        <p className={priceClass}>{formattedDiffPrice}{prettySymbol} ({formattedDiffPercent})</p>
+                        <p>sur {diffTime}</p>
+                    </div>
+                </div>
+
+                <p>Dernier prix {lastClose}{prettySymbol}</p>
             </div>
 
             <Form className="w-80" method="POST">
                 <div className="mx-4">
-                    <Select name="timeframe" defaultValue="30-48" onValueChange={(value) => handleSubmit(value)}>
+                    <Select name="timeframe" defaultValue="30-192" onValueChange={(value) => handleSubmit(value)}>
                         <SelectTrigger>
                             <SelectValue placeholder="Choisir un intervalle" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="1-360">Intervale 1 minutes sur la journée</SelectItem>
-                            <SelectItem value="30-48">Intervale 30min sur la journée</SelectItem>
-                            <SelectItem value="60-24">Intervale 1h sur la journée</SelectItem>
-                            <SelectItem value="120-12">Intervale 2h sur la journée</SelectItem>
-                            <SelectItem value="60-170">Intervale 1h sur la semaine</SelectItem>
-                            <SelectItem value="1W-30">Intervale d'une semaine sur un mois</SelectItem>
-                            <SelectItem value="1D-7">Dernière semaine</SelectItem>
+                            <SelectItem value="1-360">Intervale 1 minutes sur 24h</SelectItem>
+                            <SelectItem value="1-720">Intervale 1 minutes sur 48h</SelectItem>
+
+                            <SelectItem value="30-48">Intervale 30min sur 24h</SelectItem>
+                            <SelectItem value="30-96">Intervale 30min sur 48h</SelectItem>
+                            <SelectItem value="30-144">Intervale 30min sur 72h</SelectItem>
+                            <SelectItem value="30-192">Intervale 30min sur 96h</SelectItem>
+
+                            <SelectItem value="60-24">Intervale 1h sur 24h</SelectItem>
+                            <SelectItem value="60-48">Intervale 1h sur 48h</SelectItem>
+                            <SelectItem value="60-72">Intervale 1h sur 72h</SelectItem>
+                            <SelectItem value="60-96">Intervale 1h sur 96h</SelectItem>
+
+                            <SelectItem value="120-12">Intervale 2h sur 24h</SelectItem>
+                            <SelectItem value="120-24">Intervale 2h sur 48h</SelectItem>
+                            <SelectItem value="120-36">Intervale 2h sur 72h</SelectItem>
+                            <SelectItem value="120-48">Intervale 2h sur 96h</SelectItem>
+
+                            <SelectItem value="120-85">Dernière semaine</SelectItem>
                             <SelectItem value="1D-31">Dernier mois</SelectItem>
                             <SelectItem value="1D-365">Dernière année</SelectItem>
                             <SelectItem value="12M-100">Tout les temps</SelectItem>
@@ -257,7 +328,7 @@ interface FullConfig {
 }
 
 function FullChart({ prices }: { prices: Period[] }) {
-    const [displayVolume, setDisplayVolume] = useState(true)
+    const [displayVolume, setDisplayVolume] = useState(false)
 
     const chartConfig: FullConfig = {
         close: {
@@ -278,7 +349,6 @@ function FullChart({ prices }: { prices: Period[] }) {
     }
 
     return (
-
         <ChartContainer config={chartConfig} className="min-h-[200px] w-full overflow-hidden">
             <ComposedChart
                 data={prices}
@@ -303,7 +373,8 @@ function FullChart({ prices }: { prices: Period[] }) {
                     yAxisId="close"
                     tickLine={false}
                     axisLine={false}
-                    scale="linear"
+                    scale="auto"
+                    domain={[(dataMin: number) => Math.floor(dataMin * 0.85), (dataMax: number) => dataMax]}
                 />
 
                 <YAxis
@@ -312,6 +383,7 @@ function FullChart({ prices }: { prices: Period[] }) {
                     orientation="right"
                     hide
                     includeHidden={!displayVolume}
+                    domain={[(dataMin: number) => Math.floor(dataMin * 0.5), (dataMax: number) => Math.ceil(dataMax * 2)]}
                 />
 
                 <Bar
@@ -326,7 +398,7 @@ function FullChart({ prices }: { prices: Period[] }) {
                 <Line
                     yAxisId="close"
                     dataKey="close"
-                    type="basis"
+                    // type="basis"
                     stroke="var(--color-close)"
                     strokeWidth={2}
                     dot={false}
@@ -351,6 +423,7 @@ function FullChart({ prices }: { prices: Period[] }) {
                         indicator="dot"
                         labelFormatter={(value, dataLabel) => {
                             return new Date(dataLabel[0].payload.time * 1000).toLocaleString("fr-FR", {
+                                weekday: "long",
                                 day: "numeric",
                                 month: "short",
                                 year: "numeric",

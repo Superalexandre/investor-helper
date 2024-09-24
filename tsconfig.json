@@ -18,14 +18,12 @@
         "baseUrl": ".",
         "paths": {
             "@/countries/*": [
-                "./countries/*"
+                "lang/*"
             ]
         }
     },
     "include": [
-        "./backend/**/*.ts",
-        "./config.ts",
-        "./db/**/*.ts",
+        "db/schema/**/*.ts",
     ],
     "exclude": [
         "./node_modules",

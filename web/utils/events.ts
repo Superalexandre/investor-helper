@@ -1,25 +1,24 @@
-import { Hono } from "hono"
-import ical from "ical-generator"
+import { drizzle } from "drizzle-orm/better-sqlite3"
+import Database from "better-sqlite3"
 import config from "../../config.js"
 import { startOfWeek, formatISO, addDays } from "date-fns"
-import stringComparison from "string-comparison"
-import { countries as countriesFr } from "../../lang/countries-fr.js"
+import { Events, events as eventsSchema } from "../../db/schema/events.js"
+import { and, asc, desc, eq, gte, isNotNull } from "drizzle-orm"
 
-const calendarHono = new Hono()
+// interface EconomicEvent {
+//     id: number,
+//     start: Date,
+//     end: Date,
+//     originalTitle: string,
+//     summary: string,
+//     description: string,
+//     location: string,
+//     url: string,
+//     importance: number,
+//     numberOfEvents: number
+// }
 
-interface EconomicEvent {
-    id: number,
-    start: Date,
-    end: Date,
-    originalTitle: string,
-    summary: string,
-    description: string,
-    location: string,
-    url: string,
-    importance: number,
-    numberOfEvents: number
-}
-
+/*
 calendarHono.get("/", async (req) => {
     const events = await getEvents()
     if (!events || events.error) return req.json(events)
@@ -137,8 +136,35 @@ calendarHono.get("/", async (req) => {
 
     return req.text(calendar.toString())
 })
+*/
 
-async function getEvents() {
+
+async function getEvents({ page = 1, limit = 10, desc: descOrder = "desc" }: { page?: number; limit?: number, desc?: "asc" | "desc" }) {
+    const sqlite = new Database("../db/sqlite.db")
+    const db = drizzle(sqlite)
+
+    const referenceDate = new Date()
+
+    referenceDate.setMinutes(referenceDate.getMinutes() - 20)
+
+    const allEvents = await db
+        .select()
+        .from(eventsSchema)
+        .limit(limit)
+        .offset(limit * (page - 1))
+        .where(
+            and(
+                isNotNull(eventsSchema.date),
+                gte(eventsSchema.date, referenceDate.toISOString())
+            )
+        )
+        .orderBy(descOrder === "asc" ? asc(eventsSchema.date) : desc(eventsSchema.date))
+        // .orderBy(desc(eventsSchema.referenceDate))
+
+    return allEvents
+}
+
+async function fetchEvents() {
     const url = new URL(config.url.events)
 
     const now = new Date()
@@ -167,17 +193,60 @@ async function getEvents() {
             }
         })
 
-        if (!response.ok) return { success: false, error: true, message: "Error fetching agenda (trading view error)", status: response.status }
+        // if (!response.ok) return { success: false, error: true, message: "Error fetching agenda (trading view error)", status: response.status }
+        if (!response.ok) return console.error("Error fetching agenda (trading view error)", response.status)
 
         const json = await response.json()
         const events = json.result
 
-        if (!events || events.length === 0) return { success: false, error: true, message: "No events found" }
+        if (!events || events.length === 0) return console.error("No events found")
 
-        return events
+        // console.log(events)
+
+        return events as Events[]
     } catch (error) {
-        return { message: "Error fetching agenda (can't fetch)", error }
+        return console.error("Error fetching agenda (can't fetch)", error)
     }
 }
 
-export default calendarHono
+async function saveFetchEvents() {
+    const events = await fetchEvents()
+
+    if (!events || events.length === 0) return console.error("No events found")
+
+    await saveEvents(events)
+}
+
+async function saveEvents(events: Events[]) {
+    const sqlite = new Database("../db/sqlite.db")
+    const db = drizzle(sqlite)
+
+    const eventsValues = []
+
+    for (const event of events) {
+        const eventDb = await db
+            .select()
+            .from(eventsSchema)
+            .where(eq(eventsSchema.id, event.id))
+
+        if (eventDb.length > 0) continue
+
+        eventsValues.push(event)
+    }
+
+    if (eventsValues.length > 0) {
+        await db
+            .insert(eventsSchema)
+            .values(eventsValues)
+    }
+
+    console.log(`Inserted ${eventsValues.length} events`)
+
+}
+
+export {
+    getEvents,
+    fetchEvents,
+    saveFetchEvents,
+    saveEvents
+}

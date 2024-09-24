@@ -21,7 +21,9 @@ interface RawSymbol {
     logoid: string,
     name: string,
     description: string,
-    ["base_currency_logoid"]: string
+    ["base_currency_logoid"]: string,
+    currency: string,
+    exchange: string,
 }
 
 export default async function getSymbolData(symbolId: string) {
@@ -48,7 +50,9 @@ export default async function getSymbolData(symbolId: string) {
         "logoid",
         "name",
         "description",
-        "base_currency_logoid"
+        "base_currency_logoid",
+        "currency",
+        "exchange"
     ]
 
     const url = `https://scanner.tradingview.com/symbol?symbol=${symbolId}&fields=${fields.join("%2C")}&no_404=true&label-product=right-details`

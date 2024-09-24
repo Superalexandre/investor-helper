@@ -1,4 +1,4 @@
-import getNews from "@/utils/getNews"
+import { getNews } from "@/utils/news"
 import { json, LoaderFunction, LoaderFunctionArgs } from "@remix-run/node"
 
 export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) => {

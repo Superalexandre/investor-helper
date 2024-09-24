@@ -1,5 +1,5 @@
 import type { MetaFunction } from "@remix-run/node"
-import { getNews } from "@/utils/getNews"
+import { getNews } from "@/utils/news"
 import { ClientLoaderFunctionArgs, Link, useLoaderData } from "@remix-run/react"
 import {
     Card,
@@ -56,13 +56,16 @@ export default function Index() {
 
             <div className="flex flex-col space-y-6 p-4 lg:p-10">
                 {news.map((item) => (
-                    <div className="relative" key={item.news.id}>
+                    <div className="relative" key={item.news.id} id={item.news.id}>
                         {/* <Badge variant="destructive" className="absolute -right-[10px] -top-[10px]">
                             <MdPriorityHigh className="size-5" />
                         </Badge> */}
 
                         <Card>
-                            <Link to={`/news/${item.news.id}`}>
+                            <Link to={{
+                                pathname: `/news/${item.news.id}`,
+                                // hash: item.news.id
+                            }}>
                                 <CardHeader>
                                     <CardTitle>{item.news.title}</CardTitle>
                                 </CardHeader>

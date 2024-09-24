@@ -38,7 +38,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <Links />
                 {/* <ManifestLink /> */}
 
-                <meta name="theme-color" content="#000000" />
+                {/* <meta name="theme-color" content="#000000" /> */}
             </head>
             <body className="flex min-h-screen flex-col">
                 <Header 

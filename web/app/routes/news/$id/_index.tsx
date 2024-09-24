@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { getNewsById } from "@/utils/getNews"
+import { getNewsById } from "@/utils/news"
 import type { MetaFunction } from "@remix-run/node"
 import { ClientLoaderFunctionArgs, Link, redirect, useLoaderData } from "@remix-run/react"
 import { MdArrowBack } from "react-icons/md"
@@ -40,7 +40,13 @@ export default function Index() {
         <div className="relative flex w-full flex-col items-center overflow-hidden">
             <div className="w-full">
                 <Button asChild variant="default">
-                    <Link to="/news" className="left-0 top-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute">
+                    <Link
+                        to={{
+                            pathname: "/news",
+                            hash: news.news.id
+                        }}
+                        className="left-0 top-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute"
+                    >
                         <MdArrowBack className="size-6" />
 
                         Retour
@@ -106,9 +112,9 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], { classNa
                 <img
                     width={child.params.image["source-width"]}
                     height={child.params.image["source-height"]}
-                    className={cn("mx-auto", className?.image)} 
-                    src={`https://s3.tradingview.com/news/image/${child.params.image.id}-resized.jpeg`} 
-                    alt={child.params.image.alt ?? ""} 
+                    className={cn("mx-auto", className?.image)}
+                    src={`https://s3.tradingview.com/news/image/${child.params.image.id}-resized.jpeg`}
+                    alt={child.params.image.alt ?? ""}
                 />
             )
 
@@ -132,7 +138,7 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], { classNa
 
         if (typeof child === "object") {
             if (["symbol"].includes(child?.type)) {
-                const relatedSymbolsData = relatedSymbols.find(({symbol}) => symbol.symbolId === child.params?.symbol)
+                const relatedSymbolsData = relatedSymbols.find(({ symbol }) => symbol.symbolId === child.params?.symbol)
 
                 Component.push(
                     <Link to={`/data/${child.params?.symbol}`} key={`${child.params?.symbol}-${Component.length}`} className={className?.badge}>
