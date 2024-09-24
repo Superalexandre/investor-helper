@@ -15,7 +15,7 @@ import { Select } from "@/components/ui/select"
 import { SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { fr } from "date-fns/locale"
 import { formatDistanceStrict } from "date-fns"
-import currencies from "../../../../../lang/currencies"
+import currencies from "@/lang/currencies"
 
 function differences(prices: Period[]) {
     const differencePrice = Math.floor(prices[0].close - prices[prices.length - 1].close)
@@ -52,7 +52,7 @@ export async function loader({
 
     const { differencePrice, differencePercent, differenceTime } = differences(prices)
 
-    const prettySymbol = currencies[symbol.currency].symbol_native ?? symbol.currency
+    const prettySymbol = currencies[symbol.currency]?.symbol_native ?? symbol.currency
 
     return {
         prices: prices.reverse(),
