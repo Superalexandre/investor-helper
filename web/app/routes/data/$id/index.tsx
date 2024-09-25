@@ -1,5 +1,5 @@
 import type { ActionFunctionArgs, MetaFunction } from "@remix-run/node"
-import { ClientLoaderFunctionArgs, Form, Link, redirect, useActionData, useLoaderData, useSubmit } from "@remix-run/react"
+import { ClientLoaderFunctionArgs, Form, Link, redirect, useActionData, useLoaderData, useLocation, useSubmit } from "@remix-run/react"
 import getPrices, { Period, PeriodInfo } from "@/utils/getPrices"
 import { ClientOnly } from "remix-utils/client-only"
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
@@ -7,14 +7,14 @@ import { Bar, CartesianGrid, ComposedChart, Line, XAxis, YAxis } from "recharts"
 import { Button } from "@/components/ui/button"
 import getSymbolData from "@/utils/getSymbol"
 // import { format } from "date-fns"
-import { toZonedTime, format as formatTz } from "date-fns-tz"
+import { TZDate } from "@date-fns/tz"
 import SymbolLogo from "@/components/symbolLogo"
 import { MdArrowBack } from "react-icons/md"
 import { useState } from "react"
 import { Select } from "@/components/ui/select"
 import { SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { fr } from "date-fns/locale"
-import { formatDistanceStrict } from "date-fns"
+import { format, formatDistanceStrict } from "date-fns"
 import currencies from "@/lang/currencies"
 
 function differences(prices: Period[]) {
@@ -100,6 +100,8 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Index() {
+    const location = useLocation()
+
     const { prices, symbol, marketInfo, differencePrice, differencePercent, differenceTime, prettySymbol } = useLoaderData<typeof loader>()
 
     const data = useActionData<typeof action>()
@@ -129,7 +131,13 @@ export default function Index() {
     return (
         <div className="relative">
             <Button asChild variant="default">
-                <Link to="/news" className="left-0 top-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center xl:absolute">
+                <Link 
+                    to={{
+                        pathname: location.state?.redirect ?? "/news",
+                        hash: location.state?.hash ?? undefined
+                    }} 
+                    className="left-0 top-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center xl:absolute"
+                >
                     <MdArrowBack className="size-6" />
 
                     Retour
@@ -216,9 +224,10 @@ function DisplaySession({ marketInfo }: { marketInfo: PeriodInfo }) {
         "extended": "Marché fermé",
     }
 
-    // const date = new Date()
-    const date = toZonedTime(new Date(), marketInfo.timezone)
-    const prettyDate = formatTz(date, "HH:mm", { timeZone: marketInfo.timezone })
+    const date =  new TZDate(new Date(), marketInfo.timezone)
+    const prettyDate = format(date, "HH:mm", {
+        locale: fr
+    })
 
     const orderSessions = ["premarket", "regular", "postmarket", "extended"]
 

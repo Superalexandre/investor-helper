@@ -63,17 +63,25 @@ export default function Index() {
                         </Badge> */}
 
                         <Card>
-                            <Link to={{
-                                pathname: `/news/${item.news.id}`,
-                                // hash: item.news.id
-                            }}>
+                            <Link 
+                                to={{
+                                    pathname: `/news/${item.news.id}`
+                                }}
+                                state={{
+                                    redirect: "/news",
+                                    hash: item.news.id
+                                }}
+                            >
                                 <CardHeader>
                                     <CardTitle>{item.news.title}</CardTitle>
                                 </CardHeader>
                             </Link>
 
                             <CardContent>
-                                <DisplaySymbols symbolList={item.relatedSymbols} />
+                                <DisplaySymbols 
+                                    symbolList={item.relatedSymbols} 
+                                    hash={item.news.id}
+                                />
                             </CardContent>
 
                             <CardFooter>
@@ -96,8 +104,10 @@ interface FullSymbol {
 
 function DisplaySymbols({
     symbolList,
+    hash
 }: {
-    symbolList: FullSymbol[]
+    symbolList: FullSymbol[],
+    hash?: string
 }) {
     if (!symbolList || symbolList.length <= 0) return null
 
@@ -109,7 +119,16 @@ function DisplaySymbols({
     return (
         <div className="flex flex-row flex-wrap items-center gap-1.5">
             {displaySymbols.map((symbol) => (
-                <Link to={`/data/${normalizeSymbol(symbol.symbol.symbolId)}`} key={symbol.symbol.symbolId}>
+                <Link 
+                    to={{
+                        pathname: `/data/${normalizeSymbol(symbol.symbol.symbolId)}`,
+                    }} 
+                    state={{
+                        redirect: "/news",
+                        hash: hash
+                    }}
+                    key={symbol.symbol.symbolId}
+                >
                     <Badge
                         key={symbol.symbol.symbolId}
                         variant="default"

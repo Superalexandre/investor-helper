@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getNewsById } from "@/utils/news"
 import type { MetaFunction } from "@remix-run/node"
-import { ClientLoaderFunctionArgs, Link, redirect, useLoaderData } from "@remix-run/react"
+import { ClientLoaderFunctionArgs, Link, redirect, useLoaderData, useLocation } from "@remix-run/react"
 import { MdArrowBack } from "react-icons/md"
 import { NewsRelatedSymbol } from "../../../../../db/schema/news"
 import { cn } from "@/lib/utils"
@@ -35,6 +35,8 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Index() {
+    const location = useLocation()
+
     const { news, relatedSymbols } = useLoaderData<typeof loader>()
 
     return (
@@ -43,8 +45,9 @@ export default function Index() {
                 <Button asChild variant="default">
                     <Link
                         to={{
-                            pathname: "/news",
-                            hash: news.news.id
+                            // pathname: "/news",
+                            pathname: location.state?.redirect ?? "/news",
+                            hash: location.state?.hash ?? undefined,
                         }}
                         className="left-0 top-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute"
                     >

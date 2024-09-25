@@ -1,11 +1,13 @@
 import { LinksFunction, LoaderFunctionArgs } from "@remix-run/node"
 import {
+    Link,
     // ClientLoaderFunctionArgs,
     Links,
     Meta,
     Outlet,
     Scripts,
     ScrollRestoration,
+    useRouteError,
     // useLoaderData,
     useRouteLoaderData,
 } from "@remix-run/react"
@@ -13,6 +15,7 @@ import {
 import stylesheet from "@/tailwind.css?url"
 import Header from "./components/header"
 import { getUser } from "./session.server"
+import { Button } from "./components/ui/button"
 
 export async function loader({
     request
@@ -42,7 +45,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 {/* <meta name="theme-color" content="#000000" /> */}
             </head>
             <body className="flex min-h-screen flex-col">
-                <Header 
+                <Header
                     logged={data?.logged ?? false}
                 />
 
@@ -80,15 +83,33 @@ export default function App() {
     return <Outlet />
 }
 
-export function ErrorBoundary({ error }: { error: Error }) {
-    if (!error) return <h1>Application Error</h1>
+export function ErrorBoundary() {
+    const error = useRouteError()
+
+    console.error(typeof error)
+
+    if (error && typeof error === "object" && "status" in error && error.status === 404) {
+        return (
+            <div className="flex flex-grow flex-col items-center justify-center gap-4">
+                <h1 className="text-3xl font-bold">Page introuvable</h1>
+                <p>Désolé la page que vous cherchez n'est pas trouvable.</p>
+                <Link to="/">
+                    <Button type="button" variant="default">
+                        Retour à l'accueil
+                    </Button>
+                </Link>
+            </div>
+        )
+    }
 
     return (
-        <Layout>
-            <div>
-                <h1>Application Error</h1>
-                <pre>{error.message}</pre>
-            </div>
-        </Layout>
+        <div className="flex flex-grow flex-col items-center justify-center gap-4">
+            <h1 className="text-3xl font-bold text-red-500">Une erreur est survenue !</h1>
+            <Link to="/">
+                <Button type="button" variant="default">
+                    Retour à l'accueil
+                </Button>
+            </Link>
+        </div>
     )
 }
