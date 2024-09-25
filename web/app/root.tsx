@@ -81,6 +81,8 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: { error: Error }) {
+    if (!error) return <h1>Application Error</h1>
+
     return (
         <Layout>
             <div>

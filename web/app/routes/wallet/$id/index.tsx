@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Dispatch, FormEvent, SetStateAction, useRef, useState } from "react"
-import { normalizeSymbol, SearchSymbol, SelectSymbolType } from "@/components/selectSymbol"
+import { SearchSymbol, SelectSymbolType } from "@/components/selectSymbol"
 import getPrices, { closeClient, Period } from "@/utils/getPrices"
 import { ClientOnly } from "remix-utils/client-only"
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
 import { format, formatDistanceStrict } from "date-fns"
 import { fr } from "date-fns/locale"
+import { normalizeSymbolHtml } from "@/utils/normalizeSymbol"
 
 type FullSymbol = RawSymbol & WalletSymbol
 
@@ -483,10 +484,10 @@ export function AddSymbols({ triggerText, walletId }: { triggerText: string, wal
 
                     <div className="flex max-h-96 flex-col overflow-auto">
                         {selectedSymbol.length > 0 ? selectedSymbol.map((symbol, i) => (
-                            <div className="flex flex-row items-center gap-2" key={`${normalizeSymbol(symbol.symbol)}-${i}`}>
+                            <div className="flex flex-row items-center gap-2" key={`${normalizeSymbolHtml(symbol.symbol)}-${i}`}>
                                 <SymbolLogo symbol={symbol} className="size-5 rounded-sm" />
 
-                                <p>{normalizeSymbol(symbol.description)} ({normalizeSymbol(symbol.symbol)})</p>
+                                <p>{normalizeSymbolHtml(symbol.description)} ({normalizeSymbolHtml(symbol.symbol)})</p>
 
                                 <p>{symbol.quantity} action à {symbol.price} {symbol.currency_code}</p>
 
@@ -635,7 +636,7 @@ export function FindSymbols({
                                 locale={fr}
                                 selected={date}
                                 onSelect={setDate}
-                                initialFocus
+
                                 disabled={(dateValue) => {
                                     return dateValue > new Date() || dateValue < new Date("1970-01-01")
                                 }}
