@@ -98,7 +98,7 @@ export default function Header({
                 ))}
             </nav>
             <Sheet open={open} onOpenChange={(openChange) => setOpen(openChange)}>
-                <SheetTrigger className="block h-full xl:hidden">
+                <SheetTrigger className="block h-full xl:hidden" name="Open sidebar">
                     <MdMenu className="size-6" />
                 </SheetTrigger>
                 <SheetContent side="left" className="flex flex-col items-center justify-between pt-16">
