@@ -1,4 +1,4 @@
-import { reverseNormalizeSymbol } from "./normalizeSymbol"
+import { reverseNormalizeSymbol } from "./normalizeSymbol.js"
 
 interface RawSymbol {
     ["High.1M"]: number,
