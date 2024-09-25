@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 import { Symbol } from "@/schema/symbols"
 import SymbolLogo from "@/components/symbolLogo"
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
+import { normalizeSymbol } from "@/utils/normalizeSymbol"
 
 export async function loader({
     params,
@@ -139,9 +140,10 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], { classNa
         if (typeof child === "object") {
             if (["symbol"].includes(child?.type)) {
                 const relatedSymbolsData = relatedSymbols.find(({ symbol }) => symbol.symbolId === child.params?.symbol)
+                const symbolLink = normalizeSymbol(child.params?.symbol)
 
                 Component.push(
-                    <Link to={`/data/${child.params?.symbol}`} key={`${child.params?.symbol}-${Component.length}`} className={className?.badge}>
+                    <Link to={`/data/${symbolLink}`} key={`${child.params?.symbol}-${Component.length}`} className={className?.badge}>
                         <Badge
                             variant="default"
                             className="flex h-8 flex-row items-center justify-center"

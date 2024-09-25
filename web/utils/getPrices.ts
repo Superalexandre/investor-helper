@@ -1,4 +1,5 @@
 import TradingView from "@mathieuc/tradingview"
+import { reverseNormalizeSymbol } from "./normalizeSymbol"
 
 // import fs from "fs"
 interface Period {
@@ -97,7 +98,7 @@ export default function getPrices(symbolId: string, {
         // if (!chart) chart = new client.Session.Chart()
         const chart = new client.Session.Chart()
 
-        chart.setMarket(symbolId, {
+        chart.setMarket(reverseNormalizeSymbol(symbolId), {
             timeframe: timeframe as TimeFrame,
             range,
             // type: "HeikinAshi" as ChartType

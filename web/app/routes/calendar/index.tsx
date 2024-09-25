@@ -50,7 +50,7 @@ export default function Index() {
     return (
         <div>
             <div className="flex flex-col items-center justify-center space-y-4">
-                <p className="pt-4 text-center text-2xl font-bold">Dernières actualités</p>
+                <p className="pt-4 text-center text-2xl font-bold">Les événements</p>
             </div>
 
             <div className="flex flex-col space-y-6 p-4 lg:p-10">
@@ -71,10 +71,10 @@ export default function Index() {
                                 {event.comment}
                             </CardContent>
 
-                            <CardFooter className="flex flex-row items-center justify-start gap-2">
-                                <span>{countries[event.country]}</span>
-                                <span>-</span>
-                                <span>
+                            <CardFooter className="flex flex-col items-center justify-start gap-1 lg:flex-row lg:gap-2">
+                                <span className="text-center">{countries[event.country]}</span>
+                                <span className="hidden lg:block">-</span>
+                                <span className="text-center">
                                     {new Date(event.date || "").toLocaleDateString("fr-FR", {
                                         hour: "numeric",
                                         minute: "numeric",
@@ -105,8 +105,8 @@ function Counter({ date }: { date: string }) {
     if (diff < 0) {
         return (
             <>
-                <span>-</span>
-                <span className="text-sky-500">Événement en cours</span>
+                <span className="hidden lg:block">-</span>
+                <span className="text-center text-sky-500">Événement en cours</span>
             </>
         )
     }
@@ -132,8 +132,8 @@ function Counter({ date }: { date: string }) {
 
     return (
         <>
-            <span>-</span>
-            <span>Dans {prettyTime}</span>
+            <span className="hidden lg:block">-</span>
+            <span className="text-center">Dans {prettyTime}</span>
         </>
     )
 }

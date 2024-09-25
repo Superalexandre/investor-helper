@@ -7,6 +7,7 @@ import { MdDelete } from "react-icons/md"
 import { useDebounceValue } from "usehooks-ts"
 import { Label } from "./ui/label"
 import { cn } from "@/lib/utils"
+import { normalizeSymbolHtml } from "@/utils/normalizeSymbol"
 
 interface SelectSymbolType {
     symbol: string
@@ -17,10 +18,6 @@ interface SelectSymbolType {
     quantity: number
     currency_code: string
     prefix?: string
-}
-
-export function normalizeSymbol(symbol: string) {
-    return symbol.replace(/<[^>]*>/g, "")
 }
 
 export function SearchSymbol({
@@ -99,12 +96,12 @@ export function SearchSymbol({
                     {resultSymbols.map((symbol, i) => (
                         <Button
                             variant="outline"
-                            key={normalizeSymbol(symbol.symbol) + "-" + i}
+                            key={normalizeSymbolHtml(symbol.symbol) + "-" + i}
                             onClick={() => {
                                 if (refInput.current && !replace) refInput.current.value = ""
 
                                 if (refInput.current && replace) {
-                                    refInput.current.value = `${normalizeSymbol(symbol.description)} (${normalizeSymbol(symbol.symbol)})`
+                                    refInput.current.value = `${normalizeSymbolHtml(symbol.description)} (${normalizeSymbolHtml(symbol.symbol)})`
                                 }
 
                                 setValue("")
@@ -114,7 +111,7 @@ export function SearchSymbol({
                             }}
                             className="flex w-full flex-row items-center justify-between border-none p-2"
                         >
-                            <p>{normalizeSymbol(symbol.description)} ({normalizeSymbol(symbol.symbol)})</p>
+                            <p>{normalizeSymbolHtml(symbol.description)} ({normalizeSymbolHtml(symbol.symbol)})</p>
 
                             <p>{symbol.exchange}</p>
                         </Button>
@@ -137,8 +134,8 @@ export default function SelectSymbol({
         <div className="flex flex-col gap-2">
             <div className="flex flex-row flex-wrap gap-2">
                 {selectedSymbol.map((symbol, i) => (
-                    <Badge key={normalizeSymbol(symbol.symbol) + "-" + i}>
-                        {normalizeSymbol(symbol.description)} ({normalizeSymbol(symbol.symbol)})
+                    <Badge key={normalizeSymbolHtml(symbol.symbol) + "-" + i}>
+                        {normalizeSymbolHtml(symbol.description)} ({normalizeSymbolHtml(symbol.symbol)})
 
                         <button
                             className="ml-2 flex h-8 flex-row items-center justify-center"
@@ -154,8 +151,8 @@ export default function SelectSymbol({
                 onClick={(symbol) => {
                     symbol = {
                         ...symbol,
-                        description: normalizeSymbol(symbol.description),
-                        symbol: normalizeSymbol(symbol.symbol)
+                        description: normalizeSymbolHtml(symbol.description),
+                        symbol: normalizeSymbolHtml(symbol.symbol)
                     }
 
                     setSelectedSymbol((prev) => [...prev, symbol])

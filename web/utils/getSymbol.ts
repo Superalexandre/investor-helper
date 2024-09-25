@@ -1,3 +1,5 @@
+import { reverseNormalizeSymbol } from "./normalizeSymbol"
+
 interface RawSymbol {
     ["High.1M"]: number,
     ["Low.1M"]: number,
@@ -55,7 +57,7 @@ export default async function getSymbolData(symbolId: string) {
         "exchange"
     ]
 
-    const url = `https://scanner.tradingview.com/symbol?symbol=${symbolId}&fields=${fields.join("%2C")}&no_404=true&label-product=right-details`
+    const url = `https://scanner.tradingview.com/symbol?symbol=${reverseNormalizeSymbol(symbolId)}&fields=${fields.join("%2C")}&no_404=true&label-product=right-details`
 
     const res = await fetch(url, {
         headers: {

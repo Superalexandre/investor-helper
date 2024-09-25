@@ -4,7 +4,7 @@ import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import { wallet as walletSchema, walletSymbols as walletSymbolsSchema, } from "../../../../../../../db/schema/users"
 import { eq } from "drizzle-orm"
-import { normalizeSymbol } from "@/components/selectSymbol"
+import { normalizeSymbolHtml } from "@/utils/normalizeSymbol"
 
 export const action: ActionFunction = async ({ request }: ActionFunctionArgs) => {
     const user = await getUser(request)
@@ -50,7 +50,7 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 
         values.push({
             walletId: wallet.walletId,
-            symbol: `${prefix}:${normalizeSymbol(symbolJson.symbol)}`,
+            symbol: `${prefix}:${normalizeSymbolHtml(symbolJson.symbol)}`,
             quantity: symbolJson.quantity <= 0 ? 0 : symbolJson.quantity,
             buyPrice: symbolJson.price <= 0 ? 0 : symbolJson.price,
             currency: symbolJson.currency_code,

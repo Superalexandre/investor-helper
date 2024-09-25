@@ -8,8 +8,9 @@ import {
 } from "@/components/ui/sheet"
 import { Link, useNavigate } from "@remix-run/react"
 import { useState } from "react"
-import { normalizeSymbol, SearchSymbol } from "./selectSymbol"
+import { SearchSymbol } from "./selectSymbol"
 import { cn } from "@/lib/utils"
+import { normalizeSymbolHtml, normalizeSymbol } from "@/utils/normalizeSymbol"
 
 export default function Header({
     logged
@@ -138,7 +139,9 @@ function Search({ className }: { className?: string }) {
                 onClick={(symbol) => {
                     const prefix = symbol["prefix"]?.toUpperCase() ?? symbol.exchange.toUpperCase()
 
-                    navigate(`/data/${prefix}:${normalizeSymbol(symbol.symbol)}`)
+                    const fullUrl = normalizeSymbol(`${prefix}:${normalizeSymbolHtml(symbol.symbol)}`)
+
+                    navigate(`/data/${fullUrl}`)
                 }}
             />
         </div>

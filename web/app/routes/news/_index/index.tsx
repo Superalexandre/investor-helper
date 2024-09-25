@@ -16,6 +16,7 @@ import SymbolLogo from "@/components/symbolLogo"
 import { NewsRelatedSymbol } from "@/schema/news"
 import { Symbol } from "@/schema/symbols"
 import { useState } from "react"
+import { normalizeSymbol } from "@/utils/normalizeSymbol"
 
 export async function loader({
     params,
@@ -108,7 +109,7 @@ function DisplaySymbols({
     return (
         <div className="flex flex-row flex-wrap items-center gap-1.5">
             {displaySymbols.map((symbol) => (
-                <Link to={`/data/${symbol.symbol.symbolId}`} key={symbol.symbol.symbolId}>
+                <Link to={`/data/${normalizeSymbol(symbol.symbol.symbolId)}`} key={symbol.symbol.symbolId}>
                     <Badge
                         key={symbol.symbol.symbolId}
                         variant="default"

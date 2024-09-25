@@ -18,10 +18,10 @@ import { formatDistanceStrict } from "date-fns"
 import currencies from "@/lang/currencies"
 
 function differences(prices: Period[]) {
-    const differencePrice = Math.floor(prices[0].close - prices[prices.length - 1].close)
+    const differencePrice = prices[0].close - prices[prices.length - 1].close
 
     // Difference in percent can be up to 100% (double the price)
-    const differencePercent = Math.floor((differencePrice / prices[0].close) * 100)
+    const differencePercent = (differencePrice / prices[0].close) * 100
 
     const from = prices[0].time * 1000
     const to = prices[prices.length - 1].time * 1000
@@ -31,8 +31,8 @@ function differences(prices: Period[]) {
     })
 
     return {
-        differencePrice,
-        differencePercent,
+        differencePrice: differencePrice.toFixed(2),
+        differencePercent: differencePercent.toFixed(2),
         differenceTime
     }
 }
@@ -109,7 +109,7 @@ export default function Index() {
     const diffPercent = data?.differencePercent ?? differencePercent
     const diffTime = data?.differenceTime ?? differenceTime
 
-    const isPositive = diffPrice > 0
+    const isPositive = parseInt(diffPrice) > 0
 
     const priceClass = isPositive ? "text-green-500" : "text-red-500"
 

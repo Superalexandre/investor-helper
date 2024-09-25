@@ -6,7 +6,8 @@ import {
     Outlet,
     Scripts,
     ScrollRestoration,
-    useLoaderData,
+    // useLoaderData,
+    useRouteLoaderData,
 } from "@remix-run/react"
 
 import stylesheet from "@/tailwind.css?url"
@@ -27,7 +28,7 @@ export const links: LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
     // useSWEffect()
-    const { logged } = useLoaderData<typeof loader>()
+    const data = useRouteLoaderData<typeof loader>("root")
 
     return (
         <html lang="en" className="dark">
@@ -42,7 +43,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </head>
             <body className="flex min-h-screen flex-col">
                 <Header 
-                    logged={logged}
+                    logged={data?.logged ?? false}
                 />
 
                 {children}
@@ -77,4 +78,15 @@ export default function App() {
     // })
 
     return <Outlet />
+}
+
+export function ErrorBoundary({ error }: { error: Error }) {
+    return (
+        <Layout>
+            <div>
+                <h1>Application Error</h1>
+                <pre>{error.message}</pre>
+            </div>
+        </Layout>
+    )
 }
