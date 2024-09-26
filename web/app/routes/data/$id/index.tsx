@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs, MetaFunction } from "@remix-run/node"
 import { ClientLoaderFunctionArgs, Form, Link, redirect, useActionData, useLoaderData, useLocation, useSubmit } from "@remix-run/react"
-import getPrices, { Period, PeriodInfo } from "@/utils/getPrices"
+import getPrices, { closeClient, Period, PeriodInfo } from "@/utils/getPrices"
 import { ClientOnly } from "remix-utils/client-only"
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Bar, CartesianGrid, ComposedChart, Line, XAxis, YAxis } from "recharts"
@@ -46,6 +46,9 @@ export async function loader({
         timeframe: "30",
         range: 192
     })
+
+    closeClient()
+
     const symbol = await getSymbolData(params.id)
 
     if (!symbol || !prices || !marketInfo) return redirect("/")
@@ -80,6 +83,8 @@ export async function action({
         timeframe: timeframe as string,
         range: parseInt(range)
     })
+
+    closeClient()
 
     const { differencePrice, differencePercent, differenceTime } = differences(prices)
 
