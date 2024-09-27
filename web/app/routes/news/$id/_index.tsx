@@ -8,7 +8,7 @@ import { NewsRelatedSymbol } from "../../../../../db/schema/news"
 import { cn } from "@/lib/utils"
 import { Symbol } from "@/schema/symbols"
 import SymbolLogo from "@/components/symbolLogo"
-import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table"
 import { normalizeSymbol } from "@/utils/normalizeSymbol"
 
 export async function loader({
@@ -20,6 +20,8 @@ export async function loader({
     if (!id) return redirect("/news")
 
     const { news, relatedSymbols } = await getNewsById({ id })
+
+    if (!news) return redirect("/news")
 
     return {
         news,
@@ -58,7 +60,7 @@ export default function Index() {
                 </Button>
             </div>
 
-            <div className="px-8 lg:w-3/4">
+            <div className="w-full px-4 lg:w-3/4">
                 <div className="flex flex-col items-center justify-center pb-8">
                     <p className="pt-4 text-center text-2xl font-bold">{news.news.title}</p>
 
@@ -111,6 +113,13 @@ interface Params {
 function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: string, { className, rawText }: Params = {}) {
     const Component = []
 
+    const configClassName = {
+        badge: "inline-block align-middle",
+        image: "mx-auto",
+        text: "inline-block",
+        parent: "inline-block"
+    }
+
     for (const child of children) {
         if (child.type === "news-image") {
             Component.push(
@@ -127,6 +136,47 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
         }
 
         if (typeof child === "string") {
+            // const upRegex = /(.*?(?:augmenter|bondi|pris|gagné|avancé|hausse).*?)([+-]?\d+[.,]?\d*(?:\s*points?|%|euros?|€)?)(.*)/gi
+            // const downRegex = /(.*?(?:baisser|chuté|perdu|reculé|tombée|baisse).*?)([+-]?\d+[.,]?\d*(?:\s*points?|%|euros?|€)?)(.*)/gi
+
+
+            // const upMatches = child.matchAll(upRegex)
+            // const downMatches = child.matchAll(downRegex)
+
+            // // Loop through all matches for up and down
+            // for (const match of upMatches) {
+            //     const [, textBefore, value, textAfter] = match
+
+            //     Component.push(
+            //         <p key={`${textBefore}-${Component.length}`} className={className?.text}>
+            //             {textBefore}
+
+            //             <span className="text-green-500">
+            //                 {value}
+            //             </span>
+
+            //             {textAfter}
+            //         </p>
+            //     )
+            // }
+
+            // for (const match of downMatches) {
+            //     const [, textBefore, value, textAfter] = match
+
+            //     Component.push(
+            //         <p key={`${textBefore}-${Component.length}`} className={className?.text}>
+            //             {textBefore}
+
+            //             <span className="text-red-500">
+            //                 {value}
+            //             </span>
+
+            //             {textAfter}
+            //         </p>
+            //     )
+            // }
+
+            // if (child.match(upRegex) || child.match(downRegex)) continue
 
             if (rawText) {
                 Component.push(child)
@@ -147,14 +197,14 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                 const symbolLink = normalizeSymbol(child.params?.symbol)
 
                 Component.push(
-                    <Link 
+                    <Link
                         to={{
                             pathname: `/data/${symbolLink}`
-                        }} 
+                        }}
                         state={{
                             redirect: `/news/${newsId}`,
                         }}
-                        key={`${child.params?.symbol}-${Component.length}`} 
+                        key={`${child.params?.symbol}-${Component.length}`}
                         className={className?.badge}
                     >
                         <Badge
@@ -174,16 +224,14 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                 )
             } else if (["b", "p", "i"].includes(child?.type)) {
                 const ComponentResult = GetDeepComponent(child.children, relatedSymbols, newsId, {
-                    className: {
-                        badge: "inline-block align-middle",
-                        image: "mx-auto",
-                    },
+                    className: configClassName,
                     rawText: true
                 })
 
                 Component.push(
                     <div
                         key={`${child.type}-${Component.length}-${child.children.length}`}
+                        className={cn(className?.parent)}
                     >
                         {ComponentResult}
                     </div>
@@ -200,10 +248,7 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                 )
             } else if (["list"].includes(child?.type)) {
                 const ComponentResult = GetDeepComponent(child.children, relatedSymbols, newsId, {
-                    className: {
-                        badge: "inline-block align-middle",
-                        image: "mx-auto",
-                    },
+                    className: configClassName,
                     rawText: true
                 })
 
@@ -213,12 +258,8 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                     </ul>
                 )
             } else if (["*"].includes(child?.type)) {
-                const ComponentResult = GetDeepComponent(child.children, relatedSymbols,  newsId, {
-                    className: {
-                        badge: "inline-block align-middle",
-                        image: "mx-auto",
-                        text: "inline-block"
-                    },
+                const ComponentResult = GetDeepComponent(child.children, relatedSymbols, newsId, {
+                    className: configClassName,
                     rawText: true
                 })
 
@@ -228,12 +269,8 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                     </li>
                 )
             } else if (["table"].includes(child?.type)) {
-                const ComponentResult = GetDeepComponent(child.children, relatedSymbols,  newsId, {
-                    className: {
-                        badge: "inline-block align-middle",
-                        image: "mx-auto",
-                        text: "inline-block"
-                    },
+                const ComponentResult = GetDeepComponent(child.children, relatedSymbols, newsId, {
+                    className: configClassName,
                     rawText: true
                 })
 
@@ -243,12 +280,8 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                     </Table>
                 )
             } else if (["table-body"].includes(child?.type)) {
-                const ComponentResult = GetDeepComponent(child.children, relatedSymbols,  newsId, {
-                    className: {
-                        badge: "inline-block align-middle",
-                        image: "mx-auto",
-                        text: "inline-block"
-                    },
+                const ComponentResult = GetDeepComponent(child.children, relatedSymbols, newsId, {
+                    className: configClassName,
                     rawText: true
                 })
 
@@ -257,13 +290,20 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                         {ComponentResult}
                     </TableBody>
                 )
+            } else if (["table-header"].includes(child?.type)) {
+                const ComponentResult = GetDeepComponent(child.children, relatedSymbols, newsId, {
+                    className: configClassName,
+                    rawText: true
+                })
+
+                Component.push(
+                    <TableHeader key={`${child.type}-${Component.length}`}>
+                        {ComponentResult}
+                    </TableHeader>
+                )
             } else if (["tr", "table-row"].includes(child?.type)) {
-                const ComponentResult = GetDeepComponent(child.children, relatedSymbols,  newsId, {
-                    className: {
-                        badge: "inline-block align-middle",
-                        image: "mx-auto",
-                        text: "inline-block"
-                    },
+                const ComponentResult = GetDeepComponent(child.children, relatedSymbols, newsId, {
+                    className: configClassName,
                     rawText: true
                 })
 
@@ -273,12 +313,8 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                     </TableRow>
                 )
             } else if (["table-data-cell"].includes(child?.type)) {
-                const ComponentResult = GetDeepComponent(child.children, relatedSymbols,  newsId, {
-                    className: {
-                        badge: "inline-block align-middle",
-                        image: "mx-auto",
-                        text: "inline-block"
-                    },
+                const ComponentResult = GetDeepComponent(child.children, relatedSymbols, newsId, {
+                    className: configClassName,
                     rawText: true
                 })
 

@@ -173,8 +173,8 @@ export default function Index() {
                 <p>Dernier prix {lastClose}{prettySymbol}</p>
             </div>
 
-            <Form className="w-80" method="POST">
-                <div className="mx-4">
+            <Form className="flex w-full items-center justify-center lg:justify-start" method="POST">
+                <div className="mx-4 w-80">
                     <Select name="timeframe" defaultValue="30-192" onValueChange={(value) => handleSubmit(value)}>
                         <SelectTrigger>
                             <SelectValue placeholder="Choisir un intervalle" />
@@ -363,7 +363,7 @@ function FullChart({ prices }: { prices: Period[] }) {
     }
 
     return (
-        <ChartContainer config={chartConfig} className="min-h-[200px] w-full overflow-hidden">
+        <ChartContainer config={chartConfig} className="min-h-[400px] w-full overflow-hidden lg:h-[500px] lg:min-h-0">
             <ComposedChart
                 data={prices}
                 accessibilityLayer
@@ -373,6 +373,8 @@ function FullChart({ prices }: { prices: Period[] }) {
                 />
 
                 <XAxis
+                    // hide={true}
+
                     dataKey="time"
                     tickFormatter={(timestamp) => new Date(timestamp * 1000).toLocaleString("fr-FR")}
 
@@ -383,12 +385,14 @@ function FullChart({ prices }: { prices: Period[] }) {
                 />
 
                 <YAxis
+                    // hide={true}
+
                     dataKey="close"
                     yAxisId="close"
                     tickLine={false}
                     axisLine={false}
                     scale="auto"
-                    domain={[(dataMin: number) => Math.floor(dataMin * 0.85), (dataMax: number) => dataMax]}
+                    domain={[(dataMin: number) => Math.floor(dataMin * 0.85), (dataMax: number) => Math.ceil(dataMax * 1.05)]}
                 />
 
                 <YAxis

@@ -104,7 +104,7 @@ export function ErrorBoundary() {
 
     return (
         <div className="flex flex-grow flex-col items-center justify-center gap-4">
-            <h1 className="text-3xl font-bold text-red-500">Une erreur est survenue !</h1>
+            <h1 className="text-center text-3xl font-bold text-red-500">Une erreur est survenue !</h1>
             <Link to="/">
                 <Button type="button" variant="default">
                     Retour à l'accueil
