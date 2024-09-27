@@ -8,7 +8,7 @@ import { NewsRelatedSymbol } from "../../../../../db/schema/news"
 import { cn } from "@/lib/utils"
 import { Symbol } from "@/schema/symbols"
 import SymbolLogo from "@/components/symbolLogo"
-import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { normalizeSymbol } from "@/utils/normalizeSymbol"
 
 export async function loader({
@@ -300,6 +300,17 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                     <TableHeader key={`${child.type}-${Component.length}`}>
                         {ComponentResult}
                     </TableHeader>
+                )
+            } else if (["table-header-cell"].includes(child?.type)) {
+                const ComponentResult = GetDeepComponent(child.children, relatedSymbols, newsId, {
+                    className: configClassName,
+                    rawText: true
+                })
+
+                Component.push(
+                    <TableHead key={`${child.type}-${Component.length}`}>
+                        {ComponentResult}
+                    </TableHead>
                 )
             } else if (["tr", "table-row"].includes(child?.type)) {
                 const ComponentResult = GetDeepComponent(child.children, relatedSymbols, newsId, {
