@@ -10,6 +10,7 @@ import { Symbol } from "@/schema/symbols"
 import SymbolLogo from "@/components/symbolLogo"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { normalizeSymbol } from "@/utils/normalizeSymbol"
+import { ScrollTop } from "@/components/scrollTop"
 
 export async function loader({
     params,
@@ -43,6 +44,8 @@ export default function Index() {
 
     return (
         <div className="relative flex w-full flex-col items-center overflow-hidden">
+            <ScrollTop showBelow={250} />
+
             <div className="w-full">
                 <Button asChild variant="default">
                     <Link
@@ -178,14 +181,18 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
 
             // if (child.match(upRegex) || child.match(downRegex)) continue
 
+            // Replace useless "(link)" that the text can contain
+            let replacedChild = child
+            if (child.match(/\(link\)/)) replacedChild = child.replace(/\(link\)/, "")
+
             if (rawText) {
-                Component.push(child)
+                Component.push(replacedChild)
 
                 continue
             }
 
             Component.push(
-                <p className={className?.text}>{child}</p>
+                <p className={className?.text}>{replacedChild}</p>
             )
 
             continue

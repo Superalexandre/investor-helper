@@ -21,6 +21,12 @@ export const news = sqliteTable("news", {
     provider: text("provider")
         .notNull(),
     link: text("link"),
+    mainSource: text("main_source")
+        .notNull()
+        .default("tradingview"),
+    lang: text("lang")
+        .notNull()
+        .default("fr-FR"),
 })
 
 export type News = typeof news.$inferSelect

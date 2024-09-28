@@ -62,6 +62,9 @@ async function getNewsById({ id }: { id: string }) {
 }
 
 async function fetchNews() {
+    const sqlite = new Database("../db/sqlite.db")
+    const db = drizzle(sqlite)
+
     const response = await fetch(config.url.news)
     const data = await response.text()
 
@@ -87,6 +90,13 @@ async function fetchNews() {
     const newsCopy = [...news]
 
     for (const newsItem of newsCopy) {
+        const exists = await db
+            .select()
+            .from(newsSchema)
+            .where(eq(newsSchema.id, newsItem.id))
+
+        if (exists.length > 0) continue
+
         const url = new URL(config.url.originLocale + newsItem.storyPath)
 
         const fullArticle = await fetch(url, {
@@ -175,7 +185,9 @@ async function saveFetchNews() {
                 source: news.source,
                 urgency: news.urgency,
                 provider: news.provider,
-                link: news.link
+                link: news.link,
+                mainSource: "tradingview",
+                lang: "fr-FR"
             })
         }
 

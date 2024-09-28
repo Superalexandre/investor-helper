@@ -1,6 +1,6 @@
 import type { MetaFunction } from "@remix-run/node"
 import { getNews } from "@/utils/news"
-import { ClientLoaderFunctionArgs, Link, useLoaderData } from "@remix-run/react"
+import { ClientLoaderFunctionArgs, Link, useLoaderData, useLocation } from "@remix-run/react"
 import {
     Card,
     CardContent,
@@ -17,11 +17,18 @@ import { NewsRelatedSymbol } from "@/schema/news"
 import { Symbol } from "@/schema/symbols"
 import { useState } from "react"
 import { normalizeSymbol } from "@/utils/normalizeSymbol"
+import { ScrollTop } from "@/components/scrollTop"
+import { Button } from "@/components/ui/button"
+import { MdArrowBack, MdArrowForward } from "react-icons/md"
 
 export async function loader({
-    params,
+    request
 }: ClientLoaderFunctionArgs) {
-    const { limit, page } = params
+    const url = new URL(request.url)
+    const searchParams = url.searchParams
+
+    const limit = searchParams.get("limit")
+    const page = searchParams.get("page")
 
     // Convert the limit and page to numbers
     const limitResult = limit ? parseInt(limit) : 60
@@ -43,10 +50,20 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Index() {
+    const location = useLocation()
     const { news } = useLoaderData<typeof loader>()
+
+    const actualPage = location.search ? parseInt(new URLSearchParams(location.search).get("page") || "1") : 1
+
+    const previousPage = location.search && actualPage - 1 >= 1 ? actualPage - 1 : 1
+    const nextPage = location.search ? actualPage + 1 : 2
+
+    if (!news || news.length <= 0) return <Empty />
 
     return (
         <div>
+            <ScrollTop showBelow={250} />
+
             <div className="flex flex-col items-center justify-center space-y-4">
                 <p className="pt-4 text-center text-2xl font-bold">Dernières actualités</p>
 
@@ -86,13 +103,59 @@ export default function Index() {
 
                             <CardFooter>
                                 <p className="text-muted-foreground">
-                                    {formatDate(item.news.published * 1000)} - {item.news.source}
+                                    {formatDate(item.news.published * 1000)} - {item.news.source} (via {item.news.mainSource})
                                 </p>
                             </CardFooter>
                         </Card>
                     </div>
                 ))}
             </div>
+
+            <div className="flex flex-row items-center justify-center gap-4 pb-4">
+                <Link 
+                    to={{
+                        pathname: "/news",
+                        search: `?page=${previousPage}`
+                    }}
+                >
+                
+                    <Button variant="default" className="flex flex-row content-center items-center justify-center gap-2">
+                        <MdArrowBack className="size-5" />
+
+                        Page précédente
+                    </Button>
+                </Link>
+
+                <Link
+                    to={{
+                        pathname: "/news",
+                        search: `?page=${nextPage}`
+                    }}
+                >
+                    <Button variant="default" className="flex flex-row content-center items-center justify-center gap-2">
+                        Page suivante
+
+                        <MdArrowForward className="size-5" />
+                    </Button>
+                </Link>
+            </div>
+        </div>
+    )
+}
+
+
+function Empty() {
+    return (
+        <div className="flex flex-col items-center justify-center space-y-4">
+            <p className="pt-4 text-center text-2xl font-bold">Dernières actualités</p>
+
+            <p className="text-center text-lg">Aucune actualité pour le moment</p>
+
+            <Link to="/news">
+                <Button variant="default">
+                    Retourner à la première page 
+                </Button>
+            </Link>
         </div>
     )
 }
