@@ -33,7 +33,8 @@ export function Search({
     placeholder = "Rechercher un symbole",
     displayLabel = true,
     resultSize = "h-32",
-    searching = ["allSymbol"]
+    searching = ["allSymbol"],
+    idInput = "symbol"
 }: {
     onClick?: (symbol: SelectSymbolType) => void,
     onBlur?: "none" | "hidden" | "clear",
@@ -43,7 +44,8 @@ export function Search({
     placeholder?: string,
     displayLabel?: boolean
     resultSize?: string,
-    searching?: SearchType[]
+    searching?: SearchType[],
+    idInput?: string
 }) {
     const navigate = useNavigate()
 
@@ -92,7 +94,7 @@ export function Search({
             {displayLabel ? <Label htmlFor="symbol">Symbole</Label> : null}
             <Input
                 className="w-full"
-                id="symbol"
+                id={idInput}
                 name="symbol"
                 ref={refInput}
                 type="text"

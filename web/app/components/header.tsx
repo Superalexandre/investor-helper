@@ -88,7 +88,7 @@ export default function Header({
                 {menuItems.map((menuGroup, index) => (
                     <div key={index} className="flex flex-row items-center gap-4">
                         {menuGroup.map((menuItem) => (
-                            menuItem.hidden ? null : menuItem.key === "search" ? <SearchBar key="search" className="absolute inset-x-0 m-auto w-2/5" /> : (
+                            menuItem.hidden ? null : menuItem.key === "search" ? <SearchBar id="search-lg" key="search-lg" className="absolute inset-x-0 m-auto w-2/5" /> : (
                                 <Link to={menuItem.href} key={menuItem.key} className="flex flex-row items-center">
                                     {menuItem.icon ? <menuItem.icon className="mr-2 inline-block" /> : null}
                                     {menuItem.label}
@@ -121,18 +121,23 @@ export default function Header({
                 </SheetContent>
             </Sheet>
             <div className="block xl:hidden">
-                <SearchBar key="search" className="absolute inset-y-0 right-0 mr-3 flex w-3/4 items-center" />
+                <SearchBar 
+                    key="search-sm" 
+                    id="search-sm"
+                    className="absolute inset-y-0 right-0 mr-3 flex w-3/4 items-center" 
+                />
             </div>
         </header>
     )
 }
 
-function SearchBar({ className }: { className?: string }) {
+function SearchBar({ className, id }: { className?: string, id?: string }) {
     const navigate = useNavigate()
 
     return (
         <div className={cn(className)}>
             <Search
+                idInput={id}
                 searching={["all", "allSymbol", "stocks", "crypto", "news"]} 
                 placeholder="Rechercher"
                 displayLabel={false}
