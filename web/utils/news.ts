@@ -127,12 +127,15 @@ async function fetchNews() {
 
         const jsonDescription = JSON.stringify(jsonArticle.story.astDescription)
 
+        const importanceScore = getNewsImportanceScore(jsonDescription, jsonArticle.story.astDescription, newsItem.relatedSymbols)
+
         newsItem.article = {
             // htmlDescription: htmlDescription,
             // textDescription: textDescription,
             jsonDescription: jsonDescription,
             shortDescription: jsonArticle.story.shortDescription,
             copyright: jsonArticle.story.copyright,
+            importanceScore: importanceScore
         }
     }
 
@@ -187,7 +190,8 @@ async function saveFetchNews() {
                 provider: news.provider,
                 link: news.link,
                 mainSource: "tradingview",
-                lang: "fr-FR"
+                lang: "fr-FR",
+                importanceScore: news.article.importanceScore
             })
         }
 
@@ -254,36 +258,80 @@ async function saveFetchNews() {
     console.log(`Inserted ${newsValues.length} news, ${newsRelatedSymbolsValues.length} related symbols and ${newsArticleValues.length} articles`)
 }
 
-// interface FullNews<T = News> {
-//     news: News;
-//     news_article?: T extends NewsArticle ? T : null;
-//     news_related_symbol: Symbol[] | null;
-//     symbol: Symbol;
-// }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getNewsImportanceScore(description: string, article: any, relatedSymbols: unknown[]) {
+    let score = 0
 
-// interface GroupedNews<T = News> {
-//     news: News;
-//     newsArticle: T extends NewsArticle ? T : null;
-//     relatedSymbols: (Symbol | null)[] | null;
-// }
+    const importantKeywords = ["annonce", "décision", "plan", "changement", "crise"]
+    importantKeywords.forEach((keyword) => {
+        if (description.toLowerCase().includes(keyword)) {
+            score += 10
+        }
+    })
 
-// function group<T = News>(news: FullNews<T>[]): GroupedNews<T>[] {
-//     return news.reduce((acc: GroupedNews<T>[], curr: FullNews<T>) => {
-//         const existingNews = acc.find(item => item.news.id === curr.news.id)
+    // Flatten the article tex
+    let articleText = ""
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const flatten = (node: any) => {
+        // console.log(node)
+        if (typeof node === "string") {
+            articleText += node
+        }
 
-//         if (existingNews && curr.news_related_symbol !== null && existingNews.relatedSymbols !== null) {
-//             existingNews.relatedSymbols.push({ ...curr.news_related_symbol, ...curr.symbol })
-//         } else {
-//             acc.push({
-//                 news: curr.news,
-//                 newsArticle: curr.news_article as T extends NewsArticle ? T : null,
-//                 relatedSymbols: curr.news_related_symbol !== null ? [{ ...curr.news_related_symbol, ...curr.symbol }] : []
-//             })
-//         }
+        if (node.children) {
+            for (const child of node.children) {
+                flatten(child)
+            }
+        }
+    }
 
-//         return acc
-//     }, [])
-// }
+    flatten(article)
+
+    let symbolCount = 0
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const getRelatedSymbols = (node: any) => {
+        if (node.type === "symbol") {
+            score += 5
+
+            symbolCount++
+        }
+
+        if (node.children) {
+            for (const child of node.children) {
+                getRelatedSymbols(child)
+            }
+        }
+    }
+    
+    getRelatedSymbols(article)
+
+    const wordCount = articleText.split(" ").length
+    
+    if (wordCount > 300) {
+        score += 20
+    } else if (wordCount > 100) {
+        score += 10
+    }
+
+    const highImpactKeywords = [
+        "hausse",
+        "baisse",
+        "chute",
+        "augmentation",
+        "diminution",
+    ]
+
+    highImpactKeywords.forEach((keyword) => {
+        if (articleText.toLowerCase().includes(keyword)) score += 15
+    })
+
+    // Add 5 points for each related symbol
+    score += relatedSymbols ? relatedSymbols.length * 5 : 0
+
+    console.log(`Score: ${score}, word count: ${wordCount}, symbol count: ${symbolCount}, related symbols: ${relatedSymbols ? relatedSymbols.length : 0}`)
+
+    return score
+}
 
 export default getNews
 export {

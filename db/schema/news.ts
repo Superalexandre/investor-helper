@@ -27,6 +27,9 @@ export const news = sqliteTable("news", {
     lang: text("lang")
         .notNull()
         .default("fr-FR"),
+    importanceScore: int("importance_score")
+        .notNull()
+        .default(0),
 })
 
 export type News = typeof news.$inferSelect

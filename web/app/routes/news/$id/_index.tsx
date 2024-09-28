@@ -110,16 +110,19 @@ interface Params {
         [key: string]: string
     },
     rawText?: boolean
+    type?: string
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: string, { className, rawText }: Params = {}) {
+function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: string, { className, rawText, type }: Params = {}) {
     const Component = []
 
     const configClassName = {
         badge: "inline-block align-middle",
         image: "mx-auto",
         text: "inline-block",
+        bold: "font-bold",
+        italic: "italic",
         parent: "inline-block"
     }
 
@@ -139,48 +142,6 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
         }
 
         if (typeof child === "string") {
-            // const upRegex = /(.*?(?:augmenter|bondi|pris|gagné|avancé|hausse).*?)([+-]?\d+[.,]?\d*(?:\s*points?|%|euros?|€)?)(.*)/gi
-            // const downRegex = /(.*?(?:baisser|chuté|perdu|reculé|tombée|baisse).*?)([+-]?\d+[.,]?\d*(?:\s*points?|%|euros?|€)?)(.*)/gi
-
-
-            // const upMatches = child.matchAll(upRegex)
-            // const downMatches = child.matchAll(downRegex)
-
-            // // Loop through all matches for up and down
-            // for (const match of upMatches) {
-            //     const [, textBefore, value, textAfter] = match
-
-            //     Component.push(
-            //         <p key={`${textBefore}-${Component.length}`} className={className?.text}>
-            //             {textBefore}
-
-            //             <span className="text-green-500">
-            //                 {value}
-            //             </span>
-
-            //             {textAfter}
-            //         </p>
-            //     )
-            // }
-
-            // for (const match of downMatches) {
-            //     const [, textBefore, value, textAfter] = match
-
-            //     Component.push(
-            //         <p key={`${textBefore}-${Component.length}`} className={className?.text}>
-            //             {textBefore}
-
-            //             <span className="text-red-500">
-            //                 {value}
-            //             </span>
-
-            //             {textAfter}
-            //         </p>
-            //     )
-            // }
-
-            // if (child.match(upRegex) || child.match(downRegex)) continue
-
             // Replace useless "(link)" that the text can contain
             let replacedChild = child
             if (child.match(/\(link\)/)) replacedChild = child.replace(/\(link\)/, "")
@@ -191,8 +152,13 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                 continue
             }
 
+            const additionalClassName = []
+
+            if (type && type === "bold") additionalClassName.push("font-bold")
+            if (type && type === "italic") additionalClassName.push("italic")
+
             Component.push(
-                <p className={className?.text}>{replacedChild}</p>
+                <p className={cn(className?.text, additionalClassName)}>{replacedChild}</p>
             )
 
             continue
@@ -232,9 +198,10 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
             } else if (["b", "p", "i"].includes(child?.type)) {
                 const ComponentResult = GetDeepComponent(child.children, relatedSymbols, newsId, {
                     className: configClassName,
-                    rawText: true
+                    rawText: true,
+                    type: child.type
                 })
-
+                
                 Component.push(
                     <div
                         key={`${child.type}-${Component.length}-${child.children.length}`}
