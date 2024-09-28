@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Dispatch, FormEvent, SetStateAction, useRef, useState } from "react"
-import { SearchSymbol, SelectSymbolType } from "@/components/selectSymbol"
+import { Search, SelectSymbolType } from "@/components/search"
 import getPrices, { closeClient, Period } from "@/utils/getPrices"
 import { ClientOnly } from "remix-utils/client-only"
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
@@ -586,7 +586,7 @@ export function FindSymbols({
                 </DialogHeader>
 
                 <div className="flex flex-col gap-4">
-                    <SearchSymbol
+                    <Search
                         onClick={(symbol) => {
                             setTempSelectedSymbol(symbol)
                         }}

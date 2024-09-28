@@ -8,7 +8,8 @@ import {
 } from "@/components/ui/sheet"
 import { Link, useNavigate } from "@remix-run/react"
 import { useState } from "react"
-import { SearchSymbol } from "./selectSymbol"
+// import { Search } from "./search"
+import { Search } from "./search"
 import { cn } from "@/lib/utils"
 import { normalizeSymbolHtml, normalizeSymbol } from "@/utils/normalizeSymbol"
 
@@ -87,7 +88,7 @@ export default function Header({
                 {menuItems.map((menuGroup, index) => (
                     <div key={index} className="flex flex-row items-center gap-4">
                         {menuGroup.map((menuItem) => (
-                            menuItem.hidden ? null : menuItem.key === "search" ? <Search key="search" className="absolute inset-x-0 m-auto w-2/5" /> : (
+                            menuItem.hidden ? null : menuItem.key === "search" ? <SearchBar key="search" className="absolute inset-x-0 m-auto w-2/5" /> : (
                                 <Link to={menuItem.href} key={menuItem.key} className="flex flex-row items-center">
                                     {menuItem.icon ? <menuItem.icon className="mr-2 inline-block" /> : null}
                                     {menuItem.label}
@@ -120,18 +121,19 @@ export default function Header({
                 </SheetContent>
             </Sheet>
             <div className="block xl:hidden">
-                <Search key="search" className="absolute inset-y-0 right-0 mr-3 flex w-3/4 items-center" />
+                <SearchBar key="search" className="absolute inset-y-0 right-0 mr-3 flex w-3/4 items-center" />
             </div>
         </header>
     )
 }
 
-function Search({ className }: { className?: string }) {
+function SearchBar({ className }: { className?: string }) {
     const navigate = useNavigate()
 
     return (
         <div className={cn(className)}>
-            <SearchSymbol 
+            <Search
+                searching={["all", "allSymbol", "stocks", "crypto", "news"]} 
                 placeholder="Rechercher"
                 displayLabel={false}
                 resultSize="h-96"

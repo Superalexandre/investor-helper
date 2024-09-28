@@ -2,7 +2,7 @@ import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
 import { news as newsSchema, newsRelatedSymbols as newsRelatedSymbolsSchema, newsArticle as newsArticleSchema } from "../../db/schema/news.js"
 import { symbols as symbolsSchema } from "../../db/schema/symbols.js"
-import { desc, eq } from "drizzle-orm"
+import { desc, eq, like } from "drizzle-orm"
 import config from "../../config.js"
 
 import refreshSymbol from "./refreshSymbol.js"
@@ -333,12 +333,28 @@ function getNewsImportanceScore(description: string, article: any, relatedSymbol
     return score
 }
 
+async function searchNews(search: string) {
+    const sqlite = new Database("../db/sqlite.db")
+    const db = drizzle(sqlite)
+
+    const news = await db
+        .select()
+        .from(newsSchema)
+        .where(
+            like(newsSchema.title, `%${search}%`)
+        )
+        .orderBy(desc(newsSchema.published))
+
+    return news
+}
+
 export default getNews
 export {
     getNews,
     getNewsById,
     fetchNews,
     saveFetchNews,
+    searchNews,
 }
 export type {
     // News,
