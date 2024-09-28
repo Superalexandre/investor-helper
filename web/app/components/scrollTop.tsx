@@ -1,7 +1,8 @@
 import { MdArrowUpward } from "react-icons/md"
 import { Button } from "./ui/button"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { cn } from "@/lib/utils"
+import { useEventListener } from "usehooks-ts"
 
 interface ScrollTopProps {
     showBelow: number
@@ -15,24 +16,19 @@ export function ScrollTop({
     const scrollToTop = () => {
         window.scrollTo({
             top: 0,
-            behavior: "smooth", // Scroll doux
+            behavior: "smooth", 
         })
     }
 
-    useEffect(() => {
-        const toggleVisibility = () => {
-            if (window.scrollY > showBelow) {
-                setVisible(true)
-            } else {
-                setVisible(false)
-            }
+    const toggleVisibility = () => {
+        if (window.scrollY > showBelow) {
+            setVisible(true)
+        } else {
+            setVisible(false)
         }
+    }
 
-        window.addEventListener("scroll", toggleVisibility)
-
-        // Nettoyage de l'event listener quand le composant est démonté
-        return () => window.removeEventListener("scroll", toggleVisibility)
-    }, [])
+    useEventListener("scroll", toggleVisibility)
 
     return (
         <Button

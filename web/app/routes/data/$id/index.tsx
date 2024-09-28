@@ -16,6 +16,7 @@ import { SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/compone
 import { fr } from "date-fns/locale"
 import { format, formatDistanceStrict } from "date-fns"
 import currencies from "@/lang/currencies"
+import { useWindowSize } from "usehooks-ts"
 
 function differences(prices: Period[]) {
     const differencePrice = prices[0].close - prices[prices.length - 1].close
@@ -343,6 +344,9 @@ interface FullConfig {
 
 function FullChart({ prices }: { prices: Period[] }) {
     const [displayVolume, setDisplayVolume] = useState(false)
+    const { width = 0 } = useWindowSize()
+
+    const isMobile = width < 640
 
     const chartConfig: FullConfig = {
         close: {
@@ -373,11 +377,11 @@ function FullChart({ prices }: { prices: Period[] }) {
                 />
 
                 <XAxis
-                    // hide={true}
-
+                    hide={isMobile}
+                    
                     dataKey="time"
                     tickFormatter={(timestamp) => new Date(timestamp * 1000).toLocaleString("fr-FR")}
-
+                    
                     tickLine={false}
                     axisLine={false}
                     tickMargin={8}
@@ -385,7 +389,7 @@ function FullChart({ prices }: { prices: Period[] }) {
                 />
 
                 <YAxis
-                    // hide={true}
+                    hide={isMobile}
 
                     dataKey="close"
                     yAxisId="close"
