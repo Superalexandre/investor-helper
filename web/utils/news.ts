@@ -287,13 +287,13 @@ function getNewsImportanceScore(description: string, article: any, relatedSymbol
 
     flatten(article)
 
-    let symbolCount = 0
+    // let symbolCount = 0
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const getRelatedSymbols = (node: any) => {
         if (node.type === "symbol") {
             score += 5
 
-            symbolCount++
+            // symbolCount++
         }
 
         if (node.children) {
@@ -328,7 +328,7 @@ function getNewsImportanceScore(description: string, article: any, relatedSymbol
     // Add 5 points for each related symbol
     score += relatedSymbols ? relatedSymbols.length * 5 : 0
 
-    console.log(`Score: ${score}, word count: ${wordCount}, symbol count: ${symbolCount}, related symbols: ${relatedSymbols ? relatedSymbols.length : 0}`)
+    // console.log(`Score: ${score}, word count: ${wordCount}, symbol count: ${symbolCount}, related symbols: ${relatedSymbols ? relatedSymbols.length : 0}`)
 
     return score
 }
@@ -354,6 +354,7 @@ export {
     getNewsById,
     fetchNews,
     saveFetchNews,
+    getNewsImportanceScore,
     searchNews,
 }
 export type {
