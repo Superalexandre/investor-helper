@@ -236,7 +236,7 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
             } else if (["url"].includes(child?.type)) {
                 Component.push(
                     <Link
-                        key={`${child.type}-${Component.length}-${child.children.length}`}
+                        key={`${child.type}-${Component.length}`}
                         to={child.params.url}
                         className="text-muted-foreground inline-block hover:text-white hover:underline"
                     >
