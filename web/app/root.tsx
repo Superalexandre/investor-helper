@@ -34,7 +34,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     const data = useRouteLoaderData<typeof loader>("root")
 
     return (
-        <html lang="fr" className="dark" translate="no">
+        <html lang="fr" className="bg-background dark" translate="no">
             <head>
                 <meta charSet="utf-8" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -42,7 +42,24 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <Links />
                 {/* <ManifestLink /> */}
 
-                {/* <meta name="theme-color" content="#000000" /> */}
+                <meta name="keywords" content="investment, financial news, stock market, economic calendar, investor tools" />
+                <meta name="robots" content="index, follow" />
+
+
+                {/* <meta property="og:title" content="Investor Helper - Stay Updated on Financial News" /> */}
+                {/* <meta property="og:description" content="Get the latest financial news and track investment opportunities with our comprehensive calendar." /> */}
+                <meta property="og:url" content="https://www.investor-helper.com" />
+                <meta property="og:type" content="website" />
+                <meta property="og:image" content="https://www.investor-helper.com/logo-512-512.png" />
+                <meta property="og:locale" content="fr_FR" />
+
+                <meta name="theme-color" content="#030712" />
+
+                <meta name="apple-mobile-web-app-title" content="Investor Helper" />
+                <meta name="application-name" content="Investor Helper" />
+
+                <meta name="apple-mobile-web-app-capable" content="yes" />
+                <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
             </head>
             <body className="flex min-h-screen flex-col">
                 <Header
@@ -67,7 +84,7 @@ export default function App() {
     //         const description = "Seemed your network went for a nap, glad to have you back!"
     //         const type = "message"
 
-    //         toast[type](title, { id, description })
+    //         toast[type](title, {id, description})
     //     },
 
     //     onOffline: () => {
@@ -76,7 +93,7 @@ export default function App() {
     //         const description = "Seems like you are offline, check your network connection"
     //         const type = "warning"
 
-    //         toast[type](title, { id, description })
+    //         toast[type](title, {id, description})
     //     }
     // })
 
@@ -86,7 +103,7 @@ export default function App() {
 export function ErrorBoundary() {
     const error = useRouteError()
 
-    console.error(typeof error)
+    // console.error(typeof error)
 
     if (error && typeof error === "object" && "status" in error && error.status === 404) {
         return (

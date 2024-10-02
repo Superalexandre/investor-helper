@@ -70,9 +70,15 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export const meta: MetaFunction = () => {
+    const title = "Investor Helper - Créer un compte"
+    const description = "Créez un compte sur Investor Helper pour accéder à des fonctionnalités exclusives. Suivez vos investissements, vos actions et vos cryptomonnaies préférées. Restez informé des dernières actualités financières et économiques."
+    
     return [
-        { title: "Investor Helper - Créer un compte" },
-        // { name: "description", content: "Welcome to Remix!" },
+        { title: title },
+        { name: "og:title", content: title },
+        { name: "description", content: description },
+        { name: "og:description", content: description },
+        { name: "canonical", content: "https://investor-helper.com/register" },
     ]
 }
 

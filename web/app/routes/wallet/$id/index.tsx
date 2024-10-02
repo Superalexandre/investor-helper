@@ -179,9 +179,14 @@ export async function loader({
 }
 
 export const meta: MetaFunction = () => {
+    const title = "Investor Helper - Votre portefeuille"
+    const description = ""
+
     return [
-        { title: "Investor Helper - Votre portefeuille" },
-        // { name: "description", content: "Welcome to Remix!" },
+        { title: title },
+        { name: "og:title", content: title },
+        { name: "description", content: description },
+        { name: "og:description", content: description },
     ]
 }
 

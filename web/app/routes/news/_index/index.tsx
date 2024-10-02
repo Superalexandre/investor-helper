@@ -44,9 +44,15 @@ export async function loader({
 
 
 export const meta: MetaFunction = () => {
+    const title = "Investor Helper - Les actualités"
+    const description = "Découvrez l'actualité économique du moment sur Investor Helper. Suivez en direct les nouvelles financières mondiales, les tendances des marchés boursiers, ainsi que les analyses approfondies sur l'économie. Que vous soyez investisseur ou passionné de finance, restez à jour avec les informations essentielles qui impactent les marchés et vos investissements."
+
     return [
-        { title: "Investor Helper - Les actualités" },
-        // { name: "description", content: "Les dernières actualités du monde de la finance" },
+        { title: title },
+        { name: "og:title", content: title },
+        { name: "description", content: description },
+        { name: "og:description", content: description },
+        { name: "canonical", content: "https://investor-helper.com/news" },
     ]
 }
 

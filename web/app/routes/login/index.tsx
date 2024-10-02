@@ -49,9 +49,15 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export const meta: MetaFunction = () => {
+    const title = "Investor Helper - Connexion"
+    const description = "Connectez-vous à votre compte Investor Helper"
+
     return [
-        { title: "Investor Helper - Connexion" },
-        // { name: "description", content: "Welcome to Remix!" },
+        { title: title },
+        { name: "og:title", content: title },
+        { name: "description", content: description },
+        { name: "og:description", content: description },
+        { name: "canonical", content: "https://investor-helper.com/login" },
     ]
 }
 

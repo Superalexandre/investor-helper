@@ -1,5 +1,5 @@
-import type { ActionFunctionArgs, MetaFunction } from "@remix-run/node"
-import { ClientLoaderFunctionArgs, Form, Link, redirect, useActionData, useLoaderData, useLocation, useSubmit } from "@remix-run/react"
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
+import { Form, Link, redirect, useActionData, useLoaderData, useLocation, useSubmit } from "@remix-run/react"
 import getPrices, { closeClient, Period, PeriodInfo } from "@/utils/getPrices"
 import { ClientOnly } from "remix-utils/client-only"
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
@@ -40,7 +40,7 @@ function differences(prices: Period[]) {
 
 export async function loader({
     params
-}: ClientLoaderFunctionArgs) {
+}: LoaderFunctionArgs) {
     if (!params.id) return redirect("/")
 
     const { period: prices, periodInfo: marketInfo } = await getPrices(params.id, {
@@ -98,10 +98,16 @@ export async function action({
     }
 }
 
-export const meta: MetaFunction = () => {
+export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
+    const title = `Investor Helper - Information sur ${data?.symbol.description}`
+    const description = `Graphique des prix pour ${data?.symbol.description} sur le marché ${data?.marketInfo.name}. Dernier prix ${data?.prices[data?.prices.length - 1].close}${data?.prettySymbol}.`
+
     return [
-        { title: "Investor Helper - Data" },
-        // { name: "description", content: "Welcome to Remix!" },
+        { title: title },
+        { name: "og:title", content: title },
+        { name: "description", content: description },
+        { name: "og:description", content: description },
+        { name: "canonical", content: `https://investor-helper.com/data/${params.id}` },
     ]
 }
 

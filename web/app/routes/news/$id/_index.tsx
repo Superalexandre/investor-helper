@@ -1,8 +1,8 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getNewsById } from "@/utils/news"
-import type { MetaFunction } from "@remix-run/node"
-import { ClientLoaderFunctionArgs, Link, redirect, useLoaderData, useLocation } from "@remix-run/react"
+import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
+import { Link, redirect, useLoaderData, useLocation } from "@remix-run/react"
 import { MdArrowBack } from "react-icons/md"
 import { NewsRelatedSymbol } from "../../../../../db/schema/news"
 import { cn } from "@/lib/utils"
@@ -14,7 +14,7 @@ import { ScrollTop } from "@/components/scrollTop"
 
 export async function loader({
     params,
-}: ClientLoaderFunctionArgs) {
+}: LoaderFunctionArgs) {
     const { id } = params
 
     // Redirect to the news page if the id is not provided
@@ -30,10 +30,16 @@ export async function loader({
     }
 }
 
-export const meta: MetaFunction = () => {
+export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
+    const title = "Investor Helper - Les actualités"
+    const description = data?.news.news.title ?? ""
+
     return [
-        { title: "Investor Helper - Actualité" },
-        // { name: "description", content: "Welcome to Remix!" },
+        { title: title },
+        { name: "og:title", content: title },
+        { name: "description", content: description },
+        { name: "og:description", content: description },
+        { name: "canonical", content: `https://investor-helper.com/news/${params.id}` },
     ]
 }
 

@@ -2,7 +2,7 @@ import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
 import { news as newsSchema, newsRelatedSymbols as newsRelatedSymbolsSchema, newsArticle as newsArticleSchema } from "../../db/schema/news.js"
 import { symbols as symbolsSchema } from "../../db/schema/symbols.js"
-import { desc, eq, like } from "drizzle-orm"
+import { and, desc, eq, gte, like, lte } from "drizzle-orm"
 import config from "../../config.js"
 
 import refreshSymbol from "./refreshSymbol.js"
@@ -348,6 +348,32 @@ async function searchNews(search: string) {
     return news
 }
 
+async function getNewsFromDates(from: number, to: number) {
+    const sqlite = new Database("../db/sqlite.db")
+    const db = drizzle(sqlite)
+
+    const news = await db
+        .select({
+            title: newsSchema.title,
+            published: newsSchema.published,
+            article: newsArticleSchema.jsonDescription,
+            description: newsArticleSchema.shortDescription,
+        })
+        .from(newsSchema)
+        .innerJoin(newsArticleSchema, eq(newsSchema.id, newsArticleSchema.newsId))
+        .where(
+            and(
+                eq(newsSchema.lang, "fr-FR"),
+                gte(newsSchema.importanceScore, 20),
+                gte(newsSchema.published, from),
+                lte(newsSchema.published, to)
+                // eq(newsSchema.published, Math.floor(Date.now() / 1000))
+            )
+        )
+
+    return news
+}
+
 export default getNews
 export {
     getNews,
@@ -356,6 +382,7 @@ export {
     saveFetchNews,
     getNewsImportanceScore,
     searchNews,
+    getNewsFromDates
 }
 export type {
     // News,

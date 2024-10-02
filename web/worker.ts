@@ -3,6 +3,7 @@ import app from "./server.js"
 import { CronJob } from "cron"
 import { saveFetchNews } from "./utils/news.js"
 import { saveFetchEvents } from "./utils/events.js"
+// import { sendMail } from "./utils/newsLetter.js"
 
 function startServer() {
     serve({
@@ -41,6 +42,8 @@ function main() {
         start: true,
         timeZone: "Europe/Paris"
     })
+
+    // sendMail()
 }
 
 try {

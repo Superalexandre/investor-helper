@@ -13,12 +13,20 @@ const isDev = process.env.NODE_ENV === "development"
 
 const app = new Hono()
 
-console.log("NODE_ENV", process.env.NODE_ENV)
-
 app.use(compress())
+app.use((c, next) => {
+    c.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+    c.header("Content-Security-Policy", "default-src 'self'; script-src 'self'; object-src 'none'; style-src 'self'; img-src 'self';")
+    c.header("X-Frame-Options", "SAMEORIGIN")
+    c.header("X-Content-Type-Options", "nosniff")
+    c.header("Referrer-Policy", "no-referrer-when-downgrade")
+    c.header("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+  
+    return next()
+})
+
 app.route("/api/calendar", calendar)
-// app.route("/api/news", news)
-// app.route("/api/search", search)
+
 app.use("/*", serveStatic({ root: "./build/client" }))
 app.use("/build/*", serveStatic({ root: isDev ? "./public/build" : "./build/client" }))
 app.use("/assets/*", serveStatic({ root: isDev ? "./public/assets" : "./build/client/assets" }))

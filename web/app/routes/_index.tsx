@@ -1,9 +1,15 @@
 import type { MetaFunction } from "@remix-run/node"
 
 export const meta: MetaFunction = () => {
+    const title = "Investor Helper"
+    const description = "Bienvenue sur Investor Helper"
+
     return [
-        { title: "Investor Helper" },
-        // { name: "description", content: "Welcome to Remix!" },
+        { title: title },
+        { name: "og:title", content: title },
+        { name: "description", content: description },
+        { name: "og:description", content: description },
+        { name: "canonical", content: "https://investor-helper.com" },
     ]
 }
 
@@ -13,6 +19,7 @@ export default function Index() {
             <div className="mt-4 flex flex-col items-center justify-center">
                 <img 
                     src="/logo-1024-1024.png" 
+                    loading="eager"
                     alt="Investor Helper" 
                     className="mx-auto size-32"
                     height="128"

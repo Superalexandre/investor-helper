@@ -1,0 +1,8 @@
+User-agent: *
+Disallow:
+
+# Délai de crawl entre chaque requête (10 minutes)
+Crawl-delay: 600
+
+# Indique l'emplacement du sitemap
+Sitemap: https://www.investor-helper.com/sitemap.xml

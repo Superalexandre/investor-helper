@@ -6,9 +6,15 @@ import countries from "../../../../lang/countries-fr"
 import { useEffect, useState } from "react"
 
 export const meta: MetaFunction = () => {
+    const title = "Investor Helper - Calendrier"
+    const description = "Consultez notre calendrier des événements économiques pour ne rien manquer des dates clés qui influencent les marchés financiers. Suivez les annonces économiques, les publications de rapports financiers et les décisions des banques centrales. Ce calendrier est un outil indispensable pour anticiper les mouvements de marché et ajuster vos stratégies d'investissement en fonction des événements mondiaux."
+
     return [
-        { title: "Investor Helper - Calendrier" },
-        // { name: "description", content: "Welcome to Remix!" },
+        { title: title },
+        { name: "og:title", content: title },
+        { name: "description", content: description },
+        { name: "og:description", content: description },
+        { name: "canonical", content: "https://investor-helper.com/calendar" },
     ]
 }
 
