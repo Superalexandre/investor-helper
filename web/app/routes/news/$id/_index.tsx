@@ -136,6 +136,7 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
         if (child.type === "news-image") {
             Component.push(
                 <img
+                    key={child.params.image.id}
                     width={child.params.image["source-width"]}
                     height={child.params.image["source-height"]}
                     className={cn("mx-auto", className?.image)}
@@ -164,7 +165,11 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
             if (type && type === "italic") additionalClassName.push("italic")
 
             Component.push(
-                <p className={cn(className?.text, additionalClassName)}>{replacedChild}</p>
+                <p 
+                    className={cn(className?.text, additionalClassName)}
+                >
+                    {replacedChild}
+                </p>
             )
 
             continue
@@ -183,7 +188,7 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                         state={{
                             redirect: `/news/${newsId}`,
                         }}
-                        key={`${child.params?.symbol}-${Component.length}`}
+                        key={`${child.params?.symbol}-${Component.length}-${child.children.length}`}
                         className={className?.badge}
                     >
                         <Badge
@@ -207,7 +212,7 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                     rawText: true,
                     type: child.type
                 })
-                
+
                 Component.push(
                     <div
                         key={`${child.type}-${Component.length}-${child.children.length}`}
@@ -216,10 +221,22 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                         {ComponentResult}
                     </div>
                 )
+            } else if (["quote"].includes(child?.type)) {
+                const ComponentResult = GetDeepComponent(child.children, relatedSymbols, newsId, {
+                    className: configClassName,
+                    rawText: true
+                })
+
+                Component.push(
+                    <blockquote key={`${child.type}-${Component.length}-${child.children.length}`} className="border-muted-foreground border-l-2 pl-4">
+                        {ComponentResult}
+                    </blockquote>
+                )
 
             } else if (["url"].includes(child?.type)) {
                 Component.push(
                     <Link
+                        key={`${child.type}-${Component.length}-${child.children.length}`}
                         to={child.params.url}
                         className="text-muted-foreground inline-block hover:text-white hover:underline"
                     >
@@ -233,7 +250,7 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                 })
 
                 Component.push(
-                    <ul key={`${child.type}-${Component.length}`}>
+                    <ul key={`${child.type}-${Component.length}-${child.children.length}`}>
                         {ComponentResult}
                     </ul>
                 )
@@ -244,7 +261,7 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                 })
 
                 Component.push(
-                    <li key={`${child.type}-${Component.length}`} className="flex flex-row items-center">
+                    <li key={`${child.type}-${Component.length}-${child.children.length}`} className="flex flex-row items-center">
                         {ComponentResult}
                     </li>
                 )
@@ -255,7 +272,7 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                 })
 
                 Component.push(
-                    <Table key={`${child.type}-${Component.length}`} className="table-auto">
+                    <Table key={`${child.type}-${Component.length}-${child.children.length}`} className="table-auto">
                         {ComponentResult}
                     </Table>
                 )
@@ -266,7 +283,7 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                 })
 
                 Component.push(
-                    <TableBody key={`${child.type}-${Component.length}`}>
+                    <TableBody key={`${child.type}-${Component.length}-${child.children.length}`}>
                         {ComponentResult}
                     </TableBody>
                 )
@@ -277,7 +294,7 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                 })
 
                 Component.push(
-                    <TableHeader key={`${child.type}-${Component.length}`}>
+                    <TableHeader key={`${child.type}-${Component.length}-${child.children.length}`}>
                         {ComponentResult}
                     </TableHeader>
                 )
@@ -288,7 +305,7 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                 })
 
                 Component.push(
-                    <TableHead key={`${child.type}-${Component.length}`}>
+                    <TableHead key={`${child.type}-${Component.length}-${child.children.length}`}>
                         {ComponentResult}
                     </TableHead>
                 )
@@ -299,7 +316,7 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                 })
 
                 Component.push(
-                    <TableRow key={`${child.type}-${Component.length}`}>
+                    <TableRow key={`${child.type}-${Component.length}-${child.children.length}`}>
                         {ComponentResult}
                     </TableRow>
                 )
@@ -310,18 +327,18 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                 })
 
                 Component.push(
-                    <TableCell key={`${child.type}-${Component.length}`}>
+                    <TableCell key={`${child.type}-${Component.length}-${child.children.length}`}>
                         {ComponentResult}
                     </TableCell>
                 )
             } else {
-                console.error("Unknown child", child)
+                console.error("Unknown child", child, newsId)
             }
 
             continue
         }
 
-        console.error("Unknown type", child)
+        console.error("Unknown type", child, newsId)
     }
 
     return Component
