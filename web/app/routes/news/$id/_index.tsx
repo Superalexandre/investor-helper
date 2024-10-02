@@ -188,7 +188,7 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                         state={{
                             redirect: `/news/${newsId}`,
                         }}
-                        key={`${child.params?.symbol}-${Component.length}-${child.children.length}`}
+                        key={`${child.params?.symbol}-${Component.length}`}
                         className={className?.badge}
                     >
                         <Badge
