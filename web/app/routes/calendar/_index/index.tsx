@@ -2,7 +2,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { getEvents } from "@/utils/events"
 import type { MetaFunction } from "@remix-run/node"
 import { ClientLoaderFunctionArgs, Link, useLoaderData } from "@remix-run/react"
-import countries from "../../../../lang/countries-fr"
+import countries from "../../../../../lang/countries-fr"
 import { useEffect, useState } from "react"
 
 export const meta: MetaFunction = () => {
