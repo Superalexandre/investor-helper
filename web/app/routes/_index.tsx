@@ -18,7 +18,7 @@ export default function Index() {
         <div>
             <div className="mt-4 flex flex-col items-center justify-center">
                 <img 
-                    src="/logo-1024-1024.png" 
+                    src="/logo-1024-1024.webp" 
                     loading="eager"
                     alt="Investor Helper" 
                     className="mx-auto size-32"
