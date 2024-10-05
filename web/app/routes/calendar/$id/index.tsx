@@ -48,7 +48,6 @@ export default function Index() {
 
     const { event } = useLoaderData<typeof loader>()
 
-
     const importance: Record<number, { name: string, color: string }> = {
         [-1]: {
             name: "faible",
@@ -63,8 +62,6 @@ export default function Index() {
             color: "text-red-500"
         }
     }
-
-    console.log(event)
 
     return (
         <div className="relative flex w-full flex-col items-center overflow-hidden">
