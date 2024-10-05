@@ -159,9 +159,50 @@ async function getEvents({ page = 1, limit = 10, desc: descOrder = "desc" }: { p
             )
         )
         .orderBy(descOrder === "asc" ? asc(eventsSchema.date) : desc(eventsSchema.date))
-        // .orderBy(desc(eventsSchema.referenceDate))
+    // .orderBy(desc(eventsSchema.referenceDate))
 
     return allEvents
+}
+
+
+async function getEventById({ id }: { id: string }) {
+    const sqlite = new Database("../db/sqlite.db")
+    const db = drizzle(sqlite)
+
+    const event = await db
+        .select()
+        .from(eventsSchema)
+        .where(eq(eventsSchema.id, id))
+
+    return {
+        event: event[0]
+    }
+}
+
+interface EventRaw {
+    [key: string]: string | number | null;
+    id: string;
+    title: string;
+    country: string;
+    indicator: string;
+    category: string | null;
+    period: string;
+    referenceDate: null | string;
+    source: string;
+    source_url: string;
+    actual: null | number;
+    previous: null | number;
+    forecast: null | number;
+    actualRaw: null | number;
+    previousRaw: null | number;
+    forecastRaw: null | number;
+    currency: string;
+    importance: number;
+    date: string;
+    ticker: string | null;
+    comment: string | null;
+    unit: string | null;
+    scale: string | null;
 }
 
 async function fetchEvents() {
@@ -201,9 +242,7 @@ async function fetchEvents() {
 
         if (!events || events.length === 0) return console.error("No events found")
 
-        // console.log(events)
-
-        return events as Events[]
+        return events as EventRaw[]
     } catch (error) {
         return console.error("Error fetching agenda (can't fetch)", error)
     }
@@ -217,11 +256,12 @@ async function saveFetchEvents() {
     await saveEvents(events)
 }
 
-async function saveEvents(events: Events[]) {
+async function saveEvents(events: EventRaw[]) {
     const sqlite = new Database("../db/sqlite.db")
     const db = drizzle(sqlite)
 
-    const eventsValues = []
+    const eventsValues: Events[] = []
+    // let updatedEvents = 0
 
     for (const event of events) {
         const eventDb = await db
@@ -229,9 +269,13 @@ async function saveEvents(events: Events[]) {
             .from(eventsSchema)
             .where(eq(eventsSchema.id, event.id))
 
+        // Update the event if it already exists
         if (eventDb.length > 0) continue
 
-        eventsValues.push(event)
+        eventsValues.push({
+            ...event,
+            sourceUrl: event.source_url,
+        })
     }
 
     if (eventsValues.length > 0) {
@@ -246,6 +290,7 @@ async function saveEvents(events: Events[]) {
 
 export {
     getEvents,
+    getEventById,
     fetchEvents,
     saveFetchEvents,
     saveEvents
