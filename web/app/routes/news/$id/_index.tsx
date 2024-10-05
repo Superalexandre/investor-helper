@@ -71,7 +71,7 @@ export default function Index() {
 
             <div className="w-full px-4 lg:w-3/4">
                 <div className="flex flex-col items-center justify-center pb-8">
-                    <p className="pt-4 text-center text-2xl font-bold">{news.news.title}</p>
+                    <h1 className="pt-4 text-center text-2xl font-bold">{news.news.title}</h1>
 
                     <p className="text-muted-foreground text-center">{formatDateTime(news.news.published * 1000)}</p>
                 </div>
@@ -151,7 +151,7 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
         if (typeof child === "string") {
             // Replace useless "(link)" that the text can contain
             let replacedChild = child
-            if (child.match(/\(link\)/)) replacedChild = child.replace(/\(link\)/, "")
+            if (child.match(/\(link\)/g)) replacedChild = child.replace(/\(link\)/g, "")
 
             if (rawText) {
                 Component.push(replacedChild)
