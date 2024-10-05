@@ -4,6 +4,7 @@ import type { MetaFunction } from "@remix-run/node"
 import { ClientLoaderFunctionArgs, Link, useLoaderData } from "@remix-run/react"
 import countries from "../../../../../lang/countries-fr"
 import { useEffect, useState } from "react"
+import { ScrollTop } from "@/components/scrollTop"
 
 export const meta: MetaFunction = () => {
     const title = "Investor Helper - Calendrier"
@@ -55,19 +56,27 @@ export default function Index() {
 
     return (
         <div>
+            <ScrollTop showBelow={250} />
+
             <div className="flex flex-col items-center justify-center space-y-4">
                 <p className="pt-4 text-center text-2xl font-bold">Les événements</p>
             </div>
 
             <div className="flex flex-col space-y-6 p-4 lg:p-10">
                 {events.map((event) => (
-                    <div className="relative" key={event.id}>
+                    <div className="relative" key={event.id} id={event.id}>
                         {/* <Badge variant="destructive" className="absolute -right-[10px] -top-[10px]">
                             <MdPriorityHigh className="size-5" />
                         </Badge> */}
 
                         <Card>
-                            <Link to={`/calendar/${event.id}`}>
+                            <Link 
+                                to={`/calendar/${event.id}`}
+                                state={{
+                                    redirect: "/calendar",
+                                    hash: `#${event.id}`
+                                }}
+                            >
                                 <CardHeader>
                                     <CardTitle>{event.title} - <span className={importance[event.importance].color}>Importance {importance[event.importance].name}</span></CardTitle>
                                 </CardHeader>
