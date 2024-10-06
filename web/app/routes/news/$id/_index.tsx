@@ -1,9 +1,7 @@
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { getNewsById } from "@/utils/news"
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
-import { Link, redirect, useLoaderData, useLocation } from "@remix-run/react"
-import { MdArrowBack } from "react-icons/md"
+import { Link, redirect, useLoaderData } from "@remix-run/react"
 import { NewsRelatedSymbol } from "../../../../../db/schema/news"
 import { cn } from "@/lib/utils"
 import { Symbol } from "@/schema/symbols"
@@ -11,6 +9,7 @@ import SymbolLogo from "@/components/symbolLogo"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { normalizeSymbol } from "@/utils/normalizeSymbol"
 import { ScrollTop } from "@/components/scrollTop"
+import BackButton from "@/components/backButton"
 
 export async function loader({
     params,
@@ -44,30 +43,13 @@ export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
 }
 
 export default function Index() {
-    const location = useLocation()
-
     const { news, relatedSymbols } = useLoaderData<typeof loader>()
 
     return (
         <div className="relative flex w-full flex-col items-center overflow-hidden">
             <ScrollTop showBelow={250} />
 
-            <div className="w-full">
-                <Button asChild variant="default">
-                    <Link
-                        to={{
-                            // pathname: "/news",
-                            pathname: location.state?.redirect ?? "/news",
-                            hash: location.state?.hash ?? undefined,
-                        }}
-                        className="left-0 top-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute"
-                    >
-                        <MdArrowBack className="size-6" />
-
-                        Retour
-                    </Link>
-                </Button>
-            </div>
+            <BackButton />
 
             <div className="w-full px-4 lg:w-3/4">
                 <div className="flex flex-col items-center justify-center pb-8">

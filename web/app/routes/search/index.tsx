@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input"
 import { useEffect, useRef, useState } from "react"
 import { useDebounceValue } from "usehooks-ts"
 import { cn } from "@/lib/utils"
-import { normalizeSymbolHtml } from "@/utils/normalizeSymbol"
+import { normalizeSymbol, normalizeSymbolHtml } from "@/utils/normalizeSymbol"
 import { News } from "@/schema/news"
 import { Link, useLocation, useNavigate } from "@remix-run/react"
 import { MdClose } from "react-icons/md"
@@ -61,7 +61,7 @@ export default function Index() {
         setResultSymbols([])
         setResultNews([])
         setHidden(true)
-    
+
         navigate(pathname)
     }
 
@@ -98,7 +98,7 @@ export default function Index() {
                         name="symbol"
                         type="text"
                         placeholder="Rechercher un symbole, une action, une crypto, une news..."
-                        
+
                         onChange={event => setValue(event.target.value)}
                         defaultValue={search ?? ""}
 
@@ -158,7 +158,14 @@ export default function Index() {
 
                         <div className={cn(hidden ? "hidden" : "block")}>
                             {resultNews.length > 0 ? resultNews.map((news) => (
-                                <Link to={`/news/${news.id}`} key={news.id}>
+                                <Link
+                                    to={`/news/${news.id}`}
+                                    state={{
+                                        redirect: pathname,
+                                        search: "?search=" + debouncedValue,
+                                    }}
+                                    key={news.id}
+                                >
                                     <Button
                                         variant="outline"
                                         key={news.id}
@@ -169,19 +176,33 @@ export default function Index() {
                                 </Link>
                             )) : null}
 
-                            {resultSymbols.length > 0 ? resultSymbols.map((symbol, i) => (
-                                <Link to={`/data/${normalizeSymbolHtml(symbol.symbol)}`} key={normalizeSymbolHtml(symbol.symbol) + "-" + i}>
-                                    <Button
-                                        variant="outline"
-                                        key={normalizeSymbolHtml(symbol.symbol) + "-" + i}
-                                        className="flex w-full flex-row items-center justify-between border-none p-2"
-                                    >
-                                        <p>{normalizeSymbolHtml(symbol.description)} ({normalizeSymbolHtml(symbol.symbol)})</p>
+                            {resultSymbols.length > 0 ? resultSymbols.map((symbol, i) => {
+                                const prefix = symbol["prefix"]?.toUpperCase() ?? symbol.exchange.toUpperCase()
+                                const normalizedSymbol = normalizeSymbolHtml(symbol.symbol)
 
-                                        <p>{symbol.exchange}</p>
-                                    </Button>
-                                </Link>
-                            )) : null}
+                                const fullUrl = normalizeSymbol(`${prefix}:${normalizedSymbol}`)
+
+                                return (
+                                    <Link
+                                        to={`/data/${fullUrl}`}
+                                        state={{
+                                            redirect: pathname,
+                                            search: "?search=" + debouncedValue,
+                                        }}
+                                        key={normalizeSymbolHtml(symbol.symbol) + "-" + i}
+                                    >
+                                        <Button
+                                            variant="outline"
+                                            key={normalizeSymbolHtml(symbol.symbol) + "-" + i}
+                                            className="flex w-full flex-row items-center justify-between border-none p-2"
+                                        >
+                                            <p>{normalizeSymbolHtml(symbol.description)} ({normalizeSymbolHtml(symbol.symbol)})</p>
+
+                                            <p>{symbol.exchange}</p>
+                                        </Button>
+                                    </Link>
+                                )
+                            }) : null}
                         </div>
                     </div>
                 ) : null}
