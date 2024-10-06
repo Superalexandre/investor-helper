@@ -182,7 +182,7 @@ export default function Index() {
 
                         <Link
                             to={{
-                                pathname: "/account/login",
+                                pathname: "/login",
                                 search: params.get("redirect") ? `?redirect=${params.get("redirect")}` : ""
                             }}
                             className="text-center text-white underline hover:text-slate-400"
@@ -190,7 +190,7 @@ export default function Index() {
                             Vous avez déjà un compte ? Connectez-vous
                         </Link>
 
-                        {/* <Link to="/account/forgot-password" className="text-white underline hover:text-slate-400 text-center">Mot de passe oublié ?</Link> */}
+                        {/* <Link to="/forgot-password" className="text-white underline hover:text-slate-400 text-center">Mot de passe oublié ?</Link> */}
 
                         <Button
                             variant="default"

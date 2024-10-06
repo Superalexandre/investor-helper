@@ -121,7 +121,7 @@ export default function Index() {
                         >
                             Pas encore inscrit ? Créez un compte
                         </Link>
-                        {/* <Link to="/account/forgot-password" className="text-white underline hover:text-slate-400 text-center">Mot de passe oublié ?</Link> */}
+                        {/* <Link to="/forgot-password" className="text-white underline hover:text-slate-400 text-center">Mot de passe oublié ?</Link> */}
 
                         <Button
                             variant="default"
