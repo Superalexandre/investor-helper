@@ -22,6 +22,14 @@
     <loc>https://www.investor-helper.com/calendar</loc>
     <lastmod>2024-10-02</lastmod>
     <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Search page -->
+  <url>
+    <loc>https://www.investor-helper.com/search</loc>
+    <lastmod>2024-10-02</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
 
@@ -40,5 +48,4 @@
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
-
 </urlset>

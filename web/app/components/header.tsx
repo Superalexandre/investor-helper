@@ -1,4 +1,4 @@
-import { MdAdd, MdCalendarMonth, MdHome, MdLogin, MdLogout, MdMenu, MdNewspaper, MdPerson } from "react-icons/md"
+import { MdAdd, MdCalendarMonth, MdHome, MdLogin, MdLogout, MdMenu, MdNewspaper, MdPerson, MdSearch } from "react-icons/md"
 import {
     Sheet,
     SheetContent,
@@ -6,12 +6,9 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
-import { Link, useNavigate } from "@remix-run/react"
+import { Link } from "@remix-run/react"
 import { useState } from "react"
-// import { Search } from "./search"
-import { Search } from "./search"
-import { cn } from "@/lib/utils"
-import { normalizeSymbolHtml, normalizeSymbol } from "@/utils/normalizeSymbol"
+import { Button } from "./ui/button"
 
 export default function Header({
     logged
@@ -42,7 +39,14 @@ export default function Header({
                 href: "/calendar",
                 hidden: false
             },
-        ], [
+            {
+                key: "search",
+                icon: MdSearch,
+                label: "Rechercher",
+                href: "/search",
+                hidden: false
+            }
+        ], /*[
             {
                 key: "search",
                 icon: null,
@@ -50,7 +54,7 @@ export default function Header({
                 href: "/search",
                 hidden: false
             }
-        ],[
+        ],*/ [
             {
                 key: "profile",
                 icon: MdPerson,
@@ -79,7 +83,7 @@ export default function Header({
                 href: "/register",
                 hidden: logged
             }
-        ]
+        ],
     ]
 
     return (
@@ -88,8 +92,8 @@ export default function Header({
                 {menuItems.map((menuGroup, index) => (
                     <div key={index} className="flex flex-row items-center gap-4">
                         {menuGroup.map((menuItem) => (
-                            menuItem.hidden ? null : menuItem.key === "search" ? <SearchBar id="search-lg" key="search-lg" className="absolute inset-x-0 m-auto w-2/5" /> : (
-                                <Link to={menuItem.href} key={menuItem.key} className="flex flex-row items-center">
+                            menuItem.hidden ? null : (
+                                <Link to={menuItem.href} key={menuItem.key} className="flex flex-row content-center items-center justify-center">
                                     {menuItem.icon ? <menuItem.icon className="mr-2 inline-block" /> : null}
                                     {menuItem.label}
                                 </Link>
@@ -121,36 +125,14 @@ export default function Header({
                 </SheetContent>
             </Sheet>
             <div className="block xl:hidden">
-                <SearchBar 
-                    key="search-sm" 
-                    id="search-sm"
-                    className="absolute inset-y-0 right-0 mr-3 flex w-3/4 items-center" 
-                />
+                <Link to="/search" className="absolute inset-y-0 right-0 mr-3 flex flex-row items-center">
+                    <Button className="px-8">
+                        <MdSearch className="size-6" />
+
+                        Rechercher
+                    </Button>
+                </Link>
             </div>
         </header>
-    )
-}
-
-function SearchBar({ className, id }: { className?: string, id?: string }) {
-    const navigate = useNavigate()
-
-    return (
-        <div className={cn(className)}>
-            <Search
-                idInput={id}
-                searching={["all", "allSymbol", "stocks", "crypto", "news"]} 
-                placeholder="Rechercher"
-                displayLabel={false}
-                resultSize="h-96"
-                replace={false}
-                onClick={(symbol) => {
-                    const prefix = symbol["prefix"]?.toUpperCase() ?? symbol.exchange.toUpperCase()
-
-                    const fullUrl = normalizeSymbol(`${prefix}:${normalizeSymbolHtml(symbol.symbol)}`)
-
-                    navigate(`/data/${fullUrl}`)
-                }}
-            />
-        </div>
     )
 }
