@@ -7,15 +7,23 @@ import {
     Outlet,
     Scripts,
     ScrollRestoration,
+    useNavigate,
     useRouteError,
     // useLoaderData,
     useRouteLoaderData,
 } from "@remix-run/react"
+import { ManifestLink, useSWEffect } from "@remix-pwa/sw"
+import { useNetworkConnectivity } from "@remix-pwa/client"
 
 import stylesheet from "@/tailwind.css?url"
 import Header from "./components/header"
 import { getUser } from "./session.server"
 import { Button } from "./components/ui/button"
+import { useEffect } from "react"
+import { Toaster } from "./components/ui/toaster"
+import { useToast } from "./hooks/use-toast"
+import { ToastAction } from "./components/ui/toast"
+// import { useEffect } from "react"
 
 export async function loader({
     request
@@ -25,12 +33,19 @@ export async function loader({
     return { logged: user !== null }
 }
 
+// export async function workerLoader({ request }: WorkerLoaderArgs) {
+//     console.log("Worker loader", request.url)
+
+//     return null
+// }
+
 export const links: LinksFunction = () => [
     { rel: "stylesheet", href: stylesheet, as: "style", type: "text/css" },
 ]
 
 export function Layout({ children }: { children: React.ReactNode }) {
-    // useSWEffect()
+    useSWEffect()
+
     const data = useRouteLoaderData<typeof loader>("root")
 
     return (
@@ -40,7 +55,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <Meta />
                 <Links />
-                {/* <ManifestLink /> */}
+                <ManifestLink />
+
+                <link rel="manifest" href="/manifest.webmanifest" />
 
                 <meta name="keywords" content="investment, financial news, stock market, economic calendar, investor tools" />
                 <meta name="robots" content="index, follow" />
@@ -52,8 +69,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <meta property="og:type" content="website" />
                 <meta property="og:image" content="https://www.investor-helper.com/logo-512-512.png" />
                 <meta property="og:locale" content="fr_FR" />
-
-                <meta name="theme-color" content="#030712" />
 
                 <meta name="mobile-web-app-capable" content="yes" />
 
@@ -70,6 +85,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
                 {children}
 
+                <Toaster />
+
                 <ScrollRestoration />
                 <Scripts />
             </body>
@@ -78,27 +95,56 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+    const { toast } = useToast()
+    const navigate = useNavigate()
 
-    // useNetworkConnectivity({
-    //     onOnline: () => {
-    //         const id = "network-connectivity"
-    //         const title = "You are back online"
-    //         const description = "Seemed your network went for a nap, glad to have you back!"
-    //         const type = "message"
+    useNetworkConnectivity({
+        onOnline: () => {
+            // const id = "network-connectivity"
+            // const title = "You are back online"
+            // const description = "Seemed your network went for a nap, glad to have you back!"
+            // const type = "message"
 
-    //         toast[type](title, {id, description})
-    //     },
+            console.log("You are back online")
+            // toast[type](title, {id, description})
+        },
 
-    //     onOffline: () => {
-    //         const id = "network-connectivity"
-    //         const title = "You are offline"
-    //         const description = "Seems like you are offline, check your network connection"
-    //         const type = "warning"
+        onOffline: () => {
+            // const id = "network-connectivity"
+            // const title = "You are offline"
+            // const description = "Seems like you are offline, check your network connection"
+            // const type = "warning"
 
-    //         toast[type](title, {id, description})
-    //     }
-    // })
+            // toast[type](title, {id, description})
+            console.log("You are offline")
+        }
+    })
 
+
+
+    useEffect(() => {
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.addEventListener("message", (event) => {
+                console.log("SW message", event)
+
+                if (event.data && event.data.type === "notification") {
+                    toast({
+                        title: event.data.title,
+                        description: event.data.body,
+                        action: (
+                            <ToastAction 
+                                altText="Ouvrir"
+                                onClick={() => navigate(event.data.url)}
+                            >
+                                Ouvrir
+                            </ToastAction>
+                        )
+                    })
+                }
+            })
+        }
+    }, [])
+    
     return <Outlet />
 }
 
