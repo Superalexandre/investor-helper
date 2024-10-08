@@ -110,10 +110,10 @@ export default function Index() {
                 <h2 className="text-lg font-bold">Dernières actualités importantes</h2>
 
                 <div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full  scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
-                    {[...lastNews, ...lastNews].map((news) => (
+                    {lastNews.map((news) => (
 
-                        <Link to={`/news/${news.news.id}`}>
-                            <Card key={news.news.id} className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal">
+                        <Link to={`/news/${news.news.id}`} key={news.news.id}>
+                            <Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal">
                                 <CardTitle className="p-4 text-center">
                                     {news.news.title}
                                 </CardTitle>
