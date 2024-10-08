@@ -248,7 +248,7 @@ async function saveFetchNews() {
             .insert(newsRelatedSymbolsSchema)
             .values(newsRelatedSymbolsValues)
     }
-    
+
     if (newsArticleValues.length > 0) {
         await db
             .insert(newsArticleSchema)
@@ -302,11 +302,11 @@ function getNewsImportanceScore(description: string, article: any, relatedSymbol
             }
         }
     }
-    
+
     getRelatedSymbols(article)
 
     const wordCount = articleText.split(" ").length
-    
+
     if (wordCount > 300) {
         score += 20
     } else if (wordCount > 100) {
@@ -367,9 +367,40 @@ async function getNewsFromDates(from: number, to: number) {
                 gte(newsSchema.importanceScore, 20),
                 gte(newsSchema.published, from),
                 lte(newsSchema.published, to)
-                // eq(newsSchema.published, Math.floor(Date.now() / 1000))
             )
         )
+
+    return news
+}
+
+async function getLastImportantNews(from: Date, to: Date, importance: number, limit: number) {
+    const sqlite = new Database("../db/sqlite.db")
+    const db = drizzle(sqlite)
+
+    const fromConvert = from.getTime() / 1000
+    const toConvert = to.getTime() / 1000
+
+    const news = await db
+        .select()
+        .from(newsSchema)
+        .innerJoin(newsArticleSchema, eq(newsSchema.id, newsArticleSchema.newsId))
+        .where(
+            and(
+                eq(newsSchema.lang, "fr-FR"),
+                gte(newsSchema.importanceScore, importance),
+                gte(newsSchema.published, fromConvert),
+                lte(newsSchema.published, toConvert)
+            )
+        )
+        .limit(limit)
+        .orderBy(desc(newsSchema.published))
+
+    // if (!news || news.length === 0) {
+    // const newFrom = new Date(from)
+    // newFrom.setDate(newFrom.getDate() - 1)
+
+    // return getLastImportantNews(newFrom.getTime(), to, importance, limit)
+    // }
 
     return news
 }
@@ -382,7 +413,8 @@ export {
     saveFetchNews,
     getNewsImportanceScore,
     searchNews,
-    getNewsFromDates
+    getNewsFromDates,
+    getLastImportantNews
 }
 export type {
     // News,

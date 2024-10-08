@@ -1,10 +1,19 @@
 import { notification as notificationSchema } from "@/schema/notifications"
 import { sendNotifications } from "@remix-pwa/push"
+import { LoaderFunctionArgs } from "@remix-run/node"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 
-export async function loader() {
-    if (process.env.NODE_ENV === "production") return null
+export async function loader({ request }: LoaderFunctionArgs) {
+    const isProduction = process.env.NODE_ENV === "production"
+
+    // Get the key from the search params
+    const url = new URL(request.url)
+    const searchParams = url.searchParams
+
+    const key = searchParams.get("key")
+
+    if (isProduction && key !== process.env.NOTIFICATION_KEY) return new Response("Unauthorized", { status: 401 })
 
     // Wait 10 seconds before sending the notification
     await new Promise(resolve => setTimeout(resolve, 2000))

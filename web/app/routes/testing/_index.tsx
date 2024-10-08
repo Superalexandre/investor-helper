@@ -1,0 +1,112 @@
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { useBadgeApi, useBatteryManager } from "@remix-pwa/client"
+import { usePush } from "@remix-pwa/push/client"
+import { useLoaderData } from "@remix-run/react"
+import { useState } from "react"
+
+export function loader() {
+    return {
+        publicKey: process.env.NOTIFICATION_PUBLIC_KEY
+    }
+}
+
+export default function Index() {
+    const { publicKey } = useLoaderData<typeof loader>()
+
+    const { badgeCount, setBadgeCount } = useBadgeApi()
+    const { batteryLevel, isCharging } = useBatteryManager()
+
+    const { subscribeToPush, unsubscribeFromPush, isSubscribed, pushSubscription } = usePush()
+    const [notificationError, setNotificationError] = useState<string | null>(null)
+
+    const [code, setCode] = useState("")
+
+    if (!code || code !== "0403") {
+        return (
+            <div className="flex flex-col items-center justify-center gap-4">
+                <Label>
+                    Enter the code
+                </Label>
+                <input
+                    type="text"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                />
+            </div>
+        )
+    }
+
+    return (
+        <div className="flex flex-col items-center justify-center gap-16">
+            <div className="flex flex-col items-center justify-center">
+                <p>Badge Count: {badgeCount}</p>
+
+                <div className="flex flex-col items-center justify-center">
+                    <button onClick={() => setBadgeCount(badgeCount + 1)}>Increment</button>
+                    <button onClick={() => setBadgeCount(badgeCount - 1)}>Decrement</button>
+                    <button onClick={() => setBadgeCount(0)}>Reset</button>
+
+                </div>
+            </div>
+
+            <div className="flex flex-col items-center justify-center">
+                <p>Battery Level: {batteryLevel}</p>
+                <p>Charging: {isCharging ? "Yes" : "No"}</p>
+            </div>
+
+            <div className="flex flex-col items-center justify-center gap-2">
+                <Label>
+                    Notifications
+                </Label>
+                <Button
+                    onClick={() => {
+                        if (isSubscribed) {
+                            unsubscribeFromPush(() => {
+                                console.log("Unsubscribed")
+
+                                fetch("/api/notifications/unsubscribe", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify({
+                                        pushSubscription
+                                    })
+                                })
+                            })
+                        } else {
+                            if (!publicKey) return console.error("No public key")
+
+                            subscribeToPush(publicKey, (subscription) => {
+                                console.log("subscription", subscription)
+
+                                fetch("/api/notifications/subscribe", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify(subscription)
+                                })
+                            }, (error) => {
+                                console.error("error", error)
+
+                                setNotificationError(error.message)
+                            })
+                        }
+                    }}
+                >
+                    {isSubscribed ? "Désactiver" : "Activer"}
+                </Button>
+                {notificationError ? (
+                    <Label className="text-sm text-red-500">
+                        {notificationError}
+                    </Label>
+                ) : null}
+
+            </div>
+        </div>
+
+    )
+
+}

@@ -28,7 +28,7 @@ const webAppManifest: Manifest = {
     display: "standalone",
 
     // @ts-expect-error display_override is not in the WebAppManifest type
-    display_override: ["fullscreen", "minimal-ui", "window-controls-overlay"],
+    display_override: ["minimal-ui", "window-controls-overlay"],
     
     // background_color: "#d3d7dd",
     background_color: "#030712",

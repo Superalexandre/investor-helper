@@ -5,6 +5,7 @@ import { ClientLoaderFunctionArgs, Link, useLoaderData } from "@remix-run/react"
 import countries from "../../../../../lang/countries-fr"
 import { useEffect, useState } from "react"
 import { ScrollTop } from "@/components/scrollTop"
+// import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 export const meta: MetaFunction = () => {
     const title = "Investor Helper - Calendrier"
@@ -61,6 +62,15 @@ export default function Index() {
             <div className="flex flex-col items-center justify-center space-y-4">
                 <p className="pt-4 text-center text-2xl font-bold">Les événements</p>
             </div>
+
+            {/* <Accordion type="single" collapsible className="px-4 lg:px-10">
+                <AccordionItem value="item-1">
+                    <AccordionTrigger>Événements important passés aujourd'hui</AccordionTrigger>
+                    <AccordionContent>
+                        TOUT LES ÉVÉNEMENTS PASSÉS
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion> */}
 
             <div className="flex flex-col space-y-6 p-4 lg:p-10">
                 {events.map((event) => (

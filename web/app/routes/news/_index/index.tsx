@@ -19,8 +19,8 @@ import { useState } from "react"
 import { normalizeSymbol } from "@/utils/normalizeSymbol"
 import { ScrollTop } from "@/components/scrollTop"
 import { Button } from "@/components/ui/button"
-import { MdArrowBack, MdArrowForward, MdStar } from "react-icons/md"
-import { cn } from "@/lib/utils"
+import { MdArrowBack, MdArrowForward } from "react-icons/md"
+import ImportanceBadge from "@/components/importanceBadge"
 
 export async function loader({
     request
@@ -67,13 +67,6 @@ export default function Index() {
 
     if (!news || news.length <= 0) return <Empty />
 
-    const getColor = (score: number) => {
-        if (score > 200) return "bg-pink-700"
-        if (score > 150) return "bg-red-500"
-        if (score > 100) return "bg-orange-500"
-        if (score > 50) return "bg-yellow-500"
-    }
-
     return (
         <div>
             <ScrollTop showBelow={250} />
@@ -90,17 +83,7 @@ export default function Index() {
                 {news.map((item) => (
                     <div className="relative" key={item.news.id} id={item.news.id}>
                         {item.news.importanceScore > 50 ?
-                            <Badge 
-                                className={cn(
-                                    "absolute -right-[10px] -top-[10px] flex flex-row items-center justify-center",
-                                    getColor(item.news.importanceScore),
-                                )}
-                            >
-                                {item.news.importanceScore > 50 ? <MdStar className="size-5 text-white" /> : null}
-                                {item.news.importanceScore > 100 ? <MdStar className="size-5 text-white" /> : null}
-                                {item.news.importanceScore > 150 ? <MdStar className="size-5 text-white" /> : null}
-                                {item.news.importanceScore > 200 ? <MdStar className="size-5 text-white" /> : null}
-                            </Badge>
+                            <ImportanceBadge importance={item.news.importanceScore} className="absolute -right-[10px] -top-[10px]" />
                             : null}
 
                         <Card>
