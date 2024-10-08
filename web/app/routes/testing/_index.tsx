@@ -14,7 +14,7 @@ export function loader() {
 export default function Index() {
     const { publicKey } = useLoaderData<typeof loader>()
 
-    const { badgeCount, setBadgeCount } = useBadgeApi()
+    const { badgeCount, setBadgeCount, showNotificationDot, clearBadge } = useBadgeApi()
     const { batteryLevel, isCharging } = useBatteryManager()
 
     const { subscribeToPush, unsubscribeFromPush, isSubscribed, pushSubscription } = usePush()
@@ -46,7 +46,8 @@ export default function Index() {
                     <button onClick={() => setBadgeCount(badgeCount + 1)}>Increment</button>
                     <button onClick={() => setBadgeCount(badgeCount - 1)}>Decrement</button>
                     <button onClick={() => setBadgeCount(0)}>Reset</button>
-
+                    <button onClick={clearBadge}>Clear Badge</button>
+                    <button onClick={showNotificationDot}>Show Notification Dot</button>
                 </div>
             </div>
 
