@@ -21,9 +21,9 @@ const webAppManifest: Manifest = {
     dir: "ltr",
     lang: "fr",
 
-    start_url: "/?source=pwa",
+    start_url: "/?utm_source=pwa",
 
-    id: "/?source=pwa",
+    id: "/?utm_source=pwa",
     scope: "/",
     display: "standalone",
 
