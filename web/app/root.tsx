@@ -23,12 +23,33 @@ import { useEffect } from "react"
 import { Toaster } from "./components/ui/toaster"
 import { useToast } from "./hooks/use-toast"
 import { ToastAction } from "./components/ui/toast"
+import Database from "better-sqlite3"
+import { drizzle } from "drizzle-orm/better-sqlite3"
 // import { useEffect } from "react"
+import { sourceTracking as sourceTrackingSchema } from "@/schema/sourceTracking"
 
 export async function loader({
     request
 }: LoaderFunctionArgs) {
     const user = await getUser(request)
+    const url = new URL(request.url)
+
+    const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
+    const db = drizzle(sqlite)
+
+    // Get the utm_source query parameter
+    const utmSource = url.searchParams.get("utm_source")
+
+    if (utmSource) {
+        db
+            .insert(sourceTrackingSchema)
+            .values({
+                source: utmSource,
+                fullUrl: url.href,
+                isLogged: user !== null,
+                type: "utm"
+            })
+    }
 
     return { logged: user !== null }
 }
