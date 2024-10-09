@@ -191,6 +191,17 @@ export function ErrorBoundary() {
     return (
         <div className="flex flex-grow flex-col items-center justify-center gap-4">
             <h1 className="text-center text-3xl font-bold text-red-500">Une erreur est survenue !</h1>
+
+            {error && typeof error === "object" && "message" in error ? (
+                <p>{error.message as string}</p>
+            ) : (
+                <p>Une erreur est survenue lors du chargement de la page.</p>
+            )}
+
+            {error && typeof error === "object" && "status" in error ? (
+                <p>{error.status as string}</p>
+            ) : null}
+
             <Link to="/">
                 <Button type="button" variant="default">
                     Retour à l'accueil
