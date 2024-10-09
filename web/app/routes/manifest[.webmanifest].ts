@@ -21,10 +21,10 @@ const webAppManifest: Manifest = {
     dir: "ltr",
     lang: "fr",
 
-    start_url: "/?utm_source=pwa",
+    start_url: "/?source=pwa",
 
-    id: "/?utm_source=pwa",
-    scope: "/?utm_source=pwa",
+    id: "/?source=pwa",
+    scope: "/?source=pwa",
     display: "standalone",
 
     // @ts-expect-error display_override is not in the WebAppManifest type
@@ -69,7 +69,7 @@ const webAppManifest: Manifest = {
             name: "Investor Helper",
             short_name: "Investor Helper",
             description: "Investor Helper votre assistant pour investir en bourse",
-            url: "/?utm_source=pwa",
+            url: "/?source=pwa",
             icons: [
                 {
                     src: "/logo-192-192.webp",
@@ -84,7 +84,7 @@ const webAppManifest: Manifest = {
             name: "Actualités",
             short_name: "Actualités",
             description: "Les dernières actualités financières",
-            url: "/news?utm_source=pwa",
+            url: "/news?source=pwa",
             icons: [
                 {
                     src: "/logo-192-192.webp",
