@@ -23,7 +23,7 @@ export default function SymbolLogo({
 
     return (
         <img
-            src={`/api/image?name=${source}`}
+            src={`/api/image/symbol?name=${source}`}
             alt={alt || "Icon"}
             className={className}
         />

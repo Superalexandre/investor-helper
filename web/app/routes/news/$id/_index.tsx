@@ -122,7 +122,7 @@ function GetDeepComponent(children: any, relatedSymbols: FullSymbol[], newsId: s
                     width={child.params.image["source-width"]}
                     height={child.params.image["source-height"]}
                     className={cn("mx-auto", className?.image)}
-                    src={`https://s3.tradingview.com/news/image/${child.params.image.id}-resized.jpeg`}
+                    src={`/api/image/news?name=${child.params.image.id}`}
                     alt={child.params.image.alt ?? ""}
                 />
             )
