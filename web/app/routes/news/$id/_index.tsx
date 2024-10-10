@@ -39,6 +39,7 @@ export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
         { name: "description", content: description },
         { name: "og:description", content: description },
         { name: "canonical", content: `https://investor-helper.com/news/${params.id}` },
+        { name: "robots", content: "noindex" },
     ]
 }
 

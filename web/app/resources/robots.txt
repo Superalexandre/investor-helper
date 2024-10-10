@@ -1,6 +1,3 @@
 User-agent: *
-Disallow: /news/
-Disallow: /data/
-Allow: /news$
 
 Sitemap: https://www.investor-helper.com/sitemap.xml
