@@ -1,8 +1,6 @@
 import type { MetaFunction } from "@remix-run/node"
-// import { usePush } from "@remix-pwa/push/client"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-// import { useLoaderData } from "@remix-run/react"
 import { usePWAManager } from "@remix-pwa/client"
 import { MdDownload } from "react-icons/md"
 import { getLastImportantNews } from "@/utils/news"
@@ -109,7 +107,7 @@ export default function Index() {
             <div className="flex max-w-full flex-col items-center gap-2 p-4">
                 <h2 className="text-lg font-bold">Dernières actualités importantes</h2>
 
-                <div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full  scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
+                <div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted  scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
                     {lastNews.length > 0 ? lastNews.map((news) => (
                         <Link to={`/news/${news.news.id}`} key={news.news.id}>
                             <Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal">
@@ -121,7 +119,12 @@ export default function Index() {
                                         {news.news_article.shortDescription}
                                     </p>
 
-                                    <div>
+                                    <div className="text-muted-foreground absolute bottom-0 left-0 p-4">
+                                        {/* <div className="flex flex-row items-center justify-center gap-2">
+                                            <p>Importance</p>
+                                            <ImportanceBadge importance={news.news.importanceScore} />
+                                        </div> */}
+                                        <p>Par {news.news.source}</p>
                                         <DisplayDate date={news.news.published} />
                                     </div>
                                 </CardContent>
@@ -152,7 +155,7 @@ function DisplayDate({ date }: { date: number }) {
     })
 
     return (
-        <p className="text-muted-foreground">
+        <p>
             Il y a {formattedDate}
         </p>
     )

@@ -37,6 +37,8 @@ export const meta: MetaFunction = () => {
 
 export default function Index() {
     const location = useLocation()
+    const pathname = location.pathname
+
     const navigate = useNavigate()
 
     const inputRef = useRef<HTMLInputElement>(null)
@@ -45,13 +47,15 @@ export default function Index() {
     const [resultNews, setResultNews] = useState<News[]>([])
 
     const search = new URLSearchParams(location.search).get("search")
+    let searching = new URLSearchParams(location.search).get("searching")
+
+    if (searching && !["all", "allSymbol", "stocks", "crypto", "news"].includes(searching)) searching = "all"
+
     const [debouncedValue, setValue] = useDebounceValue(search ?? "", 750)
     const [hidden, setHidden] = useState(true)
-    const [searchingIn, setSearchingIn] = useState<SearchType>("all")
+    const [searchingIn, setSearchingIn] = useState<SearchType>(searching as SearchType ?? "all")
 
     const [, setLoading] = useState(false)
-
-    const pathname = location.pathname
 
     const reset = () => {
         // inputRef.current?.value = ""
@@ -85,8 +89,8 @@ export default function Index() {
                 setHidden(false)
             })
 
-        navigate(pathname + "?search=" + debouncedValue)
-
+        // navigate(pathname + "?search=" + debouncedValue)
+        navigate(`${pathname}?search=${debouncedValue}&searching=${searchingIn}`)
     }, [debouncedValue, searchingIn])
 
     return (
@@ -104,6 +108,8 @@ export default function Index() {
 
                         ref={inputRef}
                         required={true}
+
+                        autoFocus={true}
                     />
 
                     {!hidden ? (

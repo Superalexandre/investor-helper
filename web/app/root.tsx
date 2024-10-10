@@ -27,6 +27,10 @@ import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 // import { useEffect } from "react"
 import { sourceTracking as sourceTrackingSchema } from "@/schema/sourceTracking"
+import {
+    QueryClient,
+    QueryClientProvider,
+} from "@tanstack/react-query"
 
 export async function loader({
     request
@@ -119,6 +123,8 @@ export default function App() {
     const { toast } = useToast()
     const navigate = useNavigate()
 
+    const queryClient = new QueryClient()
+
     useNetworkConnectivity({
         onOnline: () => {
             // const id = "network-connectivity"
@@ -153,7 +159,7 @@ export default function App() {
                         title: event.data.title,
                         description: event.data.body,
                         action: (
-                            <ToastAction 
+                            <ToastAction
                                 altText="Ouvrir"
                                 onClick={() => navigate(event.data.url)}
                             >
@@ -165,8 +171,12 @@ export default function App() {
             })
         }
     }, [])
-    
-    return <Outlet />
+
+    return (
+        <QueryClientProvider client={queryClient}>
+            <Outlet />
+        </QueryClientProvider>
+    )
 }
 
 export function ErrorBoundary() {
