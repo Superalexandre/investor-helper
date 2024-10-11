@@ -1,35 +1,25 @@
 {
-    "compilerOptions": {
-        "lib": [
-            "DOM",
-            "DOM.Iterable",
-            "ES2022"
-        ],
-        "target": "ES2022",
-        "module": "ESNext",
-        "moduleResolution": "Node",
-        "strict": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        "resolveJsonModule": true,
-        "incremental": true,
-        "isolatedModules": true,
-        "allowJs": true,
-        "baseUrl": ".",
-        "paths": {
-            "@/countries/*": [
-                "lang/*"
-            ]
-        }
-    },
-    "include": [
-        "db/schema/**/*.ts",
-    ],
-    "exclude": [
-        "./node_modules",
-    ],
-    "ts-node": {
-        "esm": true,
-        "experimentalSpecifierResolution": "node"
-    }
+	"compilerOptions": {
+		"lib": ["DOM", "DOM.Iterable", "ES2022"],
+		"target": "ES2022",
+		"module": "ESNext",
+		"moduleResolution": "Node",
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"resolveJsonModule": true,
+		"incremental": true,
+		"isolatedModules": true,
+		"allowJs": true,
+		"baseUrl": ".",
+		"paths": {
+			"@/countries/*": ["lang/*"]
+		}
+	},
+	"include": ["db/schema/**/*.ts"],
+	"exclude": ["./node_modules"],
+	"ts-node": {
+		"esm": true,
+		"experimentalSpecifierResolution": "node"
+	}
 }

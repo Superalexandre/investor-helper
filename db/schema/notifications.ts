@@ -6,74 +6,68 @@ import { users } from "./users"
 // import { symbols } from "./symbols.js"
 
 export const notification = sqliteTable("notifications", {
-    userId: text("user_id")
-        .references(() => users.id),
-    // id: text("id")
-    //     .primaryKey()
-    //     .unique(),
-    endpoint: text("endpoint")
-        .notNull(),
-    p256dh: text("p256dh")
-        .notNull(),
-    auth: text("auth")
-        .notNull(),
-    createdAt: text("created_at")
-        .notNull()
-        .$defaultFn(() => new Date().toISOString()),
-    updatedAt: text("updated_at")
-        .notNull()
-        .$defaultFn(() => new Date().toISOString()),
-    plateform: text("plateform")
-        .default("web")
-        .notNull(),
+	userId: text("user_id").references(() => users.id),
+	// id: text("id")
+	//     .primaryKey()
+	//     .unique(),
+	endpoint: text("endpoint").notNull(),
+	p256dh: text("p256dh").notNull(),
+	auth: text("auth").notNull(),
+	createdAt: text("created_at")
+		.notNull()
+		.$defaultFn(() => new Date().toISOString()),
+	updatedAt: text("updated_at")
+		.notNull()
+		.$defaultFn(() => new Date().toISOString()),
+	plateform: text("plateform").default("web").notNull()
 
-    // id: text("id")
-    //     .primaryKey()
-    //     .unique()
-    //     .notNull()
-    //     .$defaultFn(() => {
-    //         return uuidv4()
-    //     }),
-    // token: text("token")
-    //     .unique()
-    //     .notNull()
-    //     .$defaultFn(() => {
-    //         return crypto.randomBytes(32).toString("hex")
-    //     }),
-    // username: text("username")
-    //     .notNull()
-    //     .unique(),
-    // displayName: text("display_name"),
-    // avatar: text("avatar"),
-    // firstName: text("first_name")
-    //     .notNull(),
-    // lastName: text("last_name")
-    //     .notNull(),
-    // email: text("email")
-    //     .unique(),
-    // password: text("password")
-    //     .notNull(),
-    // salt: text("salt")
-    //     .notNull(),
-    // createdAt: text("created_at")
-    //     .notNull()
-    //     .$defaultFn(() => new Date().toISOString()),
-    // updatedAt: text("updated_at")
-    //     .$defaultFn(() => new Date().toISOString())
-    //     .notNull(),
+	// id: text("id")
+	//     .primaryKey()
+	//     .unique()
+	//     .notNull()
+	//     .$defaultFn(() => {
+	//         return uuidv4()
+	//     }),
+	// token: text("token")
+	//     .unique()
+	//     .notNull()
+	//     .$defaultFn(() => {
+	//         return crypto.randomBytes(32).toString("hex")
+	//     }),
+	// username: text("username")
+	//     .notNull()
+	//     .unique(),
+	// displayName: text("display_name"),
+	// avatar: text("avatar"),
+	// firstName: text("first_name")
+	//     .notNull(),
+	// lastName: text("last_name")
+	//     .notNull(),
+	// email: text("email")
+	//     .unique(),
+	// password: text("password")
+	//     .notNull(),
+	// salt: text("salt")
+	//     .notNull(),
+	// createdAt: text("created_at")
+	//     .notNull()
+	//     .$defaultFn(() => new Date().toISOString()),
+	// updatedAt: text("updated_at")
+	//     .$defaultFn(() => new Date().toISOString())
+	//     .notNull(),
 })
 
 export type Notifications$ = typeof notification.$inferSelect
 
-export const subscribedNotifications = sqliteTable("subscribed_notifications", {
-    userId: text("user_id").references(() => users.id),
-    createdAt: text("created_at")
-        .notNull()
-        .$defaultFn(() => new Date().toISOString()),
-    updatedAt: text("updated_at")
-        .notNull()
-        .$defaultFn(() => new Date().toISOString()),
-})
+// export const subscribedNotifications = sqliteTable("subscribed_notifications", {
+//     userId: text("user_id").references(() => users.id),
+//     createdAt: text("created_at")
+//         .notNull()
+//         .$defaultFn(() => new Date().toISOString()),
+//     updatedAt: text("updated_at")
+//         .notNull()
+//         .$defaultFn(() => new Date().toISOString()),
+// })
 
 // export const watchList = sqliteTable("watch_list", {
 //     userId: text("user_id").references(() => users.id),

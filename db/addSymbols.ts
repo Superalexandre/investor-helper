@@ -17,52 +17,49 @@ import { walletSymbols as walletSymbolsSchema } from "./schema/users.js"
 
 // Définir les arguments attendus
 const argv = yargs(hideBin(process.argv))
-    .option("uuid", {
-        alias: "u",
-        type: "string",
-        description: "UUID du wallet",
-        demandOption: true, // Rend ce champ obligatoire
-    })
-    .option("names", {
-        alias: "n",
-        type: "array",
-        description: "UUID de l'utilisateur",
-        demandOption: true, // Rend ce champ obligatoire
-    })
-    .help()
-    .alias("help", "h")
-    .argv
+	.option("uuid", {
+		alias: "u",
+		type: "string",
+		description: "UUID du wallet",
+		demandOption: true // Rend ce champ obligatoire
+	})
+	.option("names", {
+		alias: "n",
+		type: "array",
+		description: "UUID de l'utilisateur",
+		demandOption: true // Rend ce champ obligatoire
+	})
+	.help()
+	.alias("help", "h").argv
 
 async function addSymbols() {
-    const { uuid, names } = await argv
+	const { uuid, names } = await argv
 
-    const sqlite = new Database("./db/sqlite.db")
-    const db = drizzle(sqlite)
+	const sqlite = new Database("./db/sqlite.db")
+	const db = drizzle(sqlite)
 
-    for (const name of names) {
-        console.log(name)
+	for (const name of names) {
+		console.log(name)
 
-        await db
-            .insert(walletSymbolsSchema)
-            .values({
-                walletId: uuid,
-                symbol: name as string,
-                quantity: 0,
-                currency: "USD",
-            })
-    }
+		await db.insert(walletSymbolsSchema).values({
+			walletId: uuid,
+			symbol: name as string,
+			quantity: 0,
+			currency: "USD"
+		})
+	}
 
-    // const wallet = await db
-    //     .insert(walletSchema)
-    //     .values({
-    //         userId: uuid,
-    //         name: "Portefeuille"
-    //     })
-    //     .returning({
-    //         walletId: walletSchema.walletId,
-    //     })
+	// const wallet = await db
+	//     .insert(walletSchema)
+	//     .values({
+	//         userId: uuid,
+	//         name: "Portefeuille"
+	//     })
+	//     .returning({
+	//         walletId: walletSchema.walletId,
+	//     })
 
-    console.log("Wallet created")
+	console.log("Wallet created")
 }
 
 addSymbols()

@@ -4,217 +4,224 @@ import { useEffect, useRef, useState } from "react"
 import { useDebounceValue } from "usehooks-ts"
 import { cn } from "@/lib/utils"
 import { normalizeSymbol, normalizeSymbolHtml } from "@/utils/normalizeSymbol"
-import { News } from "@/schema/news"
+import type { News } from "@/schema/news"
 import { Link, useLocation, useNavigate } from "@remix-run/react"
 import { MdClose } from "react-icons/md"
-import { MetaFunction } from "@remix-run/node"
+import type { MetaFunction } from "@remix-run/node"
 
 interface SelectSymbolType {
-    symbol: string
-    description: string
-    exchange: string
-    logoid: string
-    price: number
-    quantity: number
-    currency_code: string
-    prefix?: string
+	symbol: string
+	description: string
+	exchange: string
+	logoid: string
+	price: number
+	quantity: number
+	// biome-ignore lint/style/useNamingConvention: API response
+	currency_code: string
+	prefix?: string
 }
 
 type SearchType = "all" | "allSymbol" | "stocks" | "crypto" | "news"
 
 export const meta: MetaFunction = () => {
-    const title = "Investor Helper - Rechercher"
-    const description = "Recherchez un symbole, une action, une crypto, une news sur Investor Helper. Trouvez rapidement les informations dont vous avez besoin pour vos investissements et vos analyses financières."
+	const title = "Investor Helper - Rechercher"
+	const description =
+		"Recherchez un symbole, une action, une crypto, une news sur Investor Helper. Trouvez rapidement les informations dont vous avez besoin pour vos investissements et vos analyses financières."
 
-    return [
-        { title: title },
-        { name: "og:title", content: title },
-        { name: "description", content: description },
-        { name: "og:description", content: description },
-        { name: "canonical", content: "https://investor-helper.com/search" },
-    ]
+	return [
+		{ title: title },
+		{ name: "og:title", content: title },
+		{ name: "description", content: description },
+		{ name: "og:description", content: description },
+		{ name: "canonical", content: "https://investor-helper.com/search" }
+	]
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: TODO: Refactor this component
 export default function Index() {
-    const location = useLocation()
-    const pathname = location.pathname
+	const location = useLocation()
+	const pathname = location.pathname
 
-    const navigate = useNavigate()
+	const navigate = useNavigate()
 
-    const inputRef = useRef<HTMLInputElement>(null)
+	const inputRef = useRef<HTMLInputElement>(null)
 
-    const [resultSymbols, setResultSymbols] = useState<SelectSymbolType[]>([])
-    const [resultNews, setResultNews] = useState<News[]>([])
+	const [resultSymbols, setResultSymbols] = useState<SelectSymbolType[]>([])
+	const [resultNews, setResultNews] = useState<News[]>([])
 
-    const search = new URLSearchParams(location.search).get("search")
-    let searching = new URLSearchParams(location.search).get("searching")
+	const search = new URLSearchParams(location.search).get("search")
+	let searching = new URLSearchParams(location.search).get("searching")
 
-    if (searching && !["all", "allSymbol", "stocks", "crypto", "news"].includes(searching)) searching = "all"
+	if (searching && !["all", "allSymbol", "stocks", "crypto", "news"].includes(searching)) {
+		searching = "all"
+	}
 
-    const [debouncedValue, setValue] = useDebounceValue(search ?? "", 750)
-    const [hidden, setHidden] = useState(true)
-    const [searchingIn, setSearchingIn] = useState<SearchType>(searching as SearchType ?? "all")
+	const [debouncedValue, setValue] = useDebounceValue(search ?? "", 750)
+	const [hidden, setHidden] = useState(true)
+	const [searchingIn, setSearchingIn] = useState<SearchType>((searching as SearchType) ?? "all")
 
-    const [, setLoading] = useState(false)
+	const [, setLoading] = useState(false)
 
-    const reset = () => {
-        // inputRef.current?.value = ""
-        if (inputRef.current) inputRef.current.value = ""
+	const reset = () => {
+		// inputRef.current?.value = ""
+		if (inputRef.current) {
+			inputRef.current.value = ""
+		}
 
-        setValue("")
-        setResultSymbols([])
-        setResultNews([])
-        setHidden(true)
+		setValue("")
+		setResultSymbols([])
+		setResultNews([])
+		setHidden(true)
 
-        navigate(pathname)
-    }
+		navigate(pathname)
+	}
 
-    useEffect(() => {
-        if (!debouncedValue) {
-            reset()
+	// biome-ignore lint/correctness/useExhaustiveDependencies: reset should not be in the dependencies
+	useEffect(() => {
+		if (!debouncedValue) {
+			reset()
 
-            return
-        }
+			return
+		}
 
-        setLoading(true)
+		setLoading(true)
 
+		fetch(`/api/search?search=${debouncedValue}&searching=${searchingIn}`)
+			.then((response) => response.json())
+			.then((data) => {
+				setResultSymbols(data.symbols as SelectSymbolType[])
+				setResultNews(data.news as News[])
 
-        fetch(`/api/search?search=${debouncedValue}&searching=${searchingIn}`)
-            .then(response => response.json())
-            .then(data => {
-                setResultSymbols(data.symbols as SelectSymbolType[])
-                setResultNews(data.news as News[])
+				setLoading(false)
+				setHidden(false)
+			})
 
-                setLoading(false)
-                setHidden(false)
-            })
+		// navigate(pathname + "?search=" + debouncedValue)
+		navigate(`${pathname}?search=${debouncedValue}&searching=${searchingIn}`)
+	}, [debouncedValue, searchingIn])
 
-        // navigate(pathname + "?search=" + debouncedValue)
-        navigate(`${pathname}?search=${debouncedValue}&searching=${searchingIn}`)
-    }, [debouncedValue, searchingIn])
+	return (
+		<div className="flex flex-col items-center justify-center p-4">
+			<div className="relative w-full">
+				<div>
+					<Input
+						className="w-full"
+						name="symbol"
+						type="text"
+						placeholder="Rechercher un symbole, une action, une crypto, une news..."
+						onChange={(event) => setValue(event.target.value)}
+						defaultValue={search ?? ""}
+						ref={inputRef}
+						required={true}
+						autoFocus={true}
+					/>
 
-    return (
-        <div className="flex flex-col items-center justify-center p-4">
-            <div className="relative w-full">
-                <div>
-                    <Input
-                        className="w-full"
-                        name="symbol"
-                        type="text"
-                        placeholder="Rechercher un symbole, une action, une crypto, une news..."
+					{hidden ? null : (
+						<Button variant="ghost" onClick={reset} className="absolute top-0 right-0">
+							<MdClose className="size-6" />
+						</Button>
+					)}
+				</div>
 
-                        onChange={event => setValue(event.target.value)}
-                        defaultValue={search ?? ""}
+				{hidden ? null : (
+					<div className="absolute top-full left-0 z-10 mt-1 flex w-full flex-col gap-1 overflow-x-hidden">
+						<div className="flex flex-row items-center gap-1 overflow-x-auto">
+							<Button
+								variant={searchingIn === "all" ? "default" : "outline"}
+								onClick={() => setSearchingIn("all")}
+							>
+								Tout
+							</Button>
 
-                        ref={inputRef}
-                        required={true}
+							<Button
+								variant={searchingIn === "news" ? "default" : "outline"}
+								onClick={() => setSearchingIn("news")}
+							>
+								News
+							</Button>
 
-                        autoFocus={true}
-                    />
+							<Button
+								variant={searchingIn === "allSymbol" ? "default" : "outline"}
+								onClick={() => setSearchingIn("allSymbol")}
+							>
+								Tous les symboles
+							</Button>
 
-                    {!hidden ? (
-                        <Button
-                            variant="ghost"
-                            onClick={reset}
-                            className="absolute right-0 top-0"
-                        >
-                            <MdClose className="size-6" />
-                        </Button>
-                    ) : null}
-                </div>
+							<Button
+								variant={searchingIn === "stocks" ? "default" : "outline"}
+								onClick={() => setSearchingIn("stocks")}
+							>
+								Actions
+							</Button>
 
-                {!hidden ? (
-                    <div className="absolute left-0 top-full z-10 mt-1 flex w-full flex-col gap-1 overflow-x-hidden">
-                        <div className="flex flex-row items-center gap-1 overflow-x-auto">
-                            <Button
-                                variant={searchingIn === "all" ? "default" : "outline"}
-                                onClick={() => setSearchingIn("all")}
-                            >
-                                Tout
-                            </Button>
+							<Button
+								variant={searchingIn === "crypto" ? "default" : "outline"}
+								onClick={() => setSearchingIn("crypto")}
+							>
+								Crypto
+							</Button>
+						</div>
 
-                            <Button
-                                variant={searchingIn === "news" ? "default" : "outline"}
-                                onClick={() => setSearchingIn("news")}
-                            >
-                                News
-                            </Button>
+						<div className={cn(hidden ? "hidden" : "block")}>
+							{resultNews.length > 0
+								? resultNews.map((news) => (
+										<Link
+											to={`/news/${news.id}`}
+											state={{
+												redirect: pathname,
+												search: `?search=${debouncedValue}`
+											}}
+											key={news.id}
+										>
+											<Button
+												variant="outline"
+												key={news.id}
+												className="flex w-full flex-row items-center justify-between border-none p-2"
+											>
+												<p>{news.title}</p>
+											</Button>
+										</Link>
+									))
+								: null}
 
-                            <Button
-                                variant={searchingIn === "allSymbol" ? "default" : "outline"}
-                                onClick={() => setSearchingIn("allSymbol")}
-                            >
-                                Tous les symboles
-                            </Button>
+							{resultSymbols.length > 0
+								? resultSymbols.map((symbol, i) => {
+										const prefix = symbol.prefix?.toUpperCase() ?? symbol.exchange.toUpperCase()
+										const normalizedSymbol = normalizeSymbolHtml(symbol.symbol)
 
-                            <Button
-                                variant={searchingIn === "stocks" ? "default" : "outline"}
-                                onClick={() => setSearchingIn("stocks")}
-                            >
-                                Actions
-                            </Button>
+										const fullUrl = normalizeSymbol(`${prefix}:${normalizedSymbol}`)
 
-                            <Button
-                                variant={searchingIn === "crypto" ? "default" : "outline"}
-                                onClick={() => setSearchingIn("crypto")}
-                            >
-                                Crypto
-                            </Button>
-                        </div>
+										return (
+											<Link
+												to={`/data/${fullUrl}`}
+												state={{
+													redirect: pathname,
+													search: `?search=${debouncedValue}`
+												}}
+												key={`${normalizeSymbolHtml(symbol.symbol)}-${i}`}
+											>
+												<Button
+													variant="outline"
+													key={`${normalizeSymbolHtml(symbol.symbol)}-${i}`}
+													className="flex w-full flex-row items-center justify-between border-none p-2"
+												>
+													<p>
+														{normalizeSymbolHtml(symbol.description)} (
+														{normalizeSymbolHtml(symbol.symbol)})
+													</p>
 
-                        <div className={cn(hidden ? "hidden" : "block")}>
-                            {resultNews.length > 0 ? resultNews.map((news) => (
-                                <Link
-                                    to={`/news/${news.id}`}
-                                    state={{
-                                        redirect: pathname,
-                                        search: "?search=" + debouncedValue,
-                                    }}
-                                    key={news.id}
-                                >
-                                    <Button
-                                        variant="outline"
-                                        key={news.id}
-                                        className="flex w-full flex-row items-center justify-between border-none p-2"
-                                    >
-                                        <p>{news.title}</p>
-                                    </Button>
-                                </Link>
-                            )) : null}
-
-                            {resultSymbols.length > 0 ? resultSymbols.map((symbol, i) => {
-                                const prefix = symbol["prefix"]?.toUpperCase() ?? symbol.exchange.toUpperCase()
-                                const normalizedSymbol = normalizeSymbolHtml(symbol.symbol)
-
-                                const fullUrl = normalizeSymbol(`${prefix}:${normalizedSymbol}`)
-
-                                return (
-                                    <Link
-                                        to={`/data/${fullUrl}`}
-                                        state={{
-                                            redirect: pathname,
-                                            search: "?search=" + debouncedValue,
-                                        }}
-                                        key={normalizeSymbolHtml(symbol.symbol) + "-" + i}
-                                    >
-                                        <Button
-                                            variant="outline"
-                                            key={normalizeSymbolHtml(symbol.symbol) + "-" + i}
-                                            className="flex w-full flex-row items-center justify-between border-none p-2"
-                                        >
-                                            <p>{normalizeSymbolHtml(symbol.description)} ({normalizeSymbolHtml(symbol.symbol)})</p>
-
-                                            <p>{symbol.exchange}</p>
-                                        </Button>
-                                    </Link>
-                                )
-                            }) : null}
-                        </div>
-                    </div>
-                ) : null}
-            </div>
-        </div>
-    )
+													<p>{symbol.exchange}</p>
+												</Button>
+											</Link>
+										)
+									})
+								: null}
+						</div>
+					</div>
+				)}
+			</div>
+		</div>
+	)
 }
 
 export type { SelectSymbolType }

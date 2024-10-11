@@ -6,12 +6,15 @@ import { saveFetchEvents } from "./utils/events.js"
 // import { sendMail } from "./utils/newsLetter.js"
 
 function startServer() {
-    serve({
-        fetch: app.fetch,
-        port: 3000
-    }, (info) => {
-        console.log(`Server listening on port ${info.port}`)
-    })
+	serve(
+		{
+			fetch: app.fetch,
+			port: 3000
+		},
+		(info) => {
+			console.log(`Server listening on port ${info.port}`)
+		}
+	)
 }
 
 // function sendNotification() {
@@ -31,27 +34,27 @@ function startServer() {
 // }
 
 function main() {
-    startServer()
+	startServer()
 
-    CronJob.from({
-        cronTime: "*/5 * * * *",
-        onTick: function () {
-            saveFetchNews()
-            saveFetchEvents()
-        },
-        start: true,
-        timeZone: "Europe/Paris"
-    })
+	CronJob.from({
+		cronTime: "*/5 * * * *",
+		onTick: () => {
+			saveFetchNews()
+			saveFetchEvents()
+		},
+		start: true,
+		timeZone: "Europe/Paris"
+	})
 
-    // sendMail()
+	// sendMail()
 }
 
 try {
-    main()
+	main()
 } catch (err) {
-    console.error("Error starting server", err)
+	console.error("Error starting server", err)
 }
 
 process.on("uncaughtException", (err) => {
-    console.error("Erreur non capturée :", err)
+	console.error("Erreur non capturée :", err)
 })

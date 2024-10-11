@@ -9,25 +9,25 @@ import { remixPWA } from "@remix-pwa/dev"
 const isProduction = process.env.NODE_ENV === "production"
 
 const _plugins = [
-    isProduction && react(),
-    // react(),
-    remix({
-        routes: defineRoutes => {
-            return flatRoutes("routes", defineRoutes)
-        },
-        //   tailwind: true,
-        //   postcss: true,
-        future: {
-            // eslint-disable-next-line camelcase
-            v3_fetcherPersist: true,
-            // eslint-disable-next-line camelcase
-            v3_relativeSplatPath: true,
-            // eslint-disable-next-line camelcase
-            v3_throwAbortReason: true
-        }
-    }), 
-    remixPWA(), 
-    tsconfigPaths()
+	isProduction && react(),
+	// react(),
+	remix({
+		routes: (defineRoutes) => {
+			return flatRoutes("routes", defineRoutes)
+		},
+		//   tailwind: true,
+		//   postcss: true,
+		future: {
+			// biome-ignore lint/style/useNamingConvention: This is a valid option.
+			v3_fetcherPersist: true,
+			// biome-ignore lint/style/useNamingConvention: This is a valid option.
+			v3_relativeSplatPath: true,
+			// biome-ignore lint/style/useNamingConvention: This is a valid option.
+			v3_throwAbortReason: true
+		}
+	}),
+	remixPWA(),
+	tsconfigPaths()
 ]
 
 // if (!isProduction) _plugins.push(MillionLint.vite({
@@ -38,11 +38,11 @@ const _plugins = [
 // }))
 
 export default defineConfig({
-    server: {
-        port: 4000
-    },
-    ssr: {
-        noExternal: ["react-charts", "remix-utils"]
-    },
-    plugins: _plugins
+	server: {
+		port: 4000
+	},
+	ssr: {
+		noExternal: ["react-charts", "remix-utils"]
+	},
+	plugins: _plugins
 })

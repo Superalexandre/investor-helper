@@ -8,176 +8,267 @@ import { countries as countriesFr } from "../../lang/countries-fr.js"
 const calendarHono = new Hono()
 
 interface EconomicEvent {
-    id: number,
-    start: Date,
-    end: Date,
-    originalTitle: string,
-    summary: string,
-    description: string,
-    location: string,
-    url: string,
-    importance: number,
-    numberOfEvents: number
+	id: number
+	start: Date
+	end: Date
+	originalTitle: string
+	summary: string
+	description: string
+	location: string
+	url: string
+	importance: number
+	numberOfEvents: number
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: TODO: Refactor
 calendarHono.get("/", async (req) => {
-    const events = await getEvents()
-    if (!events || events.error) return req.json(events)
+	const events = await getEvents()
+	if (!events || events.error) {
+		return req.json(events)
+	}
 
-    const filename = "calendar.ics"
-    const calendar = ical({
-        name: "Economic Calendar"
-    })
+	const filename = "calendar.ics"
+	const calendar = ical({
+		name: "Economic Calendar"
+	})
 
-    // Convert the importance of the event (-1, 0, 1) to a string
-    type Importance = -1 | 0 | 1;
-    const importanceMap: Record<Importance, string> = {
-        [-1]: "low",
-        0: "medium",
-        1: "high"
-    }
+	// Convert the importance of the event (-1, 0, 1) to a string
+	type Importance = -1 | 0 | 1
+	const importanceMap: Record<Importance, string> = {
+		[-1]: "low",
+		0: "medium",
+		1: "high"
+	}
 
-    const stars: Record<string, string> = {
-        "low": "⁎",
-        "medium": "⁑",
-        "high": "⁂"
-    }
+	const stars: Record<string, string> = {
+		low: "⁎",
+		medium: "⁑",
+		high: "⁂"
+	}
 
-    const frenchImportance: Record<string, string> = {
-        "low": "Faible",
-        "medium": "Moyen",
-        "high": "Élevé"
-    }
+	const frenchImportance: Record<string, string> = {
+		low: "Faible",
+		medium: "Moyen",
+		high: "Élevé"
+	}
 
+	const filters = config.calendarPreferences.filters
 
-    const filters = config.calendarPreferences.filters
+	const eventsList: EconomicEvent[] = []
 
-    const eventsList: EconomicEvent[] = []
+	for (const event of events) {
+		const {
+			id,
+			title,
+			country,
+			indicator,
+			comment,
+			period,
+			referenceDate,
+			source,
+			source_url: sourceUrl,
+			actual,
+			previous,
+			forecast,
+			currency,
+			importance,
+			date,
+			unit,
+			scale
+		} = event
 
-    for (const event of events) {
-        const { id, title, country, indicator, comment, period, referenceDate, source, source_url: sourceUrl, actual, previous, forecast, currency, importance, date, unit, scale } = event
+		const importanceString = importanceMap[importance as Importance] || "medium"
 
-        const importanceString = importanceMap[importance as Importance] || "medium"
+		// Check if the importance of the event is in the preferences
+		const filter = filters.find((filterFind) => {
+			const countryFilter = filterFind.country.includes(country)
+			const importanceFilter = filterFind.importance.includes(importanceString)
 
-        // Check if the importance of the event is in the preferences
-        const filter = filters.find(filterFind => filterFind.country.includes(country) && filterFind.importance.includes(importanceString))
-        if (!filter) continue
+			return countryFilter && importanceFilter
+		})
 
-        const eventTitle = `${stars[importanceString] || ""} ${country} ${title}`
+		if (!filter) {
+			continue
+		}
 
-        let description = `${eventTitle}\nImportance: ${frenchImportance[importanceString]}\n\n`
+		const eventTitle = `${stars[importanceString] || ""} ${country} ${title}`
 
-        if (country) description += `Pays: ${countriesFr[country] || country}\n`
-        if (currency) description += `Monnaie: ${currency}\n\n`
-        if (actual) description += `Actuel: ${actual}${unit ?? ""}${scale ?? ""}\n`
-        if (previous) description += `Avant: ${previous}${unit ?? ""}${scale ?? ""}\n`
-        if (forecast) description += `Prévisions: ${forecast}${unit ?? ""}${scale ?? ""}\n`
-        if (indicator) description += `Indicateur: ${indicator}\n`
-        if (comment) description += `\nCommentaire: ${comment}\n`
-        if (period) description += `\nPériode: ${period}\n`
-        if (referenceDate) description += `Date de reference: ${referenceDate}\n`
-        if (source) description += `\nSource: ${source}\n`
-        if (sourceUrl) description += `Source URL: ${sourceUrl}\n`
+		let description = `${eventTitle}\nImportance: ${frenchImportance[importanceString]}\n\n`
 
-        const startDate = new Date(date)
-        const endDate = new Date(date)
-        endDate.setHours(endDate.getHours() + 1)
+		if (country) {
+			description += `Pays: ${countriesFr[country] || country}\n`
+		}
+		if (currency) {
+			description += `Monnaie: ${currency}\n\n`
+		}
+		if (actual) {
+			description += `Actuel: ${actual}${unit ?? ""}${scale ?? ""}\n`
+		}
+		if (previous) {
+			description += `Avant: ${previous}${unit ?? ""}${scale ?? ""}\n`
+		}
+		if (forecast) {
+			description += `Prévisions: ${forecast}${unit ?? ""}${scale ?? ""}\n`
+		}
+		if (indicator) {
+			description += `Indicateur: ${indicator}\n`
+		}
+		if (comment) {
+			description += `\nCommentaire: ${comment}\n`
+		}
+		if (period) {
+			description += `\nPériode: ${period}\n`
+		}
+		if (referenceDate) {
+			description += `Date de reference: ${referenceDate}\n`
+		}
+		if (source) {
+			description += `\nSource: ${source}\n`
+		}
+		if (sourceUrl) {
+			description += `Source URL: ${sourceUrl}\n`
+		}
 
-        const eventExists = eventsList.find(eventFind => {
-            const similarity = stringComparison.levenshtein.similarity(eventFind.originalTitle, eventTitle)
-            
-            return similarity > 0.6 && new Date(eventFind.start).getTime() === startDate.getTime() && eventFind.location === country
-        })
-        if (eventExists) {
-            eventExists.numberOfEvents++
+		const startDate = new Date(date)
+		const endDate = new Date(date)
+		endDate.setHours(endDate.getHours() + 1)
 
-            // Keep the most important event in the summary
-            let strongestImportance = importance
-            if (importance < eventExists.importance) strongestImportance = eventExists.importance 
-            
-            const strongestImportanceString = importanceMap[strongestImportance as Importance] || "medium"
+		const eventExists = eventsList.find((eventFind) => {
+			const similarity = stringComparison.levenshtein.similarity(eventFind.originalTitle, eventTitle)
 
+			return (
+				similarity > 0.6 &&
+				new Date(eventFind.start).getTime() === startDate.getTime() &&
+				eventFind.location === country
+			)
+		})
+		if (eventExists) {
+			eventExists.numberOfEvents++
 
-            eventExists.summary = `${stars[strongestImportanceString] || ""} ${country} ${eventExists.numberOfEvents} événements`
-            eventExists.description += `\n------------------------------------\n${description}`
+			// Keep the most important event in the summary
+			let strongestImportance = importance
+			if (importance < eventExists.importance) {
+				strongestImportance = eventExists.importance
+			}
 
-            continue
-        }
+			const strongestImportanceString = importanceMap[strongestImportance as Importance] || "medium"
 
-        eventsList.push({
-            id,
-            start: startDate,
-            end: endDate,
-            originalTitle: eventTitle,
-            summary: eventTitle,
-            description,
-            location: country,
-            url: sourceUrl,
-            importance,
-            numberOfEvents: 1
-        })
+			eventExists.summary = `${stars[strongestImportanceString] || ""} ${country} ${eventExists.numberOfEvents} événements`
+			eventExists.description += `\n------------------------------------\n${description}`
 
-        // calendar.createEvent({
-        //     id,
-        //     start: startDate,
-        //     end: endDate,
-        //     summary: eventTitle,
-        //     description,
-        //     location: country,
-        //     url: sourceUrl
-        // })
-    }
+			continue
+		}
 
-    for (const event of eventsList) {
-        calendar.createEvent(event)
-    }
+		eventsList.push({
+			id,
+			start: startDate,
+			end: endDate,
+			originalTitle: eventTitle,
+			summary: eventTitle,
+			description,
+			location: country,
+			url: sourceUrl,
+			importance,
+			numberOfEvents: 1
+		})
 
-    req.header("Content-Type", "text/calendar")
-    req.header("Content-Disposition", `attachment; filename=${filename}`)
+		// calendar.createEvent({
+		//     id,
+		//     start: startDate,
+		//     end: endDate,
+		//     summary: eventTitle,
+		//     description,
+		//     location: country,
+		//     url: sourceUrl
+		// })
+	}
 
-    return req.text(calendar.toString())
+	for (const event of eventsList) {
+		calendar.createEvent(event)
+	}
+
+	req.header("Content-Type", "text/calendar")
+	req.header("Content-Disposition", `attachment; filename=${filename}`)
+
+	return req.text(calendar.toString())
 })
 
 async function getEvents() {
-    const url = new URL(config.url.events)
+	const url = new URL(config.url.events)
 
-    const now = new Date()
+	const now = new Date()
 
-    const from = formatISO(startOfWeek(now, { weekStartsOn: 0 }))
+	const from = formatISO(startOfWeek(now, { weekStartsOn: 0 }))
 
-    const dayToAdd = config.calendarPreferences.numberOfDays
-    const to = formatISO(addDays(new Date(from), dayToAdd))
+	const dayToAdd = config.calendarPreferences.numberOfDays
+	const to = formatISO(addDays(new Date(from), dayToAdd))
 
-    const countries = ["AR", "AU", "BR", "CA", "CN", "FR", "DE", "IN", "ID", "IT", "JP", "KR", "MX", "RU", "SA", "ZA", "TR", "GB", "US", "EU"]
+	const countries = [
+		"AR",
+		"AU",
+		"BR",
+		"CA",
+		"CN",
+		"FR",
+		"DE",
+		"IN",
+		"ID",
+		"IT",
+		"JP",
+		"KR",
+		"MX",
+		"RU",
+		"SA",
+		"ZA",
+		"TR",
+		"GB",
+		"US",
+		"EU"
+	]
 
-    url.searchParams.append("from", from)
-    url.searchParams.append("to", to)
-    url.searchParams.append("countries", countries.join(","))
+	url.searchParams.append("from", from)
+	url.searchParams.append("to", to)
+	url.searchParams.append("countries", countries.join(","))
 
-    try {
-        const response = await fetch(url, {
-            headers: {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
-                "Accept": "application/json, text/javascript, */*; q=0.01",
-                "Accept-Language": "en-US,en;q=0.9",
-                "Connection": "keep-alive",
+	try {
+		const response = await fetch(url, {
+			headers: {
+				"User-Agent":
+					// biome-ignore lint/nursery/noSecrets: No secrets
+					"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
+				// biome-ignore lint/style/useNamingConvention: Headers
+				Accept: "application/json, text/javascript, */*; q=0.01",
+				"Accept-Language": "en-US,en;q=0.9",
+				// biome-ignore lint/style/useNamingConvention: Headers
+				Connection: "keep-alive",
 
-                "Referer": config.url.eventsOrigin,
-                "Origin": config.url.eventsOrigin
-            }
-        })
+				// biome-ignore lint/style/useNamingConvention: Headers
+				Referer: config.url.eventsOrigin,
+				// biome-ignore lint/style/useNamingConvention: Headers
+				Origin: config.url.eventsOrigin
+			}
+		})
 
-        if (!response.ok) return { success: false, error: true, message: "Error fetching agenda (trading view error)", status: response.status }
+		if (!response.ok) {
+			return {
+				success: false,
+				error: true,
+				message: "Error fetching agenda (trading view error)",
+				status: response.status
+			}
+		}
 
-        const json = await response.json()
-        const events = json.result
+		const json = await response.json()
+		const events = json.result
 
-        if (!events || events.length === 0) return { success: false, error: true, message: "No events found" }
+		if (!events || events.length === 0) {
+			return { success: false, error: true, message: "No events found" }
+		}
 
-        return events
-    } catch (error) {
-        return { message: "Error fetching agenda (can't fetch)", error }
-    }
+		return events
+	} catch (error) {
+		return { message: "Error fetching agenda (can't fetch)", error }
+	}
 }
 
 export default calendarHono

@@ -1,0 +1,110 @@
+{
+	"$schema": "https://biomejs.dev/schemas/1.9.3/schema.json",
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"useIgnoreFile": true,
+		"defaultBranch": "main"
+	},
+	"files": {
+		"ignoreUnknown": false,
+		"ignore": [
+			"node_modules",
+			"db/migrations",
+			
+			"extension/src/layouts/Layout.astro",
+			"extension/.astro",
+			"extension/dist",
+
+			"tailwind.config.*",
+
+
+			"web/app/components/ui",
+			"web/app/hooks",
+			
+			"web/app/routes/manifest[.webmanifest].ts",
+			"web/app/routes/[robots.txt].ts",
+			"web/app/routes/[sitemap.xml].ts",
+			
+			"extension/src/components/ui",
+
+			"lang"
+		]
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab",
+		"indentWidth": 4,
+		"bracketSpacing": true
+	},
+	"organizeImports": {
+		"enabled": false
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"a11y": {
+				"all": true
+			},
+			"complexity": {
+				"all": true
+			},
+			"correctness": {
+				"all": true,
+				"noUndeclaredDependencies": "off",
+				"useImportExtensions": "off",
+				"noNodejsModules": "off"
+			},
+			"nursery": {
+				"all": true,
+				"useComponentExportOnlyModules": "off",
+				"useExplicitFunctionReturnType": "off",
+				"useImportRestrictions": "off",
+				"noProcessEnv": "off"
+			},
+			"performance": {
+				"all": true
+			},
+			"security": {
+				"all": true
+			},
+			"style": {
+				"all": true,
+				"noDefaultExport": "off"
+			},
+			"suspicious": {
+				"all": true,
+				"noConsole": "off",
+				"noConsoleLog": "off",
+				"noReactSpecificProps": "off"
+			}
+		}
+	},
+	"javascript": {
+		"globals": ["browser", "node"],
+		"formatter": {
+			"quoteStyle": "double",
+			"semicolons": "asNeeded",
+			"indentWidth": 4,
+			"indentStyle": "tab",
+			"jsxQuoteStyle": "double",
+			"trailingCommas": "none",
+			"lineWidth": 120
+		},
+		"linter": {
+			"enabled": true
+		},
+		"jsxRuntime": "reactClassic"
+	},
+	"json": {
+		"formatter": {
+			"enabled": false,
+			"trailingCommas": "none",
+			"indentWidth": 4
+		},
+		"linter": {
+			"enabled": true
+		}
+	}
+}

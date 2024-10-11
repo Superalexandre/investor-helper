@@ -1,67 +1,75 @@
 import { searchNews } from "@/utils/news"
-import { json, LoaderFunction, LoaderFunctionArgs } from "@remix-run/node"
+import { json, type LoaderFunction, type LoaderFunctionArgs } from "@remix-run/node"
 
-export async function searchSymbol(search: string, searching: string = "undefined") {
-    const url = new URL("https://symbol-search.tradingview.com/symbol_search/v3/")
-    
-    url.searchParams.set("text", search)
-    url.searchParams.set("hl", "1")
-    url.searchParams.set("lang", "fr")
-    url.searchParams.set("search_type", searching)
-    url.searchParams.set("domain", "production")
-    url.searchParams.set("sort_by_country", "FR")
+export async function searchSymbol(search: string, searching = "undefined") {
+	const url = new URL(
+		// biome-ignore lint/nursery/noSecrets: URL
+		"https://symbol-search.tradingview.com/symbol_search/v3/"
+	)
 
-    const res = await fetch(url, {
-        headers: {
-            "accept": "application/json",
-            "accept-language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
-            "content-type": "application/json",
+	url.searchParams.set("text", search)
+	url.searchParams.set("hl", "1")
+	url.searchParams.set("lang", "fr")
+	url.searchParams.set("search_type", searching)
+	url.searchParams.set("domain", "production")
+	url.searchParams.set("sort_by_country", "FR")
 
-            "origin": "https://www.tradingview.com",
-            "referer": "https://www.tradingview.com/",
-        }
-    })
+	const res = await fetch(url, {
+		headers: {
+			accept: "application/json",
+			"accept-language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
+			"content-type": "application/json",
 
-    const symbols = await res.json()
+			origin: "https://www.tradingview.com",
+			referer: "https://www.tradingview.com/"
+		}
+	})
 
-    return symbols
+	const symbols = await res.json()
+
+	return symbols
 }
 
 export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) => {
-    const url = new URL(request.url)
-    
-    const search = url.searchParams.get("search")
-    const searching = url.searchParams.get("searching")
+	const url = new URL(request.url)
 
-    if (!search) {
-        return json({ error: "Missing search parameter" }, {
-            status: 400
-        })
-    }
+	const search = url.searchParams.get("search")
+	const searching = url.searchParams.get("searching")
 
-    const symbolsResult = []
-    const newsResult = []
+	if (!search) {
+		return json(
+			{ error: "Missing search parameter" },
+			{
+				status: 400
+			}
+		)
+	}
 
-    if (searching && ["allSymbol", "stocks", "crypto"].includes(searching)) {
-        const symbols = await searchSymbol(search, searching === "allSymbol" ? "undefined" : searching)
+	// biome-ignore lint/suspicious/noEvolvingTypes: TODO: type this
+	const symbolsResult = []
+	// biome-ignore lint/suspicious/noEvolvingTypes: TODO: type this
+	const newsResult = []
 
-        symbolsResult.push(...symbols.symbols)
-    } else if (searching && ["news"].includes(searching)) {
-        const news = await searchNews(search)
+	if (searching && ["allSymbol", "stocks", "crypto"].includes(searching)) {
+		const symbols = await searchSymbol(search, searching === "allSymbol" ? "undefined" : searching)
 
-        newsResult.push(...news)
-    } else if (searching && ["all"].includes(searching)) {
-        const symbols = await searchSymbol(search, "undefined")
-        const news = await searchNews(search)
+		symbolsResult.push(...symbols.symbols)
+	} else if (searching && ["news"].includes(searching)) {
+		const news = await searchNews(search)
 
-        newsResult.push(...news)
-        symbolsResult.push(...symbols.symbols)
-    } else {
-        console.error("Unknown searching parameter", searching)
-    }
+		newsResult.push(...news)
+	} else if (searching && ["all"].includes(searching)) {
+		const symbols = await searchSymbol(search, "undefined")
+		const news = await searchNews(search)
 
-    return json({
-        symbols: symbolsResult,
-        news: newsResult
-    })
+		newsResult.push(...news)
+		symbolsResult.push(...symbols.symbols)
+	} else {
+		console.error("Unknown searching parameter", searching)
+	}
+
+	return json({
+		symbols: symbolsResult,
+		news: newsResult
+	})
 }
