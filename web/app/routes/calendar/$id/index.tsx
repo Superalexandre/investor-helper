@@ -123,15 +123,15 @@ export default function Index() {
 							<h2 className="font-bold text-xl">Chiffres</h2>
 
 							<div className="flex flex-col items-center">
-								<p>
+								<p className="flex flex-row items-center gap-1">
 									Précédent :
 									<DisplayNumber number={event.previous} unit={event.unit} scale={event.scale} />
 								</p>
-								<p>
+								<p className="flex flex-row items-center gap-1">
 									Actuel :
 									<DisplayNumber number={event.actual} unit={event.unit} scale={event.scale} />
 								</p>
-								<p>
+								<p className="flex flex-row items-center gap-1">
 									Prévisions :
 									<DisplayNumber number={event.forecast} unit={event.unit} scale={event.scale} />
 								</p>
@@ -154,7 +154,7 @@ export default function Index() {
 
 							<div className="flex flex-col items-center">
 								{event.sourceUrl ? (
-									<p>
+									<p className="flex flex-row items-center gap-1">
 										Source :
 										<Link to={event.sourceUrl} target="_blank" className="underline">
 											{event.source} <MdOpenInNew className="inline-block" />
