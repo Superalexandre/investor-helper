@@ -3,7 +3,7 @@ import Database from "better-sqlite3"
 import config from "../../config.js"
 import { startOfWeek, formatISO, addDays } from "date-fns"
 import { type Events, events as eventsSchema } from "../../db/schema/events.js"
-import { and, asc, desc, eq, gte, isNotNull, lte, or } from "drizzle-orm"
+import { and, asc, desc, eq, gte, isNotNull, lte } from "drizzle-orm"
 
 // interface EconomicEvent {
 //     id: number,

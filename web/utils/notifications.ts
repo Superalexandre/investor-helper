@@ -1,10 +1,10 @@
 import Database from "better-sqlite3"
-import { getEventsNow } from "@/utils/events"
+import { getEventsNow } from "@/utils/events.js"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import {
 	notificationEvent as notificationEventSchema,
 	notification as notificationSchema
-} from "@/schema/notifications"
+} from "@/schema/notifications.js"
 import { and, eq } from "drizzle-orm"
 import { sendNotifications } from "@remix-pwa/push"
 
