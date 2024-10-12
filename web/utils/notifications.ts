@@ -1,5 +1,5 @@
 import Database from "better-sqlite3"
-import { getEventsNow } from "@/utils/events.js"
+import { getEventsNow } from "./events.js"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import {
 	notificationEvent as notificationEventSchema,
