@@ -4,10 +4,10 @@ import { MdNotificationsActive, MdOpenInNew, MdOutlineNotificationAdd } from "re
 import { ScrollTop } from "@/components/scrollTop"
 import { getEventById } from "@/utils/events"
 import { cn } from "@/lib/utils"
-import BackButton from "../../../components/backButton"
-import { Button } from "../../../components/ui/button"
+import BackButton from "@/components/backButton"
+import { Button } from "@/components/ui/button"
 import { getUser } from "../../../session.server"
-import DialogAccount from "../../../components/dialogAccount"
+import DialogAccount from "@/components/dialogAccount"
 import { useState } from "react"
 import {
 	Dialog,
@@ -17,16 +17,16 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle
-} from "../../../components/ui/dialog"
-import type { Events } from "../../../../../db/schema/events"
-import countries from "../../../../../lang/countries-fr"
+} from "@/components/ui/dialog"
+import type { Events } from "@/schema/events"
+import countries from "@/lang/countries-fr"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
-import { notificationEvent } from "../../../../../db/schema/notifications"
+import { notificationEvent } from "@/schema/notifications"
 import { and, eq } from "drizzle-orm"
 import { usePush } from "@remix-pwa/push/client"
-import DialogNotification from "../../../components/dialogNotification"
-import TimeCounter from "../../../components/timeCounter"
+import DialogNotification from "@/components/dialogNotification"
+import TimeCounter from "@/components/timeCounter"
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
 	const { id } = params
