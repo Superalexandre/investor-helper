@@ -13,7 +13,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 	const key = searchParams.get("key")
 
-	if (isProduction && key !== process.env.NOTIFICATION_KEY) {
+	if (isProduction && key !== process.env.NOTIFICATION_ADMIN_KEY) {
 		return new Response("Unauthorized", { status: 401 })
 	}
 
