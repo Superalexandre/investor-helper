@@ -158,7 +158,8 @@ export default function Index() {
 				redirect={`/calendar/${event.id}`}
 				callback={() => {
 					setShowDialogAccount(false)
-					setShowDialogNotification(true)
+				
+					subscribeEvent()
 				}}
 			/>
 

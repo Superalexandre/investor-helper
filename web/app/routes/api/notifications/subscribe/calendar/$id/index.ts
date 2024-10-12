@@ -67,9 +67,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	if (isSubscribed.length <= 0) {
 		await db.insert(notificationSchema).values({
 			userId: user.id,
-			endpoint: body.endpoint,
-			p256dh: body.keys.p256dh,
-			auth: body.keys.auth
+			endpoint: pushSubscription.endpoint,
+			p256dh: pushSubscription.keys.p256dh,
+			auth: pushSubscription.keys.auth
 		})
 	}
 
