@@ -51,8 +51,10 @@ export default function Index() {
 					<MdAdd size={30} />
 					Créer un compte
 				</CardTitle>
-				<CardContent className="h-full">
-					<Register />
+				<CardContent className="flex h-full w-full items-center justify-center">
+					<div className="w-11/12 lg:w-1/2">
+						<Register />
+					</div>
 				</CardContent>
 			</Card>
 		</div>

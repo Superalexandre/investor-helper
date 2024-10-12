@@ -11,7 +11,7 @@ export default function BackButton() {
 				<Link
 					to={{
 						// pathname: "/news",
-						pathname: location.state?.redirect ?? "/news",
+						pathname: location.state?.redirect ?? "/",
 						hash: location.state?.hash ?? undefined,
 						search: location.state?.search ?? undefined
 					}}

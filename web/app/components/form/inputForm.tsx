@@ -1,7 +1,8 @@
 import type { HTMLInputAutoCompleteAttribute, HTMLInputTypeAttribute } from "react"
 import type { IconType } from "react-icons/lib"
-import type {  JSX } from "react"
+import type { JSX } from "react"
 import { Input } from "../ui/input"
+import { cn } from "../../lib/utils"
 
 interface FieldErrors {
 	[key: string]: {
@@ -42,7 +43,7 @@ export default function InputForm({
 	ShowButton
 }: InputFormProps) {
 	return (
-		<div className={`flex w-11/12 flex-col items-start justify-center lg:w-1/2 ${parentClass}`}>
+		<div className={cn("flex w-full flex-col items-start justify-center", parentClass)}>
 			<label htmlFor={name} className="flex flex-row items-center justify-center gap-2 text-white">
 				{Icon ? <Icon size={20} /> : null}
 
@@ -64,7 +65,7 @@ export default function InputForm({
 			</div>
 
 			{errors && name && errors[name] ? (
-				<span className={`w-full text-center text-red-500 lg:text-left ${errorClass}`}>
+				<span className={cn("w-full text-center text-red-500 lg:text-left", errorClass)}>
 					{errors[name]?.message?.toString()}
 				</span>
 			) : null}
@@ -72,7 +73,4 @@ export default function InputForm({
 	)
 }
 
-export type {
-	FieldErrors,
-	InputFormProps
-}
+export type { FieldErrors, InputFormProps }

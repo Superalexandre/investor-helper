@@ -3,8 +3,8 @@ import { getEvents } from "@/utils/events"
 import type { MetaFunction } from "@remix-run/node"
 import { type ClientLoaderFunctionArgs, Link, useLoaderData } from "@remix-run/react"
 import countries from "../../../../../lang/countries-fr"
-import { useEffect, useState } from "react"
 import { ScrollTop } from "@/components/scrollTop"
+import TimeCounter from "../../../components/timeCounter"
 // import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 export const meta: MetaFunction = () => {
@@ -112,61 +112,19 @@ export default function Index() {
 										year: "numeric",
 										month: "long",
 										day: "numeric",
-										timeZoneName: "shortOffset"
+										timeZoneName: "shortOffset",
+										weekday: "long"
 									})}
 								</span>
-								<Counter date={event.date} />
+								<TimeCounter
+									date={event.date} 
+									diff={20 * 60 * 1000}
+								/>
 							</CardFooter>
 						</Card>
 					</div>
 				))}
 			</div>
 		</div>
-	)
-}
-
-function Counter({ date }: { date: string }) {
-	const [time, setTime] = useState<number>(0)
-
-	const eventDate = new Date(date)
-	const now = new Date()
-
-	useEffect(() => {
-		const interval = setInterval(() => {
-			const newDate = new Date()
-
-			setTime(eventDate.getTime() - newDate.getTime())
-		}, 1000)
-
-		return () => clearInterval(interval)
-	}, [eventDate.getTime])
-
-	const diff = eventDate.getTime() - now.getTime()
-
-	if (diff < 0) {
-		return (
-			<>
-				<span className="hidden lg:block">-</span>
-				<span className="text-center text-sky-500">Événement en cours</span>
-			</>
-		)
-	}
-
-	// Check if interval is more than 20 minutes
-	if (diff > 20 * 60 * 1000) {
-		return null
-	}
-
-	const hours = Math.floor((time % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-	const minutes = Math.floor((time % (1000 * 60 * 60)) / (1000 * 60))
-	const seconds = Math.floor((time % (1000 * 60)) / 1000)
-
-	const prettyTime = `${hours}h ${minutes}m ${seconds}s`
-
-	return (
-		<>
-			<span className="hidden lg:block">-</span>
-			<span className="text-center">Dans {prettyTime}</span>
-		</>
 	)
 }

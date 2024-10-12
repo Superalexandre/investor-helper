@@ -64,11 +64,10 @@ new PushManager({
 			type: "window",
 			includeUncontrolled: true
 		})
-		const isActiveClient = windowClients.some((client) => client.focused)
+		const windowActiveClients = windowClients.filter((client) => client.focused)
 
-		if (isActiveClient) {
-			// Envoyer la notification via un toaster (à faire côté client)
-			for (const client of windowClients) {
+		if (windowActiveClients.length > 0) {
+			for (const client of windowActiveClients) {
 				if (client.focused) {
 					console.log("Client focused", client, client.postMessage)
 

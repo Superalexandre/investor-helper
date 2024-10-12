@@ -3,6 +3,7 @@ import app from "./server.js"
 import { CronJob } from "cron"
 import { saveFetchNews } from "./utils/news.js"
 import { saveFetchEvents } from "./utils/events.js"
+import { sendNotificationEvent } from "./utils/notifications.js"
 // import { sendMail } from "./utils/newsLetter.js"
 
 function startServer() {
@@ -17,22 +18,6 @@ function startServer() {
 	)
 }
 
-// function sendNotification() {
-
-//     sendNotifications({
-//         subscriptions: [{
-//             endpoint: "localhost:3000",
-//             keys: {
-//                 p256dh: "",
-//                 auth: ""
-//             }
-//         }],
-//         vapidDetails,
-//         notification,
-//     })
-
-// }
-
 function main() {
 	startServer()
 
@@ -45,8 +30,15 @@ function main() {
 		start: true,
 		timeZone: "Europe/Paris"
 	})
-
-	// sendMail()
+	
+	CronJob.from({
+		cronTime: "* * * * *",
+		onTick: () => {
+			sendNotificationEvent()
+		},
+		start: true,
+		timeZone: "Europe/Paris"
+	})
 }
 
 try {

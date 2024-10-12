@@ -4,8 +4,6 @@ import { drizzle } from "drizzle-orm/better-sqlite3"
 import { notification as notificationSchema } from "@/schema/notifications"
 // import { generateSubscriptionId } from "@remix-pwa/push"
 import { v4 as uuid } from "uuid"
-import { getUser } from "../../../../session.server"
-import { and, eq } from "drizzle-orm"
 
 export function loader() {
 	console.log("Notification push")
@@ -13,7 +11,10 @@ export function loader() {
 	return null
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export function action({ request }: ActionFunctionArgs) {
+    return null
+
+    /*
 	// Get the body of the request
 	const body = await request.json()
 
@@ -44,26 +45,6 @@ export async function action({ request }: ActionFunctionArgs) {
 		})
 	}
 
-	const isSubscribed = await db
-		.select()
-		.from(notificationSchema)
-		.where(
-			and(
-				eq(notificationSchema.userId, user.id),
-				eq(notificationSchema.endpoint, body.endpoint),
-				eq(notificationSchema.p256dh, body.keys.p256dh),
-				eq(notificationSchema.auth, body.keys.auth)
-			)
-		)
-
-	if (isSubscribed.length > 0) {
-		return json({
-			success: false,
-			error: true,
-			message: "Already subscribed"
-		})
-	}
-
 	await db.insert(notificationSchema).values({
 		userId: user.id,
 		// id: subscriptionId,
@@ -78,4 +59,5 @@ export async function action({ request }: ActionFunctionArgs) {
 		message: "Notification push",
 		subscriptionId
 	})
+    */
 }

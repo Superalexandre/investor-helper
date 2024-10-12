@@ -71,8 +71,7 @@ export default async function login({
 	// Check if the url have a redirect parameter
 	const url = new URL(request.url)
 	const redirectUrl = url.searchParams.get("redirect")
-
-	const redirectUrlString = redirectUrl ? redirectUrl : "/profile"
+	const redirectUrlString = redirectUrl ? redirectUrl : "/"
 
 	return createUserSession({
 		request,

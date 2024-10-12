@@ -50,8 +50,10 @@ export default function Index() {
 					<MdLogin size={30} />
 					Connexion
 				</CardTitle>
-				<CardContent className="h-full">
-					<Login />
+				<CardContent className="flex h-full w-full items-center justify-center">
+					<div className="w-11/12 lg:w-1/2">
+						<Login />
+					</div>
 				</CardContent>
 			</Card>
 		</div>

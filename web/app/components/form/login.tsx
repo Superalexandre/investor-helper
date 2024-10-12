@@ -1,6 +1,6 @@
 import { Form, Link, useSearchParams } from "@remix-run/react"
 import InputForm, { type FieldErrors } from "./inputForm"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { MdLogin, MdMail, MdPassword } from "react-icons/md"
 import { useRemixForm } from "remix-hook-form"
 // biome-ignore lint/style/noNamespaceImport: Zod is a namespace
@@ -22,18 +22,44 @@ type FormData = zod.infer<typeof schema>
 
 const resolver = zodResolver(schema)
 
-export default function Login() {
+interface LoginProps {
+	redirect?: string
+	callback?: () => void
+}
+
+export default function Login({ redirect, callback }: LoginProps) {
 	const [showPassword, setShowPassword] = useState(false)
 	const [params] = useSearchParams()
 
+	const redirectUrl = params.get("redirect")
+
+	let preferredRedirect = ""
+	if (redirect) {
+		preferredRedirect = redirect
+	} else if (redirectUrl) {
+		preferredRedirect = redirectUrl
+	}
+
 	const {
 		handleSubmit,
-		formState: { errors, isSubmitting },
-		register
+		formState: { errors, isSubmitting, isSubmitSuccessful },
+		register,
+
 	} = useRemixForm<FormData>({
 		mode: "onSubmit",
-		resolver
+		submitConfig: {
+			action: `/login?redirect=${preferredRedirect}`,
+			method: "post"
+		},
+		resolver,
 	})
+
+	useEffect(() => {
+		if (isSubmitSuccessful && callback) {
+			callback()
+		}
+	}, [callback, isSubmitSuccessful])
+
 
 	return (
 		<Form
@@ -68,7 +94,7 @@ export default function Login() {
 			<Link
 				to={{
 					pathname: "/register",
-					search: params.get("redirect") ? `?redirect=${params.get("redirect")}` : ""
+					search: preferredRedirect !== "" ? `?redirect=${preferredRedirect}` : ""
 				}}
 				className="text-center text-white underline hover:text-slate-400"
 			>

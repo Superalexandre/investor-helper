@@ -3,7 +3,7 @@ import Database from "better-sqlite3"
 import config from "../../config.js"
 import { startOfWeek, formatISO, addDays } from "date-fns"
 import { type Events, events as eventsSchema } from "../../db/schema/events.js"
-import { and, asc, desc, eq, gte, isNotNull } from "drizzle-orm"
+import { and, asc, desc, eq, gte, isNotNull, lte, or } from "drizzle-orm"
 
 // interface EconomicEvent {
 //     id: number,
@@ -312,4 +312,40 @@ async function saveEvents(events: EventRaw[]) {
 	console.log(`Inserted ${eventsValues.length} events`)
 }
 
-export { getEvents, getEventById, fetchEvents, saveFetchEvents, saveEvents }
+// Make a function to get the events that are happening rn
+async function getEventsNow() {
+	const sqlite = new Database("../db/sqlite.db")
+	const db = drizzle(sqlite)
+
+	const referenceDateFrom = new Date()
+
+	// Set seconds and milliseconds to 0
+	referenceDateFrom.setSeconds(0)
+	referenceDateFrom.setMilliseconds(0)
+
+	const referenceDateTo = new Date(referenceDateFrom)
+
+	// Set seconds to 59 and milliseconds to 999
+	referenceDateTo.setSeconds(59)
+	referenceDateTo.setMilliseconds(999)
+
+	const allEvents = await db
+		.select()
+		.from(eventsSchema)
+		.where(
+			and(
+				isNotNull(eventsSchema.date),
+				and(
+					gte(eventsSchema.date, referenceDateFrom.toISOString()),
+					lte(eventsSchema.date, referenceDateTo.toISOString())
+				)
+			)
+		)
+		.orderBy(asc(eventsSchema.date))
+
+	return allEvents
+}
+
+// Make a function to get the events that are happening in the next 30 minutes
+
+export { getEvents, getEventById, fetchEvents, saveFetchEvents, saveEvents, getEventsNow }

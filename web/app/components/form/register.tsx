@@ -1,6 +1,6 @@
 import { Form, Link, useSearchParams } from "@remix-run/react"
 import InputForm, { type FieldErrors } from "./inputForm"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { MdAdd, MdBadge, MdEmail, MdPassword } from "react-icons/md"
 import { useRemixForm } from "remix-hook-form"
 // biome-ignore lint/style/noNamespaceImport: Zod is a namespace
@@ -27,19 +27,43 @@ type FormData = zod.infer<typeof schema>
 
 const resolver = zodResolver(schema)
 
-export default function Register() {
-    const [showPassword, setShowPassword] = useState(false)
-    const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false)
-    const [params,] = useSearchParams()
+interface RegisterProps {
+	redirect?: string
+	callback?: () => void
+}
 
-    const {
-        handleSubmit,
-        formState: { errors, isSubmitting },
-        register,
-    } = useRemixForm<FormData>({
-        mode: "onSubmit",
-        resolver,
-    })
+export default function Register({ redirect, callback }: RegisterProps) {
+	const [showPassword, setShowPassword] = useState(false)
+	const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false)
+	const [params] = useSearchParams()
+
+	const redirectUrl = params.get("redirect")
+
+	let preferredRedirect = ""
+	if (redirect) {
+		preferredRedirect = redirect
+	} else if (redirectUrl) {
+		preferredRedirect = redirectUrl
+	}
+
+	const {
+		handleSubmit,
+		formState: { errors, isSubmitting, isSubmitSuccessful },
+		register
+	} = useRemixForm<FormData>({
+		mode: "onSubmit",
+		submitConfig: {
+			action: `/register?redirect=${preferredRedirect}`,
+			method: "post"
+		},
+		resolver
+	})
+
+	useEffect(() => {
+		if (isSubmitSuccessful && callback) {
+			callback()
+		}
+	}, [callback, isSubmitSuccessful])
 
 	return (
 		<Form
@@ -121,7 +145,7 @@ export default function Register() {
 			<Link
 				to={{
 					pathname: "/login",
-					search: params.get("redirect") ? `?redirect=${params.get("redirect")}` : ""
+					search: preferredRedirect !== "" ? `?redirect=${preferredRedirect}` : ""
 				}}
 				className="text-center text-white underline hover:text-slate-400"
 			>
@@ -145,6 +169,4 @@ export default function Register() {
 }
 
 export { resolver, schema }
-export type {
-    FormData
-}
+export type { FormData }
