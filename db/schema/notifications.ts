@@ -1,6 +1,6 @@
 import { int, sqliteTable, text } from "drizzle-orm/sqlite-core"
-import { users } from "./users"
-import { events } from "./events"
+import { users } from "./users.js"
+import { events } from "./events.js"
 
 export const notification = sqliteTable("notifications", {
 	userId: text("user_id")
