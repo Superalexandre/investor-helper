@@ -4,7 +4,7 @@ import { drizzle } from "drizzle-orm/better-sqlite3"
 import {
 	notificationEvent as notificationEventSchema,
 	notification as notificationSchema
-} from "@/schema/notifications.js"
+} from "../../db/schema/notifications.js"
 import { and, eq } from "drizzle-orm"
 import { sendNotifications } from "@remix-pwa/push"
 
