@@ -30,27 +30,24 @@ async function sendNotificationEvent() {
 				continue
 			}
 
-			const notificationInfo = notificationInfos[0]
-			if (!notificationInfo) {
-				continue
+			for (const notificationInfo of notificationInfos) {
+				sendNotification({
+					title: "Investor Helper",
+					body: `L'événement ${event.title} est sur le point de commencer`,
+					data: {
+						url: `/calendar/${event.id}`
+					},
+					endpoint: notificationInfo.endpoint,
+					p256dh: notificationInfo.p256dh,
+					auth: notificationInfo.auth
+				})
 			}
-
-			sendNotification({
-				title: "Investor Helper",
-				body: `L'événement ${event.title} est sur le point de commencer`,
-				data: {
-					url: `/calendar/${event.id}`
-				},
-				endpoint: notificationInfo.endpoint,
-				p256dh: notificationInfo.p256dh,
-				auth: notificationInfo.auth
-			})
 
 			await db
 				.delete(notificationEventSchema)
 				.where(
 					and(
-						eq(notificationEventSchema.userId, notificationInfo.userId),
+						eq(notificationEventSchema.userId, notificationEvent.userId),
 						eq(notificationEventSchema.eventId, event.id)
 					)
 				)
