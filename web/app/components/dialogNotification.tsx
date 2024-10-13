@@ -1,4 +1,4 @@
-import type { Dispatch, SetStateAction } from "react"
+import { useState, type Dispatch, type SetStateAction } from "react"
 import {
 	Dialog,
 	DialogClose,
@@ -11,6 +11,7 @@ import {
 import { Button } from "./ui/button"
 import { usePush } from "@remix-pwa/push/client"
 import config from "@/lib/config"
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert"
 
 interface DialogNotificationProps {
 	open: boolean
@@ -19,6 +20,8 @@ interface DialogNotificationProps {
 
 export default function DialogNotification({ open, setOpen }: DialogNotificationProps) {
 	const { subscribeToPush, isSubscribed } = usePush()
+	// biome-ignore lint/suspicious/noExplicitAny: The error is an any type
+	const [error, setError] = useState<string | any>(null)
 
 	const subscribe = async () => {
 		if (isSubscribed) {
@@ -46,6 +49,21 @@ export default function DialogNotification({ open, setOpen }: DialogNotification
 			},
 			(error) => {
 				console.error("error", error)
+
+				if (error instanceof Error) {
+					if (error.message === "Registration failed - permission denied") {
+						setError({
+							...error,
+							message: "Vous avez refusé les notifications"
+						})
+
+						return
+					}
+				}
+
+				setError(error)
+
+				return
 			}
 		)
 	}
@@ -58,6 +76,14 @@ export default function DialogNotification({ open, setOpen }: DialogNotification
 					<DialogDescription>Accepter les notifications pour recevoir des alertes</DialogDescription>
 				</DialogHeader>
 
+				{error ? (
+					<Alert variant="destructive">
+						<AlertTitle>Une erreur est survenue!</AlertTitle>
+						<AlertDescription>
+							{error.message || "Une erreur est survenue lors de l'abonnement aux notifications"}
+						</AlertDescription>
+					</Alert>
+				) : null}
 				<DialogFooter className="mt-3 flex flex-row gap-3 lg:gap-0">
 					<DialogClose asChild={true}>
 						<Button variant="destructive" type="reset">

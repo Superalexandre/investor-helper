@@ -199,7 +199,7 @@ export default function Index() {
 						className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute"
 						onClick={subscribeEvent}
 					>
-						{hasNotification ? (
+						{isSubscribed && hasNotification ? (
 							<MdNotificationsActive className="size-6" />
 						) : (
 							<MdOutlineNotificationAdd className="size-6" />
