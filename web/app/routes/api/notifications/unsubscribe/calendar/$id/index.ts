@@ -7,8 +7,6 @@ import { getUser } from "../../../../../../session.server"
 import { and, eq } from "drizzle-orm"
 
 export function loader() {
-	console.log("Notification push")
-
 	return null
 }
 

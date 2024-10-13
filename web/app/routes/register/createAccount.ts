@@ -32,8 +32,6 @@ export default async function createAccount({ request, name, firstName, username
 	const key = Buffer.from(process.env.CRYPTO_KEY as string, "hex")
 	const iv = Buffer.from(process.env.CRYPTO_IV as string, "hex")
 
-	console.log("key", process.env.CRYPTO_KEY, process.env.CRYPTO_IV)
-
 	const cipher = crypto.createCipheriv(algorithm, key, iv)
 
 	// Encrypt the mail

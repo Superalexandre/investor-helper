@@ -11,8 +11,6 @@ import { and, eq } from "drizzle-orm"
 import { events } from "../../../../../../../../db/schema/events"
 
 export function loader() {
-	console.log("Notification push")
-
 	return null
 }
 
@@ -35,8 +33,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
 			message: "Missing remindThirtyMinutesBefore or remindOnTime"
 		})
 	}
-
-	console.log("Notification push", body)
 
 	const sqlite = new Database("../db/sqlite.db")
 	const db = drizzle(sqlite)

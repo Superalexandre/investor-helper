@@ -24,8 +24,6 @@ export default function TimeCounter({
 
 	const diffBetween = eventDate.getTime() - now.getTime()
 
-	console.log(diffBetween, diffOngoing)
-
 	// Check if the event is ongoing
 	if (diffBetween > -diffOngoing && diffBetween < 0) {
 		return (

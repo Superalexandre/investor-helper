@@ -66,8 +66,6 @@ export default function Index() {
 					onClick={() => {
 						if (isSubscribed) {
 							unsubscribeFromPush(() => {
-								console.log("Unsubscribed")
-
 								fetch("/api/notifications/unsubscribe", {
 									method: "POST",
 									headers: {
@@ -86,8 +84,6 @@ export default function Index() {
 							subscribeToPush(
 								publicKey,
 								(subscription) => {
-									console.log("subscription", subscription)
-
 									fetch("/api/notifications/subscribe", {
 										method: "POST",
 										headers: {

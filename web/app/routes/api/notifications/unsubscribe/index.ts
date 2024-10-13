@@ -5,16 +5,12 @@ import { notification as notificationSchema } from "@/schema/notifications"
 import { and, eq } from "drizzle-orm"
 
 export function loader() {
-	console.log("Notification push")
-
 	return null
 }
 
 export async function action({ request }: ActionFunctionArgs) {
 	// Get the body of the request
 	const body = await request.json()
-
-	console.log("Unsubscribe notification", body)
 
 	const sqlite = new Database("../db/sqlite.db")
 	const db = drizzle(sqlite)

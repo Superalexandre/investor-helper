@@ -26,8 +26,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	const allSubscriptions = await db.select().from(notificationSchema)
 
 	for (const subscription of allSubscriptions) {
-		console.log("Sending notification to", subscription.endpoint)
-
 		try {
 			sendNotifications({
 				notification: {

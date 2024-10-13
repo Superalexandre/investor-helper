@@ -30,8 +30,6 @@ export default function DialogNotification({ open, setOpen }: DialogNotification
 		subscribeToPush(
 			config.publicKey,
 			(subscription) => {
-				console.log("subscription", subscription)
-
 				fetch("/api/notifications/subscribe", {
 					method: "POST",
 					headers: {

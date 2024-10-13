@@ -349,9 +349,7 @@ function DialogNewNotification({
 			.then((rep) => {
 				return rep.json()
 			})
-			.then((data) => {
-				console.log(data)
-
+			.then(() => {
 				setLoading(false)
 				setOpen(false)
 				setHasNotification(true)
@@ -413,9 +411,7 @@ function DialogDeleteNotification({
 			.then((rep) => {
 				return rep.json()
 			})
-			.then((data) => {
-				console.log(data)
-
+			.then(() => {
 				setLoading(false)
 				setOpen(false)
 				setHasNotification(false)
