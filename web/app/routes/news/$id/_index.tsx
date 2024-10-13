@@ -56,7 +56,10 @@ export default function Index() {
 		<div className="relative flex w-full flex-col items-center overflow-hidden">
 			<ScrollTop showBelow={250} />
 
-			<BackButton />
+			<BackButton
+				safeRedirect="/news"
+				safeHash={news.news.id}
+			/>
 
 			<div className="w-full px-4 lg:w-3/4">
 				<div className="flex flex-col items-center justify-center pb-8">
@@ -113,6 +116,7 @@ interface Params {
 	}
 	rawText?: boolean
 	type?: string
+	activeId?: string
 }
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity:
@@ -121,10 +125,10 @@ function GetDeepComponent(
 	children: any,
 	relatedSymbols: FullSymbol[],
 	newsId: string,
-	{ className, rawText, type }: Params = {}
+	{ className, rawText, type, activeId }: Params = {}
 ) {
 	const Component: Array<JSX.Element | string> = []
-
+	
 	const configClassName = {
 		badge: "inline-block align-middle",
 		image: "mx-auto",
@@ -185,10 +189,11 @@ function GetDeepComponent(
 				Component.push(
 					<Link
 						to={{
-							pathname: `/data/${symbolLink}`
+							pathname: `/data/${symbolLink}`,
 						}}
 						state={{
-							redirect: `/news/${newsId}`
+							redirect: `/news/${newsId}`,
+							hash: activeId ?? undefined
 						}}
 						key={`${child.params?.symbol}-${Component.length}`}
 						className={className?.badge}
@@ -204,12 +209,14 @@ function GetDeepComponent(
 				const ComponentResult = GetDeepComponent(child.children, relatedSymbols, newsId, {
 					className: configClassName,
 					rawText: true,
-					type: child.type
+					type: child.type,
+					activeId: `section-${Component.length}`
 				})
 
 				Component.push(
 					<div
 						key={`${child.type}-${Component.length}-${child.children.length}`}
+						id={`section-${Component.length}`}
 						className={cn(className?.parent)}
 					>
 						{ComponentResult}

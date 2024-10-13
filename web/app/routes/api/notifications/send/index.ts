@@ -32,6 +32,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 					title: "Investor Helper",
 					options: {
 						body: "Un nouvel article d'Apple est disponible",
+						badge: "/calendarIcon.svg",
 						data: {
 							url: "/news"
 						}

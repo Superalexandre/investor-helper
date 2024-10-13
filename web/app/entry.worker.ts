@@ -51,13 +51,14 @@ new PushManager({
 
 		const options: NotificationOptions = {
 			body: data.options.body || "Nouvelle notification",
-			icon: "/logo-192-192.webp",
+			icon: data.options.icon || "/logo-192-192.webp",
+			badge: data.options.badge || undefined,
 			// badge: "/badge.png",
 			// tag: data.tag || "notification",
 			data: {
 				url: data.options.data.url || "/"
 			},
-			requireInteraction: true
+			requireInteraction: true,
 		}
 
 		const windowClients = await self.clients.matchAll({
