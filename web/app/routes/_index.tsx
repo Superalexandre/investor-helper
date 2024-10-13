@@ -27,13 +27,17 @@ export const meta: MetaFunction = () => {
 
 export async function loader() {
 	// Get the last important news from the last 24 hours
-	const from = new Date()
-	from.setDate(from.getDate() - 1)
+	const fromNews = new Date()
+	fromNews.setDate(fromNews.getDate() - 1)
 
-	const to = new Date()
+	const toNews = new Date()
 
-	const news = await getLastImportantNews(from, to, 150, 10)
-	const events = await getNextImportantEvent(from, to, 0, 10)
+	const fromCalendar = new Date()
+	const toCalendar = new Date()
+	toCalendar.setDate(toCalendar.getDate() + 2)
+
+	const news = await getLastImportantNews(fromNews, toNews, 150, 10)
+	const events = await getNextImportantEvent(fromCalendar, toCalendar, 0, 10)
 
 	return {
 		publicKey: process.env.NOTIFICATION_PUBLIC_KEY,
