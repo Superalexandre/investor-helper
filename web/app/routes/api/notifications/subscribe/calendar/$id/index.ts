@@ -8,6 +8,7 @@ import {
 // import { generateSubscriptionId } from "@remix-pwa/push"
 import { getUser } from "../../../../../../session.server"
 import { and, eq } from "drizzle-orm"
+import { events } from "../../../../../../../../db/schema/events"
 
 export function loader() {
 	console.log("Notification push")
@@ -70,6 +71,31 @@ export async function action({ request, params }: ActionFunctionArgs) {
 			endpoint: pushSubscription.endpoint,
 			p256dh: pushSubscription.keys.p256dh,
 			auth: pushSubscription.keys.auth
+		})
+	}
+
+	// Check if the event is passed
+	const event = await db
+		.select()
+		.from(events)
+		.where(eq(events.id, id))
+
+	if (event.length <= 0) {
+		return json({
+			success: false,
+			error: true,
+			message: "Event not found"
+		})
+	}
+
+	const eventDate = new Date(event[0].date)
+	const now = new Date()
+
+	if (eventDate.getTime() < now.getTime()) {
+		return json({
+			success: false,
+			error: true,
+			message: "Event already passed"
 		})
 	}
 

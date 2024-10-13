@@ -42,6 +42,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 		return redirect("/calendar")
 	}
 
+	const isPast = new Date(event.date) < new Date()
+
 	const user = await getUser(request)
 
 	const sqlite = new Database("../db/sqlite.db")
@@ -62,7 +64,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 	// if (!news) return redirect("/news")
 
 	return {
-		event,
+		event: {
+			...event,
+			isPast
+		},
 		user,
 		hasNotif: hasNotification
 		// news,
@@ -115,6 +120,10 @@ export default function Index() {
 	}
 
 	const subscribeEvent = () => {
+		if (event.isPast) {
+			return
+		}
+
 		if (!user) {
 			setShowDialogAccount(true)
 
@@ -158,7 +167,7 @@ export default function Index() {
 				redirect={`/calendar/${event.id}`}
 				callback={() => {
 					setShowDialogAccount(false)
-				
+
 					subscribeEvent()
 				}}
 			/>
@@ -184,17 +193,19 @@ export default function Index() {
 			<div className="flex w-full flex-row items-center justify-evenly">
 				<BackButton />
 
-				<Button
-					variant="ghost"
-					className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute"
-					onClick={subscribeEvent}
-				>
-					{hasNotification ? (
-						<MdNotificationsActive className="size-6" />
-					) : (
-						<MdOutlineNotificationAdd className="size-6" />
-					)}
-				</Button>
+				{event.isPast ? null : (
+					<Button
+						variant="ghost"
+						className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute"
+						onClick={subscribeEvent}
+					>
+						{hasNotification ? (
+							<MdNotificationsActive className="size-6" />
+						) : (
+							<MdOutlineNotificationAdd className="size-6" />
+						)}
+					</Button>
+				)}
 			</div>
 
 			<div className="w-full px-4 lg:w-1/2">
@@ -229,10 +240,7 @@ export default function Index() {
 							</p>
 							<div className="flex flex-row items-center">
 								<p>(</p>
-								<TimeCounter 
-									date={event.date} 
-									separator={false}
-								/>
+								<TimeCounter date={event.date} separator={false} />
 								<p>)</p>
 							</div>
 						</div>
