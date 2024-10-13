@@ -4,12 +4,13 @@ import { Link, redirect, useLoaderData } from "@remix-run/react"
 import NewWallet from "@/components/wallet/new"
 import { getUser } from "@/session.server"
 import { getWalletByUser } from "@/utils/getWallet"
+import { Button } from "../../../components/ui/button"
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const user = await getUser(request)
 
 	if (!user) {
-		return redirect("/")
+		return redirect("/login?redirect=/profile")
 	}
 
 	const wallet = await getWalletByUser(user)
@@ -43,11 +44,11 @@ export default function Index() {
 	return (
 		<div className="flex w-full flex-col items-center justify-center gap-10">
 			<div>
-				<p>User : {user.id}</p>
+				<h1 className="font-bold text-2xl">Bonjour {user.displayName ?? user.username}</h1>
 			</div>
 
 			<div className="flex flex-col items-center justify-center gap-1">
-				<h1 className="font-bold text-xl">Vos portefeuilles</h1>
+				<h2 className="font-bold text-xl">Vos portefeuilles</h2>
 
 				{wallet.length > 0 ? (
 					wallet.map((w) => (
@@ -62,12 +63,24 @@ export default function Index() {
 				<NewWallet className="mt-4" />
 			</div>
 
-			{/* <p>Vos listes surveillés</p>
+			{/* 
+			<p>Vos listes surveillés</p>
             {watchList.length > 0 ? watchList.map((w) => (
                 <p key={w.listId}>WatchList : {w.name}</p>
             )): (
                 <p>Vous n'avez pas de liste surveillé</p>
-            )} */}
+            )} 
+			 */}
+
+			<div className="flex flex-col items-center justify-center gap-1">
+				<h2 className="font-bold text-xl">Vos notifications</h2>
+
+				<Link to="/profile/notifications">
+					<Button>
+						Voir mes notifications
+					</Button>
+				</Link>
+			</div>
 		</div>
 	)
 }

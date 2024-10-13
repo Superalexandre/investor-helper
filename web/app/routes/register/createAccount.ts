@@ -44,10 +44,11 @@ export default async function createAccount({ request, name, firstName, username
 		.from(usersSchema)
 		.where(eq(sql<string>`lower(${usersSchema.email})`, mailEncrypted))
 
+	const lowerUsername = username.toLowerCase()
 	const usernameExists = await db
 		.select()
 		.from(usersSchema)
-		.where(eq(sql<string>`lower(${usersSchema.username})`, username.toLowerCase()))
+		.where(eq(sql<string>`lower(${usersSchema.username})`, lowerUsername))
 
 	if (mailExists.length > 0 || usernameExists.length > 0) {
 		const errors: { [key: string]: { message: string } } = {}
@@ -81,7 +82,8 @@ export default async function createAccount({ request, name, firstName, username
 			.values({
 				firstName: firstName,
 				lastName: name,
-				username: username,
+				username: lowerUsername,
+				displayName: username,
 				password: hashedPassword,
 				salt: salt,
 				email: mailEncrypted
