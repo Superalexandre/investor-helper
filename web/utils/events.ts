@@ -299,8 +299,11 @@ async function saveEvents(events: EventRaw[]) {
 			continue
 		}
 
+		const frenchComment: string | null = null
+		
 		eventsValues.push({
 			...event,
+			frenchComment: frenchComment,
 			sourceUrl: event.source_url
 		})
 	}
@@ -346,6 +349,25 @@ async function getEventsNow() {
 	return allEvents
 }
 
-// Make a function to get the events that are happening in the next 30 minutes
+async function getNextImportantEvent(from: Date, to: Date, importance: number, limit: number) {
+	const sqlite = new Database("../db/sqlite.db")
+	const db = drizzle(sqlite)
 
-export { getEvents, getEventById, fetchEvents, saveFetchEvents, saveEvents, getEventsNow }
+	const events = await db
+		.select()
+		.from(eventsSchema)
+		.where(
+			and(
+				gte(eventsSchema.importance, importance),
+				and(
+					isNotNull(eventsSchema.date),
+					and(gte(eventsSchema.date, from.toISOString()), lte(eventsSchema.date, to.toISOString()))
+				)
+			)
+		)
+		.limit(limit)
+
+	return events
+}
+
+export { getEvents, getEventById, fetchEvents, saveFetchEvents, saveEvents, getEventsNow, getNextImportantEvent }

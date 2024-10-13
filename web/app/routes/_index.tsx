@@ -9,6 +9,8 @@ import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { formatDistanceToNow } from "date-fns"
 import { fr } from "date-fns/locale"
 import { useEffect, useState } from "react"
+import { getNextImportantEvent } from "../../utils/events"
+import countries from "../../../lang/countries-fr"
 
 export const meta: MetaFunction = () => {
 	const title = "Investor Helper"
@@ -31,15 +33,17 @@ export async function loader() {
 	const to = new Date()
 
 	const news = await getLastImportantNews(from, to, 150, 10)
+	const events = await getNextImportantEvent(from, to, 0, 10)
 
 	return {
 		publicKey: process.env.NOTIFICATION_PUBLIC_KEY,
-		lastNews: news
+		lastNews: news,
+		nextEvents: events
 	}
 }
 
 export default function Index() {
-	const { lastNews } = useLoaderData<typeof loader>()
+	const { lastNews, nextEvents } = useLoaderData<typeof loader>()
 
 	const navigate = useNavigate()
 
@@ -48,6 +52,12 @@ export default function Index() {
 	// const [notificationError, setNotificationError] = useState<string | null>(null)
 
 	const [isInstalled, setIsInstalled] = useState(true)
+
+	const importance: Record<number, string> = {
+		[-1]: "faible",
+		0: "moyenne",
+		1: "élevée"
+	}
 
 	useEffect(() => {
 		const isTwa = document.referrer.startsWith("android-app://")
@@ -115,10 +125,6 @@ export default function Index() {
 										</p>
 
 										<div className="absolute bottom-0 left-0 p-4 text-muted-foreground">
-											{/* <div className="flex flex-row items-center justify-center gap-2">
-                                            <p>Importance</p>
-                                            <ImportanceBadge importance={news.news.importanceScore} />
-                                        </div> */}
 											<p>Par {news.news.source}</p>
 											<DisplayDate date={news.news.published} />
 										</div>
@@ -132,6 +138,44 @@ export default function Index() {
 				</div>
 
 				<Link to="/news">
+					<Button variant="default">Voir plus</Button>
+				</Link>
+			</div>
+
+			<div className="flex max-w-full flex-col items-center gap-2 p-4">
+				<h2 className="font-bold text-lg">Prochains événements importantes</h2>
+
+				<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
+					{nextEvents.length > 0 ? (
+						nextEvents.map((event) => (
+							<Link to={`/calendar/${event.id}`} key={event.id}>
+								<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal">
+									<CardTitle className="p-4 text-center">{event.title}</CardTitle>
+									<CardContent className="flex flex-col gap-4 p-4">
+										<p className="h-24 max-h-24 overflow-clip">{event.comment}</p>
+
+										<div className="absolute bottom-0 left-0 p-4 text-muted-foreground">
+											<p>Importance : {importance[event.importance]}</p>
+											<p>Pays : {countries[event.country]}</p>
+											<div className="flex flex-row items-center gap-1">
+												<p>Dans</p>
+												<p>
+													{formatDistanceToNow(new Date(event.date), {
+														locale: fr
+													})}
+												</p>
+											</div>
+										</div>
+									</CardContent>
+								</Card>
+							</Link>
+						))
+					) : (
+						<p>Aucun événement important</p>
+					)}
+				</div>
+
+				<Link to="/calendar">
 					<Button variant="default">Voir plus</Button>
 				</Link>
 			</div>

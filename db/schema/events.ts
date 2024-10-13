@@ -7,6 +7,7 @@ export const events = sqliteTable("events", {
 	indicator: text("indicator").notNull(),
 	ticker: text("ticker"),
 	comment: text("comment"),
+	frenchComment: text("french_comment"),
 	category: text("category"),
 	period: text("period"),
 	referenceDate: text("reference_date"),
