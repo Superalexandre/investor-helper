@@ -85,7 +85,7 @@ function sendNotification({
 				title,
 				options: {
 					body,
-					data
+					badge: "/logo-128-128.png",
 				}
 			},
 			vapidDetails: {
