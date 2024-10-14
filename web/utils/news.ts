@@ -261,10 +261,12 @@ async function saveFetchNews() {
 			})
 		}
 
-		const notification = await getNotificationNews(news)
-
-		if (notification) {
-			allNotifications.push(...notification)
+		if (exists.length === 0) {
+			const notification = await getNotificationNews(news)
+	
+			if (notification) {
+				allNotifications.push(...notification)
+			}
 		}
 	}
 
