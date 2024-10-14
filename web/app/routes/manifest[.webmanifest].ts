@@ -36,8 +36,15 @@ const webAppManifest: Manifest = {
 	theme_color: "#0f172a",
 
 	orientation: "portrait",
-	categories: ["finance"],
+	categories: ["finance", "news", "business", "education", "productivity"],
+	handle_links: "preferred",
+
 	prefer_related_applications: false,
+
+	launch_handler: {
+		client_mode: ["focus-existing", "auto"]
+	},
+
 	icons: [
 		{
 			src: "/maskable/maskable_icon_x192.png",
@@ -62,6 +69,23 @@ const webAppManifest: Manifest = {
 			sizes: "1024x1024",
 			type: "image/webp",
 			purpose: "any"
+		}, {
+			src: "/logo-192-192.png",
+			sizes: "192x192",
+			type: "image/png",
+			purpose: "any"
+		},
+		{
+			src: "/logo-512-512.png",
+			sizes: "512x512",
+			type: "image/png",
+			purpose: "any"
+		},
+		{
+			src: "/logo-1024-1024.png",
+			sizes: "1024x1024",
+			type: "image/png",
+			purpose: "any"
 		}
 	],
 	shortcuts: [
@@ -72,10 +96,10 @@ const webAppManifest: Manifest = {
 			url: "/?utm_source=pwa",
 			icons: [
 				{
-					src: "/logo-192-192.webp",
+					src: "/maskable/maskable_icon_x192.png",
 					sizes: "192x192",
-					type: "image/webp",
-					purpose: "any"
+					type: "image/png",
+					purpose: "maskable"
 				}
 			]
 		},
@@ -87,10 +111,10 @@ const webAppManifest: Manifest = {
 			url: "/news?utm_source=pwa",
 			icons: [
 				{
-					src: "/logo-192-192.webp",
+					src: "/maskable/maskable_icon_x192.png",
 					sizes: "192x192",
-					type: "image/webp",
-					purpose: "any"
+					type: "image/png",
+					purpose: "maskable"
 				}
 			]
 		}

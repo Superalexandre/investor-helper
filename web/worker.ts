@@ -21,15 +21,15 @@ function startServer() {
 function main() {
 	startServer()
 
-	CronJob.from({
-		cronTime: "*/5 * * * *",
-		onTick: () => {
+	// CronJob.from({
+	// 	cronTime: "*/5 * * * *",
+	// 	onTick: () => {
 			saveFetchNews()
 			saveFetchEvents()
-		},
-		start: true,
-		timeZone: "Europe/Paris"
-	})
+	// 	},
+	// 	start: true,
+	// 	timeZone: "Europe/Paris"
+	// })
 	
 	CronJob.from({
 		cronTime: "* * * * *",

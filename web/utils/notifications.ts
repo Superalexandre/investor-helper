@@ -3,10 +3,18 @@ import { getEventsNow } from "./events.js"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import {
 	notificationEvent as notificationEventSchema,
-	notification as notificationSchema
+	notification as notificationSchema,
+	type NotificationSubscribedNews,
+	notificationSubscribedNews,
+	type NotificationSubscribedNewsKeywords,
+	notificationSubscribedNewsKeywords,
+	type NotificationSubscribedNewsSymbols,
+	notificationSubscribedNewsSymbols
 } from "../../db/schema/notifications.js"
 import { and, eq } from "drizzle-orm"
 import { sendNotifications } from "@remix-pwa/push"
+import type { User } from "../../db/schema/users.js"
+import { events } from "../../db/schema/events.js"
 
 async function sendNotificationEvent() {
 	const actualEvent = await getEventsNow()
@@ -100,4 +108,58 @@ function sendNotification({
 	}
 }
 
-export { sendNotificationEvent }
+interface FullSubscribedNews extends NotificationSubscribedNews {
+	keywords: NotificationSubscribedNewsKeywords[]
+	symbols: NotificationSubscribedNewsSymbols[]
+}
+
+async function getUserNotifications(user: User) {
+	const sqlite = new Database("../db/sqlite.db")
+	const db = drizzle(sqlite)
+
+	const notifications = await db
+		.select()
+		.from(notificationSchema)
+		.where(eq(notificationSchema.userId, user.id))
+
+	const calendarNotifications = await db
+		.select()
+		.from(notificationEventSchema)
+		.innerJoin(events, eq(notificationEventSchema.eventId, events.id))
+		.where(eq(notificationEventSchema.userId, user.id))
+
+	const subscribedNews = await db
+		.select()
+		.from(notificationSubscribedNews)
+		.where(eq(notificationSubscribedNews.userId, user.id))
+
+	const fullSubscribedNews: FullSubscribedNews[] = []
+
+	for (const news of subscribedNews) {
+		const keywords = await db
+			.select()
+			.from(notificationSubscribedNewsKeywords)
+			.where(eq(notificationSubscribedNewsKeywords.notificationId, news.notificationId))
+
+		const symbols = await db
+			.select()
+			.from(notificationSubscribedNewsSymbols)
+			.where(eq(notificationSubscribedNewsSymbols.notificationId, news.notificationId))
+
+		fullSubscribedNews.push({
+			...news,
+			keywords: keywords,
+			symbols: symbols
+		})
+	}
+
+
+	return {
+		notifications,
+		calendarNotifications,
+		subscribedNews,
+		fullSubscribedNews
+	}
+}
+
+export { sendNotification, sendNotificationEvent, getUserNotifications }

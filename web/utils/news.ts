@@ -6,11 +6,18 @@ import {
 	newsArticle as newsArticleSchema
 } from "../../db/schema/news.js"
 import { symbols as symbolsSchema } from "../../db/schema/symbols.js"
-import { and, desc, eq, gte, like, lte } from "drizzle-orm"
+import { and, desc, eq, gte, inArray, like, lte, or } from "drizzle-orm"
 import config from "../../config.js"
 
 import refreshSymbol from "./refreshSymbol.js"
 import { parse } from "node-html-parser"
+import {
+	notification,
+	notificationSubscribedNews,
+	notificationSubscribedNewsKeywords,
+	notificationSubscribedNewsSymbols
+} from "../../db/schema/notifications.js"
+import { sendNotification } from "./notifications.js"
 
 async function getNews({ page = 1, limit = 10 }: { page?: number; limit?: number }) {
 	const sqlite = new Database("../db/sqlite.db")
@@ -63,6 +70,25 @@ async function getNewsById({ id }: { id: string }) {
 	return {
 		news,
 		relatedSymbols: relatedSymbolsResults
+	}
+}
+
+interface NewsItem {
+	id: string
+	title: string
+	storyPath: string
+	sourceLogoId: string
+	published: number
+	source: string
+	urgency: number
+	provider: string
+	link: string
+	relatedSymbols: { symbol: string }[]
+	article: {
+		jsonDescription: string
+		shortDescription: string
+		importanceScore: number
+		copyright: string
 	}
 }
 
@@ -165,7 +191,7 @@ async function fetchNews() {
 		}
 	}
 
-	return newsCopy
+	return newsCopy as NewsItem[]
 }
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: TODO: Refactor this function
@@ -188,26 +214,14 @@ async function saveFetchNews() {
 	// biome-ignore lint/suspicious/noEvolvingTypes: TODO: Type
 	const newsArticleValues = []
 
+	const allNotifications: NotificationToSend[] = []
+
 	for (const news of newsList) {
 		// Check if the news already exists
 		const exists = await db.select().from(newsSchema).where(eq(newsSchema.id, news.id))
 
 		// Insert only if the news does not exist (to refresh the symbols)
 		if (exists.length === 0) {
-			// await db
-			//     .insert(newsSchema)
-			//     .values({
-			//         id: news.id,
-			//         title: news.title,
-			//         storyPath: news.storyPath,
-			//         sourceLogoId: news.sourceLogoId,
-			//         published: news.published,
-			//         source: news.source,
-			//         urgency: news.urgency,
-			//         provider: news.provider,
-			//         link: news.link
-			//     })
-
 			newsValues.push({
 				id: news.id,
 				title: news.title,
@@ -233,27 +247,11 @@ async function saveFetchNews() {
 						newsId: news.id,
 						symbol: symbol.symbol
 					})
-					// await db
-					//     .insert(newsRelatedSymbolsSchema)
-					//     .values({
-					//         newsId: news.id,
-					//         symbol: symbol.symbol
-					//     })
 				}
 			}
 		}
 
 		if (news.article && exists.length === 0) {
-			// await db
-			//     .insert(newsArticleSchema)
-			//     .values({
-			//         newsId: news.id,
-			//         date: news.published,
-			//         jsonDescription: news.article.jsonDescription,
-			//         shortDescription: news.article.shortDescription,
-			//         copyright: news.article.copyright
-			//     })
-
 			newsArticleValues.push({
 				newsId: news.id,
 				date: news.published,
@@ -261,6 +259,12 @@ async function saveFetchNews() {
 				shortDescription: news.article.shortDescription,
 				copyright: news.article.copyright
 			})
+		}
+
+		const notification = await getNotificationNews(news)
+
+		if (notification) {
+			allNotifications.push(...notification)
 		}
 	}
 
@@ -276,9 +280,133 @@ async function saveFetchNews() {
 		await db.insert(newsArticleSchema).values(newsArticleValues)
 	}
 
+	if (allNotifications.length > 0) {
+		reduceAndSendNotifications(allNotifications)
+	}
+
 	console.log(
 		`Inserted ${newsValues.length} news, ${newsRelatedSymbolsValues.length} related symbols and ${newsArticleValues.length} articles`
 	)
+}
+
+interface NotificationToSend {
+	number: number
+
+	keyword: string[]
+
+	userId: string
+	notificationId: string
+
+	title: string
+	body: string
+	data: {
+		url: string
+	}
+}
+
+async function getNotificationNews(news: NewsItem) {
+	const sqlite = new Database("../db/sqlite.db")
+	const db = drizzle(sqlite)
+
+	const titleWords = news.title.split(" ").map((word) => word.toLowerCase())
+
+	let shortDescriptionWords: string[] = []
+	if (news.article?.shortDescription) {
+		shortDescriptionWords = news.article.shortDescription.split(" ").map((word) => word.toLowerCase())
+	}
+
+	// Send a notification to the users that are subscribed to the news keywords
+	const keywords = await db
+		.select()
+		.from(notificationSubscribedNewsKeywords)
+		.where(
+			or(
+				inArray(notificationSubscribedNewsKeywords.keyword, titleWords),
+				inArray(notificationSubscribedNewsKeywords.keyword, shortDescriptionWords)
+			)
+		)
+
+	let symbolsArticle: string[] = []
+	if (news.relatedSymbols) {
+		symbolsArticle = news.relatedSymbols.map((symbol) => symbol.symbol)
+	}
+
+	const symbols = await db
+		.select()
+		.from(notificationSubscribedNewsSymbols)
+		.where(inArray(notificationSubscribedNewsSymbols.symbol, symbolsArticle))
+
+	const notificationsToSend: NotificationToSend[] = []
+	if (keywords.length > 0 || symbols.length > 0) {
+		for (const { keyword, notificationId } of keywords) {
+			const notificationInfo = await db
+				.select()
+				.from(notificationSubscribedNews)
+				.innerJoin(notification, eq(notification.userId, notificationSubscribedNews.userId))
+				.where(eq(notificationSubscribedNews.notificationId, notificationId))
+
+			notificationsToSend.push({
+				number: 1,
+				userId: notificationInfo[0].notifications.userId,
+				notificationId: notificationId,
+				keyword: [keyword],
+				title: `Un nouvel article parlant de ${keyword} a été publié`,
+				body: news.title,
+				data: {
+					url: `/news/${news.id}`
+				}
+			})
+		}
+
+		return notificationsToSend
+	}
+}
+
+async function reduceAndSendNotifications(notifications: NotificationToSend[] | undefined) {
+	const sqlite = new Database("../db/sqlite.db")
+	const db = drizzle(sqlite)
+
+	if (!notifications) {
+		return
+	}
+
+	const reducedNotifications: NotificationToSend[] = []
+
+	for (const notification of notifications) {
+		const exists = reducedNotifications.find(
+			(notif) => notif.userId === notification.userId && notif.notificationId === notification.notificationId
+		)
+
+		if (exists) {
+			exists.number++
+
+			if (exists.number > 1) {
+				exists.title = `${exists.number} articles qui pourrais vous intéresser ont été publiés`
+
+				exists.body = `${exists.number} articles qui pourrais vous intéresser ont été publiés`
+			}
+		} else {
+			reducedNotifications.push(notification)
+		}
+	}
+
+	for (const notificationContent of reducedNotifications) {
+		const notificationsInfo = await db
+			.select()
+			.from(notification)
+			.where(eq(notification.userId, notificationContent.userId))
+
+		for (const notificationInfo of notificationsInfo) {
+			sendNotification({
+				title: notificationContent.title,
+				body: notificationContent.body,
+				data: notificationContent.data,
+				auth: notificationInfo.auth,
+				endpoint: notificationInfo.endpoint,
+				p256dh: notificationInfo.p256dh
+			})
+		}
+	}
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
