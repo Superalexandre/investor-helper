@@ -62,7 +62,10 @@ export default function Index() {
 
 	return (
 		<div className="relative flex w-full flex-col items-center overflow-hidden">
-			<BackButton />
+			<BackButton 
+				safeRedirect="/profile"
+
+			/>
 
 			<DialogNewNotificationNews open={notificationNewsOpen} setOpen={setNotificationNewsOpen} />
 

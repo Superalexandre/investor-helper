@@ -11,6 +11,11 @@ import { normalizeSymbol } from "@/utils/normalizeSymbol"
 import { ScrollTop } from "@/components/scrollTop"
 import BackButton from "@/components/backButton"
 import type { JSX } from "react"
+import { Button } from "../../../components/ui/button"
+import { MdMoreVert } from "react-icons/md"
+import ShareButton from "../../../components/shareButton"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../components/ui/dropdown-menu"
+import CopyButton from "../../../components/copyButton"
 
 export async function loader({ params }: LoaderFunctionArgs) {
 	const { id } = params
@@ -56,10 +61,33 @@ export default function Index() {
 		<div className="relative flex w-full flex-col items-center overflow-hidden">
 			<ScrollTop showBelow={250} />
 
-			<BackButton
-				safeRedirect="/news"
-				safeHash={news.news.id}
-			/>
+			<div className="flex w-full flex-row items-center justify-evenly">
+				<BackButton safeRedirect="/news" safeHash={news.news.id} />
+
+				<div className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute">
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild={true}>
+							<Button variant="ghost">
+								<MdMoreVert className="size-6" />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent className="mx-4">
+							<DropdownMenuItem>
+								<CopyButton 
+									content={`https://investor-helper.com/news/${news.news.id}`}
+								/>
+							</DropdownMenuItem>
+							<DropdownMenuItem>
+								<ShareButton 
+									title={news.news.title}
+									text={news.news_article.shortDescription || news.news.title}
+									url={`https://investor-helper.com/news/${news.news.id}`}
+								/>
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</div>
+			</div>
 
 			<div className="w-full px-4 lg:w-3/4">
 				<div className="flex flex-col items-center justify-center pb-8">
@@ -128,7 +156,7 @@ function GetDeepComponent(
 	{ className, rawText, type, activeId }: Params = {}
 ) {
 	const Component: Array<JSX.Element | string> = []
-	
+
 	const configClassName = {
 		badge: "inline-block align-middle",
 		image: "mx-auto",
@@ -189,7 +217,7 @@ function GetDeepComponent(
 				Component.push(
 					<Link
 						to={{
-							pathname: `/data/${symbolLink}`,
+							pathname: `/data/${symbolLink}`
 						}}
 						state={{
 							redirect: `/news/${newsId}`,

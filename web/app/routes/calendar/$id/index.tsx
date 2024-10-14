@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Link, redirect, useLoaderData } from "@remix-run/react"
-import { MdNotificationsActive, MdOpenInNew, MdOutlineNotificationAdd } from "react-icons/md"
+import { MdMoreVert, MdNotificationsActive, MdOpenInNew, MdOutlineNotificationAdd } from "react-icons/md"
 import { ScrollTop } from "@/components/scrollTop"
 import { getEventById } from "@/utils/events"
 import { cn } from "@/lib/utils"
@@ -27,6 +27,14 @@ import { and, eq } from "drizzle-orm"
 import { usePush } from "@remix-pwa/push/client"
 import DialogNotification from "@/components/dialogNotification"
 import TimeCounter from "@/components/timeCounter"
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger
+} from "../../../components/ui/dropdown-menu"
+import ShareButton from "../../../components/shareButton"
+import CopyButton from "../../../components/copyButton"
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
 	const { id } = params
@@ -193,19 +201,42 @@ export default function Index() {
 			<div className="flex w-full flex-row items-center justify-evenly">
 				<BackButton />
 
-				{event.isPast ? null : (
-					<Button
-						variant="ghost"
-						className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute"
-						onClick={subscribeEvent}
-					>
-						{isSubscribed && hasNotification ? (
-							<MdNotificationsActive className="size-6" />
-						) : (
-							<MdOutlineNotificationAdd className="size-6" />
-						)}
-					</Button>
-				)}
+				<div className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute">
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild={true}>
+							<Button variant="ghost">
+								<MdMoreVert className="size-6" />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent className="mx-4">
+							<DropdownMenuItem>
+								<Button variant="ghost" onClick={subscribeEvent}>
+									{isSubscribed && hasNotification ? (
+										<p className="flex flex-row justify-start gap-1.5">
+											Modifier la notification
+											<MdNotificationsActive className="size-5" />
+										</p>
+									) : (
+										<p className="flex flex-row justify-start gap-1.5">
+											Ajouter une notification
+											<MdOutlineNotificationAdd className="size-5" />
+										</p>
+									)}
+								</Button>
+							</DropdownMenuItem>
+							<DropdownMenuItem>
+								<CopyButton content={`https://www.investor-helper.com/calendar/${event.id}`} />
+							</DropdownMenuItem>
+							<DropdownMenuItem>
+								<ShareButton
+									title={event.title}
+									text={event.comment ?? ""}
+									url={`https://www.investor-helper.com/calendar/${event.id}`}
+								/>
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</div>
 			</div>
 
 			<div className="w-full px-4 lg:w-1/2">
