@@ -13,6 +13,8 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from 
 import { Link } from "@remix-run/react"
 import { useState } from "react"
 import { Button } from "./ui/button"
+// import { useSpring } from "@react-spring/web"
+// import { useDrag } from "@use-gesture/react"
 
 export default function Header(
 	{
@@ -53,15 +55,7 @@ export default function Header(
 				hidden: false
 			}
 		],
-		/*[
-            {
-                key: "search",
-                icon: null,
-                label: "Rechercher",
-                href: "/search",
-                hidden: false
-            }
-        ],*/ [
+		[
 			{
 				key: "profile",
 				icon: MdPerson,
@@ -93,8 +87,43 @@ export default function Header(
 		]
 	]
 
+	// const [{ x }, api] = useSpring(() => ({ x: "-100%" }))
+
+	// Function to open/close the sidebar
+	// const toggleSidebar = (isOpen: boolean) => {
+	// 	setOpen(isOpen)
+	// 	api.start({ x: isOpen ? "0" : "-100%" })
+	// }
+
+	// Gesture handling
+	// const bind = useDrag(
+	// 	({ down, movement: [mx], memo = x.get() }) => {
+	// 		console.log(mx)
+
+	// 		if (mx > 0 || (mx < 0 && memo + mx > -300)) {
+	// 			setOpen(true)
+	// 			api.start({ x: down ? mx + memo : open ? 0 : -300 })
+	// 		}
+	// 		if (!down && mx < -150) {
+	// 			setOpen(false)
+	// 			api.start({ x: "-100%" })
+	// 		} else if (!down && mx > 150) {
+	// 			setOpen(true)
+	// 			api.start({ x: "0" })
+	// 		}
+	// 		return memo
+	// 	},
+	// 	{
+	// 		axis: "x",
+	// 		bounds: { left: -300, right: 0 },
+	// 		rubberband: true
+	// 	}
+	// )
+
+	//{...bind()}
+
 	return (
-		<header className="relative h-16 bg-slate-900 p-3">
+		<header className="relative h-16 touch-none bg-slate-900 p-3">
 			<nav className="hidden h-full flex-row items-center justify-between gap-4 xl:flex">
 				{menuItems.map((menuGroup, index) => (
 					<div
@@ -117,7 +146,11 @@ export default function Header(
 					</div>
 				))}
 			</nav>
-			<Sheet open={open} onOpenChange={(openChange) => setOpen(openChange)}>
+			<Sheet
+				open={open}
+				onOpenChange={(openChange) => setOpen(openChange)}
+				// modal={true}
+			>
 				<SheetTrigger
 					className="block h-full xl:hidden"
 					name="Open sidebar"

@@ -138,7 +138,7 @@ new PushManager({
 			// badge: "/badge.png",
 			// tag: data.tag || "notification",
 			data: {
-				url: data.options.data.url || "/"
+				url: data.options?.data?.url || "/"
 			},
 			requireInteraction: true
 		}
