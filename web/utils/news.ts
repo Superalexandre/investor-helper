@@ -317,6 +317,29 @@ async function getNotificationNews(news: NewsItem) {
 		shortDescriptionWords = news.article.shortDescription.split(" ").map((word) => word.toLowerCase())
 	}
 
+	let longDescriptionWords: string[] = []
+	if (news.article?.jsonDescription) {
+		let articleText = ""
+		// biome-ignore lint/suspicious/noExplicitAny:
+		const flatten = (node: any) => {
+	
+			// console.log(node)
+			if (typeof node === "string") {
+				articleText += node
+			}
+	
+			if (node.children) {
+				for (const child of node.children) {
+					flatten(child)
+				}
+			}
+		}
+	
+		flatten(news.article?.jsonDescription)
+
+		longDescriptionWords = articleText.split(" ").map((word) => word.toLowerCase())
+	}
+
 	// Send a notification to the users that are subscribed to the news keywords
 	const keywords = await db
 		.select()
@@ -324,7 +347,8 @@ async function getNotificationNews(news: NewsItem) {
 		.where(
 			or(
 				inArray(notificationSubscribedNewsKeywords.keyword, titleWords),
-				inArray(notificationSubscribedNewsKeywords.keyword, shortDescriptionWords)
+				inArray(notificationSubscribedNewsKeywords.keyword, shortDescriptionWords),
+				inArray(notificationSubscribedNewsKeywords.keyword, longDescriptionWords)
 			)
 		)
 
@@ -432,6 +456,7 @@ function getNewsImportanceScore(
 	let articleText = ""
 	// biome-ignore lint/suspicious/noExplicitAny:
 	const flatten = (node: any) => {
+
 		// console.log(node)
 		if (typeof node === "string") {
 			articleText += node
