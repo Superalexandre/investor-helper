@@ -1,10 +1,12 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { getEvents } from "@/utils/events"
 import type { MetaFunction } from "@remix-run/node"
-import { type ClientLoaderFunctionArgs, Link, useLoaderData } from "@remix-run/react"
+import { Link } from "@remix-run/react"
 import countries from "../../../../../lang/countries-fr"
 import { ScrollTop } from "@/components/scrollTop"
 import TimeCounter from "../../../components/timeCounter"
+import { useQuery } from "@tanstack/react-query"
+import type { Events } from "../../../../../db/schema/events"
+import { Skeleton } from "../../../components/ui/skeleton"
 // import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 export const meta: MetaFunction = () => {
@@ -21,26 +23,18 @@ export const meta: MetaFunction = () => {
 	]
 }
 
-export async function loader({ params }: ClientLoaderFunctionArgs) {
-	const { limit, page } = params
-
-	// Convert the limit and page to numbers
-	const limitResult = limit ? Number.parseInt(limit) : 60
-	const pageResult = page ? Number.parseInt(page) : 1
-
-	const events = await getEvents({
-		limit: limitResult,
-		page: pageResult,
-		desc: "asc"
-	})
-
-	return {
-		events: events
-	}
-}
-
 export default function Index() {
-	const { events } = useLoaderData<typeof loader>()
+	const { data: events, isPending, error } = useQuery<Events[]>({
+		queryKey: ["events"],
+		queryFn: async () => {
+			const req = await fetch("/api/calendar/data")
+
+			const json = await req.json()
+
+			return json
+		},
+		refetchOnWindowFocus: true,
+	})
 
 	const importance: Record<number, { name: string; color: string }> = {
 		[-1]: {
@@ -55,6 +49,28 @@ export default function Index() {
 			name: "élevé",
 			color: "text-red-500"
 		}
+	}
+
+	if (isPending) {
+		const skeletonArray = Array.from({ length: 10 })
+
+		return (
+			<div>
+				<div className="flex flex-col items-center justify-center space-y-4">
+					<p className="pt-4 text-center font-bold text-2xl">Les événements</p>
+				</div>
+				<div className="flex flex-col space-y-6 p-4 lg:p-10">
+					{skeletonArray.map((_, index) => (
+						// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+						<SkeletonCalendar key={index} />
+					))}
+				</div>
+			</div>
+		)
+	}
+
+	if (error) {
+		throw error
 	}
 
 	return (
@@ -116,15 +132,32 @@ export default function Index() {
 										weekday: "long"
 									})}
 								</span>
-								<TimeCounter
-									date={event.date} 
-									diff={20 * 60 * 1000}
-								/>
+								<TimeCounter date={event.date} diff={20 * 60 * 1000} />
 							</CardFooter>
 						</Card>
 					</div>
 				))}
 			</div>
 		</div>
+	)
+}
+
+function SkeletonCalendar() {
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle>
+					<Skeleton className="h-4 w-1/4" />
+				</CardTitle>
+			</CardHeader>
+
+			<CardContent>
+				<Skeleton className="h-32 w-full" />
+			</CardContent>
+
+			<CardFooter className="flex flex-col items-center justify-start gap-1 lg:flex-row lg:gap-2">
+				<Skeleton className="h-4 w-1/2" />
+			</CardFooter>
+		</Card>
 	)
 }

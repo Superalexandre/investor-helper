@@ -24,6 +24,8 @@ export const newsRelatedSymbols = sqliteTable("news_related_symbol", {
 	symbol: text("symbol").references(() => symbols.symbolId)
 })
 
+export type NewsRelatedSymbols = typeof newsRelatedSymbols.$inferSelect
+
 export const newsRelation = relations(news, ({ many }) => ({
 	relatedSymbols: many(newsRelatedSymbols)
 }))

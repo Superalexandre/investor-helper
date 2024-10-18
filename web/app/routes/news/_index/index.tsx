@@ -1,6 +1,6 @@
 import type { MetaFunction } from "@remix-run/node"
-import { getNews } from "@/utils/news"
-import { type ClientLoaderFunctionArgs, Link, useLoaderData, useLocation } from "@remix-run/react"
+import type { FullNews } from "@/utils/news"
+import { Link, useLocation } from "@remix-run/react"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
 import { Badge } from "@/components/ui/badge"
@@ -15,24 +15,8 @@ import { ScrollTop } from "@/components/scrollTop"
 import { Button } from "@/components/ui/button"
 import { MdArrowBack, MdArrowForward } from "react-icons/md"
 import ImportanceBadge from "@/components/importanceBadge"
-
-export async function loader({ request }: ClientLoaderFunctionArgs) {
-	const url = new URL(request.url)
-	const searchParams = url.searchParams
-
-	const limit = searchParams.get("limit")
-	const page = searchParams.get("page")
-
-	// Convert the limit and page to numbers
-	const limitResult = limit ? Number.parseInt(limit) : 60
-	const pageResult = page ? Number.parseInt(page) : 1
-
-	const news = await getNews({ limit: limitResult, page: pageResult })
-
-	return {
-		news
-	}
-}
+import { useQuery } from "@tanstack/react-query"
+import { Skeleton } from "../../../components/ui/skeleton"
 
 export const meta: MetaFunction = () => {
 	const title = "Investor Helper - Les actualités"
@@ -50,12 +34,53 @@ export const meta: MetaFunction = () => {
 
 export default function Index() {
 	const location = useLocation()
-	const { news } = useLoaderData<typeof loader>()
-
+	
 	const actualPage = location.search ? Number.parseInt(new URLSearchParams(location.search).get("page") || "1") : 1
 
 	const previousPage = location.search && actualPage - 1 >= 1 ? actualPage - 1 : 1
 	const nextPage = location.search ? actualPage + 1 : 2
+
+	const {
+		data: news,
+		isPending,
+		error
+	} = useQuery<FullNews[]>({
+		queryKey: [
+			"news",
+			{
+				page: actualPage
+			}
+		],
+		queryFn: async () => {
+			const req = await fetch(`/api/news?page=${actualPage}&limit=20`)
+			const json = await req.json()
+
+			return json
+		},
+		refetchOnWindowFocus: true,
+	})
+
+	if (isPending) {
+		const skeletonArray = Array.from({ length: 10 })
+
+		return (
+			<div>
+				<div className="flex flex-col items-center justify-center space-y-4">
+					<p className="pt-4 text-center font-bold text-2xl">Dernières actualités</p>
+				</div>
+				<div className="flex flex-col space-y-6 p-4 lg:p-10">
+					{skeletonArray.map((_, index) => (
+						// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+						<SkeletonNews key={index} />
+					))}
+				</div>
+			</div>
+		)
+	}
+
+	if (error) {
+		throw error
+	}
 
 	if (!news || news.length <= 0) {
 		return <Empty />
@@ -229,5 +254,33 @@ function DisplaySymbols({
 				</Badge>
 			) : null}
 		</div>
+	)
+}
+
+function SkeletonNews() {
+	const random = Math.floor(Math.random() * 15) + 1
+	const badgeArray = Array.from({ length: random })
+
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle>
+					<Skeleton className="h-4 w-1/4" />
+				</CardTitle>
+			</CardHeader>
+
+			<CardContent>
+				<div className="flex flex-row flex-wrap items-center gap-1.5">
+					{badgeArray.map((_, index) => (
+						// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+						<Skeleton className="h-8 w-24 rounded-md" key={index} />
+					))}
+				</div>
+			</CardContent>
+
+			<CardFooter className="flex flex-col items-center justify-start gap-1 lg:flex-row lg:gap-2">
+				<Skeleton className="h-4 w-1/2" />
+			</CardFooter>
+		</Card>
 	)
 }

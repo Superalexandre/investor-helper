@@ -3,14 +3,16 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { usePWAManager } from "@remix-pwa/client"
 import { MdDownload } from "react-icons/md"
-import { getLastImportantNews } from "@/utils/news"
-import { Link, useLoaderData, useNavigate } from "@remix-run/react"
+import type { ImportantNews } from "@/utils/news"
+import { Link, useNavigate } from "@remix-run/react"
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { formatDistanceToNow } from "date-fns"
 import { fr } from "date-fns/locale"
 import { useEffect, useState } from "react"
-import { getNextImportantEvent } from "../../utils/events"
 import countries from "../../../lang/countries-fr"
+import { useQuery } from "@tanstack/react-query"
+import { Skeleton } from "../components/ui/skeleton"
+import type { Events } from "../../../db/schema/events"
 
 export const meta: MetaFunction = () => {
 	const title = "Investor Helper"
@@ -25,43 +27,18 @@ export const meta: MetaFunction = () => {
 	]
 }
 
-export async function loader() {
-	// Get the last important news from the last 24 hours
-	const fromNews = new Date()
-	fromNews.setDate(fromNews.getDate() - 1)
-
-	const toNews = new Date()
-
-	const fromCalendar = new Date()
-	const toCalendar = new Date()
-	toCalendar.setDate(toCalendar.getDate() + 2)
-
-	const news = await getLastImportantNews(fromNews, toNews, 150, 10)
-	const events = await getNextImportantEvent(fromCalendar, toCalendar, 0, 10)
-
+export function loader() {
 	return {
-		publicKey: process.env.NOTIFICATION_PUBLIC_KEY,
-		lastNews: news,
-		nextEvents: events
+		publicKey: process.env.NOTIFICATION_PUBLIC_KEY
 	}
 }
 
 export default function Index() {
-	const { lastNews, nextEvents } = useLoaderData<typeof loader>()
-
 	const navigate = useNavigate()
 
 	const { promptInstall } = usePWAManager()
-	// const { subscribeToPush, unsubscribeFromPush, isSubscribed, pushSubscription } = usePush()
-	// const [notificationError, setNotificationError] = useState<string | null>(null)
 
 	const [isInstalled, setIsInstalled] = useState(true)
-
-	const importance: Record<number, string> = {
-		[-1]: "faible",
-		0: "moyenne",
-		1: "élevée"
-	}
 
 	useEffect(() => {
 		const isTwa = document.referrer.startsWith("android-app://")
@@ -101,11 +78,8 @@ export default function Index() {
 				<div className="flex flex-col items-center justify-start gap-2">
 					<Label className="text-bold text-xl">Installer l'application</Label>
 					<Button
-						onClick={() => {
-							promptInstall(() => {
-								console.log("Installation réussie")
-							})
-						}}
+						type="button"
+						onClick={() => promptInstall()}
 						className="flex items-center justify-center gap-2"
 					>
 						Installer
@@ -118,27 +92,7 @@ export default function Index() {
 				<h2 className="font-bold text-lg">Dernières actualités importantes</h2>
 
 				<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
-					{lastNews.length > 0 ? (
-						lastNews.map((news) => (
-							<Link to={`/news/${news.news.id}`} key={news.news.id}>
-								<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal">
-									<CardTitle className="p-4 text-center">{news.news.title}</CardTitle>
-									<CardContent className="flex flex-col gap-4 p-4">
-										<p className="h-24 max-h-24 overflow-clip">
-											{news.news_article.shortDescription}
-										</p>
-
-										<div className="absolute bottom-0 left-0 p-4 text-muted-foreground">
-											<p>Par {news.news.source}</p>
-											<DisplayDate date={news.news.published} />
-										</div>
-									</CardContent>
-								</Card>
-							</Link>
-						))
-					) : (
-						<p>Aucune actualité importante</p>
-					)}
+					<DisplayLastNews />
 				</div>
 
 				<Link to="/news">
@@ -150,33 +104,7 @@ export default function Index() {
 				<h2 className="font-bold text-lg">Prochains événements importantes</h2>
 
 				<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
-					{nextEvents.length > 0 ? (
-						nextEvents.map((event) => (
-							<Link to={`/calendar/${event.id}`} key={event.id}>
-								<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal">
-									<CardTitle className="p-4 text-center">{event.title}</CardTitle>
-									<CardContent className="flex flex-col gap-4 p-4">
-										<p className="h-24 max-h-24 overflow-clip">{event.comment}</p>
-
-										<div className="absolute bottom-0 left-0 p-4 text-muted-foreground">
-											<p>Importance : {importance[event.importance]}</p>
-											<p>Pays : {countries[event.country]}</p>
-											<div className="flex flex-row items-center gap-1">
-												<p>Dans</p>
-												<p>
-													{formatDistanceToNow(new Date(event.date), {
-														locale: fr
-													})}
-												</p>
-											</div>
-										</div>
-									</CardContent>
-								</Card>
-							</Link>
-						))
-					) : (
-						<p>Aucun événement important</p>
-					)}
+					<DisplayNextEvents />
 				</div>
 
 				<Link to="/calendar">
@@ -190,10 +118,143 @@ export default function Index() {
 function DisplayDate({ date }: { date: number }) {
 	const d = new Date(date * 1000)
 
-	// Use date-fns
 	const formattedDate = formatDistanceToNow(d, {
 		locale: fr
 	})
 
 	return <p>Il y a {formattedDate}</p>
+}
+
+function DisplayLastNews() {
+	const {
+		data: lastNews,
+		isPending,
+		error
+	} = useQuery<ImportantNews[]>({
+		queryKey: ["importantNews"],
+		queryFn: async () => {
+			const req = await fetch("/api/news/important")
+			const json = await req.json()
+
+			return json
+		},
+		refetchOnWindowFocus: true
+	})
+
+	if (error) {
+		return <p>Erreur lors du chargement des actualités</p>
+	}
+
+	if (isPending) {
+		return new Array(10).fill(null).map((_, index) => (
+			// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal" key={index}>
+				<CardTitle className="p-4 text-center">
+					<Skeleton className="h-6 w-1/2" />
+				</CardTitle>
+				<CardContent className="flex flex-col gap-4 p-4">
+					<Skeleton className="h-24 w-full" />
+
+					<div className="absolute bottom-0 left-0 flex w-full flex-col gap-2 p-4 text-muted-foreground">
+						<Skeleton className="h-4 w-1/2" />
+						<Skeleton className="h-4 w-1/2" />
+					</div>
+				</CardContent>
+			</Card>
+		))
+	}
+
+	if (!lastNews || lastNews?.length <= 0) {
+		return <p>Aucune actualité importante</p>
+	}
+
+	return lastNews.map((news) => (
+		<Link to={`/news/${news.news.id}`} key={news.news.id}>
+			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal">
+				<CardTitle className="p-4 text-center">{news.news.title}</CardTitle>
+				<CardContent className="flex flex-col gap-4 p-4">
+					<p className="h-24 max-h-24 overflow-clip">{news.news_article.shortDescription}</p>
+
+					<div className="absolute bottom-0 left-0 p-4 text-muted-foreground">
+						<p>Par {news.news.source}</p>
+						<DisplayDate date={news.news.published} />
+					</div>
+				</CardContent>
+			</Card>
+		</Link>
+	))
+}
+
+function DisplayNextEvents() {
+	const importance: Record<number, string> = {
+		[-1]: "faible",
+		0: "moyenne",
+		1: "élevée"
+	}
+
+	const {
+		data: nextEvents,
+		isPending,
+		error
+	} = useQuery<Events[]>({
+		queryKey: ["importantEvents"],
+		queryFn: async () => {
+			const req = await fetch("/api/calendar/important")
+			const json = await req.json()
+
+			return json
+		},
+		refetchOnWindowFocus: true
+	})
+
+	if (error) {
+		return <p>Erreur lors du chargement des événements</p>
+	}
+
+	if (isPending) {
+		return new Array(10).fill(null).map((_, index) => (
+			// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal" key={index}>
+				<CardTitle className="p-4 text-center">
+					<Skeleton className="h-6 w-1/2" />
+				</CardTitle>
+				<CardContent className="flex flex-col gap-4 p-4">
+					<Skeleton className="h-24 w-full" />
+
+					<div className="absolute bottom-0 left-0 flex w-full flex-col gap-2 p-4 text-muted-foreground">
+						<Skeleton className="h-4 w-1/2" />
+						<Skeleton className="h-4 w-1/2" />
+					</div>
+				</CardContent>
+			</Card>
+		))
+	}
+
+	if (!nextEvents || nextEvents.length <= 0) {
+		return <p>Aucun événement important</p>
+	}
+
+	return nextEvents.map((event) => (
+		<Link to={`/calendar/${event.id}`} key={event.id}>
+			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal">
+				<CardTitle className="p-4 text-center">{event.title}</CardTitle>
+				<CardContent className="flex flex-col gap-4 p-4">
+					<p className="h-24 max-h-24 overflow-clip">{event.comment}</p>
+
+					<div className="absolute bottom-0 left-0 p-4 text-muted-foreground">
+						<p>Importance : {importance[event.importance]}</p>
+						<p>Pays : {countries[event.country]}</p>
+						<div className="flex flex-row items-center gap-1">
+							<p>Dans</p>
+							<p>
+								{formatDistanceToNow(new Date(event.date), {
+									locale: fr
+								})}
+							</p>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+		</Link>
+	))
 }

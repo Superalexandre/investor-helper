@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Link, redirect, useLoaderData } from "@remix-run/react"
-import { MdMoreVert, MdNotificationsActive, MdOpenInNew, MdOutlineNotificationAdd } from "react-icons/md"
+import { MdAdd, MdDelete, MdMoreVert, MdNotificationsActive, MdOpenInNew, MdOutlineNotificationAdd } from "react-icons/md"
 import { ScrollTop } from "@/components/scrollTop"
 import { getEventById } from "@/utils/events"
 import { cn } from "@/lib/utils"
@@ -35,6 +35,8 @@ import {
 } from "../../../components/ui/dropdown-menu"
 import ShareButton from "../../../components/shareButton"
 import CopyButton from "../../../components/copyButton"
+import { toast as sonner } from "sonner"
+import Loading from "../../../components/loading"
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
 	const { id } = params
@@ -384,6 +386,16 @@ function DialogNewNotification({
 				setLoading(false)
 				setOpen(false)
 				setHasNotification(true)
+
+				sonner.success("Notification ajoutée avec succès")
+			})
+			.catch((error) => {
+				console.error("Error subscribing to notifications", error)
+
+				setLoading(false)
+				setOpen(false)
+
+				sonner.error("Erreur lors de l'ajout de la notification")
 			})
 	}
 
@@ -397,19 +409,20 @@ function DialogNewNotification({
 					</DialogDescription>
 				</DialogHeader>
 
-				{/* <div>
-					<p>Notification</p>
-				</div> */}
-
-				{loading ? <p>Chargement...</p> : null}
-
 				<DialogFooter className="mt-3 flex flex-row gap-3 lg:gap-0">
 					<DialogClose asChild={true}>
 						<Button variant="destructive" type="reset">
 							Fermer
 						</Button>
 					</DialogClose>
-					<Button variant="default" type="submit" onClick={subscribe}>
+					<Button
+						variant="default"
+						type="submit"
+						onClick={subscribe}
+						className={cn("flex flex-row items-center justify-center gap-1.5")}
+						disabled={loading}
+					>
+						{loading ? <Loading className="size-5 border-2 text-black" /> : <MdAdd className="size-5" />}
 						Ajouter
 					</Button>
 				</DialogFooter>
@@ -446,6 +459,16 @@ function DialogDeleteNotification({
 				setLoading(false)
 				setOpen(false)
 				setHasNotification(false)
+
+				sonner.success("Notification supprimée avec succès")
+			})
+			.catch((error) => {
+				console.error("Error deleting notification", error)
+
+				setLoading(false)
+				setOpen(false)
+
+				sonner.error("Erreur lors de la suppression de la notification")
 			})
 	}
 
@@ -457,7 +480,7 @@ function DialogDeleteNotification({
 					<DialogDescription>Supprimer la notification pour l'événement {event.title}</DialogDescription>
 				</DialogHeader>
 
-				{loading ? <p>Chargement...</p> : null}
+				{/* {loading ? <p>Chargement...</p> : null} */}
 
 				<DialogFooter className="mt-3 flex flex-row gap-3 lg:gap-0">
 					<DialogClose asChild={true}>
@@ -465,7 +488,18 @@ function DialogDeleteNotification({
 							Fermer
 						</Button>
 					</DialogClose>
-					<Button variant="default" type="submit" onClick={deleteNotification}>
+					{/* <Button variant="default" type="submit" onClick={deleteNotification}>
+						Supprimer
+					</Button> */}
+
+					<Button
+						variant="default"
+						type="submit"
+						onClick={deleteNotification}
+						className={cn("flex flex-row items-center justify-center gap-1.5")}
+						disabled={loading}
+					>
+						{loading ? <Loading className="size-5 border-2 text-black" /> : <MdDelete className="size-5" />}
 						Supprimer
 					</Button>
 				</DialogFooter>

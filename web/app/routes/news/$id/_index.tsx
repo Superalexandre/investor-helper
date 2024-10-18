@@ -118,7 +118,7 @@ export default function Index() {
 
 interface FullSymbol {
 	symbol: SymbolType
-	// biome-ignore lint/style/useNamingConvention: Result API
+	// biome-ignore lint/style/useNamingConvention: Result API TODO: Rename
 	news_related_symbol: NewsRelatedSymbol
 }
 

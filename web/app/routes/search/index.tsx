@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import { useDebounceValue } from "usehooks-ts"
 import { cn } from "@/lib/utils"
 import { normalizeSymbol, normalizeSymbolHtml } from "@/utils/normalizeSymbol"
@@ -8,6 +8,8 @@ import type { News } from "@/schema/news"
 import { Link, useLocation, useNavigate } from "@remix-run/react"
 import { MdClose } from "react-icons/md"
 import type { MetaFunction } from "@remix-run/node"
+import { useQuery } from "@tanstack/react-query"
+import { Skeleton } from "../../components/ui/skeleton"
 
 interface SelectSymbolType {
 	symbol: string
@@ -46,59 +48,63 @@ export default function Index() {
 
 	const inputRef = useRef<HTMLInputElement>(null)
 
-	const [resultSymbols, setResultSymbols] = useState<SelectSymbolType[]>([])
-	const [resultNews, setResultNews] = useState<News[]>([])
+	const searchParams = new URLSearchParams(location.search)
+	const searchParam = searchParams.get("search")
+	const searchInParam = searchParams.get("searching")
 
-	const search = new URLSearchParams(location.search).get("search")
-	let searching = new URLSearchParams(location.search).get("searching")
+	const validParams = ["all", "allSymbol", "stocks", "crypto", "news"]
+	if (searchInParam && !validParams.includes(searchInParam)) {
+		let url = pathname
 
-	if (searching && !["all", "allSymbol", "stocks", "crypto", "news"].includes(searching)) {
-		searching = "all"
+		if (searchParam) {
+			url += `?search=${searchParam}&searching=all`
+		} else {
+			url += "?searching=all"
+		}
+
+		navigate(url)
 	}
 
-	const [debouncedValue, setValue] = useDebounceValue(search ?? "", 750)
-	const [hidden, setHidden] = useState(true)
-	const [searchingIn, setSearchingIn] = useState<SearchType>((searching as SearchType) ?? "all")
-
-	const [, setLoading] = useState(false)
+	const [debouncedValue, setValue] = useDebounceValue(searchParam ?? "", 750)
+	const [searchingIn, setSearchingIn] = useState<SearchType>((searchInParam as SearchType) ?? "all")
 
 	const reset = () => {
-		// inputRef.current?.value = ""
 		if (inputRef.current) {
 			inputRef.current.value = ""
 		}
 
 		setValue("")
-		setResultSymbols([])
-		setResultNews([])
-		setHidden(true)
 
 		navigate(pathname)
 	}
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: reset should not be in the dependencies
-	useEffect(() => {
-		if (!debouncedValue) {
-			reset()
+	const { data, isPending, error } = useQuery<{ symbols: SelectSymbolType[]; news: News[] }>({
+		queryKey: ["search", debouncedValue, searchingIn],
+		queryFn: async () => {
+			if (!debouncedValue) {
+				reset()
 
-			return
-		}
+				return {
+					symbols: [],
+					news: []
+				}
+			}
 
-		setLoading(true)
+			navigate(`${pathname}?search=${debouncedValue}&searching=${searchingIn}`)
 
-		fetch(`/api/search?search=${debouncedValue}&searching=${searchingIn}`)
-			.then((response) => response.json())
-			.then((data) => {
-				setResultSymbols(data.symbols as SelectSymbolType[])
-				setResultNews(data.news as News[])
+			const req = await fetch(`/api/search?search=${debouncedValue}&searching=${searchingIn}`)
+			const json = await req.json()
 
-				setLoading(false)
-				setHidden(false)
-			})
+			return json
+		},
+		refetchOnWindowFocus: true,
+	})
 
-		// navigate(pathname + "?search=" + debouncedValue)
-		navigate(`${pathname}?search=${debouncedValue}&searching=${searchingIn}`)
-	}, [debouncedValue, searchingIn])
+	const hidden = !debouncedValue || isPending || error
+
+	if (error) {
+		throw error
+	}
 
 	return (
 		<div className="flex flex-col items-center justify-center p-4">
@@ -110,7 +116,7 @@ export default function Index() {
 						type="text"
 						placeholder="Rechercher un symbole, une action, une crypto, une news..."
 						onChange={(event) => setValue(event.target.value)}
-						defaultValue={search ?? ""}
+						defaultValue={searchParam ?? ""}
 						ref={inputRef}
 						required={true}
 						autoFocus={true}
@@ -162,9 +168,9 @@ export default function Index() {
 							</Button>
 						</div>
 
-						<div className={cn(hidden ? "hidden" : "block")}>
-							{resultNews.length > 0
-								? resultNews.map((news) => (
+						<div className={cn(hidden ? "hidden" : "flex flex-col")}>
+							{!isPending && data.news.length > 0
+								? data.news.map((news) => (
 										<Link
 											to={`/news/${news.id}`}
 											state={{
@@ -184,8 +190,8 @@ export default function Index() {
 									))
 								: null}
 
-							{resultSymbols.length > 0
-								? resultSymbols.map((symbol, i) => {
+							{!isPending && data.symbols.length > 0
+								? data.symbols.map((symbol, i) => {
 										const prefix = symbol.prefix?.toUpperCase() ?? symbol.exchange.toUpperCase()
 										const normalizedSymbol = normalizeSymbolHtml(symbol.symbol)
 
@@ -219,7 +225,27 @@ export default function Index() {
 						</div>
 					</div>
 				)}
+
+				{isPending ? (
+					<div className="mt-2">
+						<div className="flex flex-col gap-2">
+							{Array.from({ length: 50 }).map((_, index) => (
+								// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+								<SkeletonSearch key={index} />
+							))}
+						</div>
+					</div>
+				) : null}
 			</div>
+		</div>
+	)
+}
+
+function SkeletonSearch() {
+	return (
+		<div className="flex flex-row justify-between">
+			<Skeleton className="h-6 w-6/12" />
+			<Skeleton className="h-6 w-1/12" />
 		</div>
 	)
 }

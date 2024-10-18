@@ -3,8 +3,9 @@ import Database from "better-sqlite3"
 import {
 	news as newsSchema,
 	newsRelatedSymbols as newsRelatedSymbolsSchema,
-	newsArticle as newsArticleSchema
-} from "../../db/schema/news.js"
+	newsArticle as newsArticleSchema,
+	type News,
+	type NewsArticle} from "../../db/schema/news.js"
 import { symbols as symbolsSchema } from "../../db/schema/symbols.js"
 import { and, desc, eq, gte, inArray, like, lte, or } from "drizzle-orm"
 import config from "../../config.js"
@@ -19,6 +20,12 @@ import {
 } from "../../db/schema/notifications.js"
 import { sendNotification } from "./notifications.js"
 
+interface FullNews {
+	news: News
+	// biome-ignore lint/suspicious/noExplicitAny: TODO: Type
+	relatedSymbols: any
+}
+
 async function getNews({ page = 1, limit = 10 }: { page?: number; limit?: number }) {
 	const sqlite = new Database("../db/sqlite.db")
 	const db = drizzle(sqlite)
@@ -30,8 +37,7 @@ async function getNews({ page = 1, limit = 10 }: { page?: number; limit?: number
 		.offset(limit * (page - 1))
 		.orderBy(desc(newsSchema.published))
 
-	// biome-ignore lint/suspicious/noEvolvingTypes: TODO: Type
-	const news = []
+	const news: FullNews[] = []
 	for (const newsItem of allNews) {
 		const relatedSymbols = await db
 			.select()
@@ -263,7 +269,7 @@ async function saveFetchNews() {
 
 		if (exists.length === 0) {
 			const notification = await getNotificationNews(news)
-	
+
 			if (notification) {
 				allNotifications.push(...notification)
 			}
@@ -322,19 +328,18 @@ async function getNotificationNews(news: NewsItem) {
 		let articleText = ""
 		// biome-ignore lint/suspicious/noExplicitAny:
 		const flatten = (node: any) => {
-	
 			// console.log(node)
 			if (typeof node === "string") {
 				articleText += node
 			}
-	
+
 			if (node.children) {
 				for (const child of node.children) {
 					flatten(child)
 				}
 			}
 		}
-	
+
 		flatten(news.article?.jsonDescription)
 
 		longDescriptionWords = articleText.split(" ").map((word) => word.toLowerCase())
@@ -456,7 +461,6 @@ function getNewsImportanceScore(
 	let articleText = ""
 	// biome-ignore lint/suspicious/noExplicitAny:
 	const flatten = (node: any) => {
-
 		// console.log(node)
 		if (typeof node === "string") {
 			articleText += node
@@ -550,6 +554,12 @@ async function getNewsFromDates(from: number, to: number) {
 	return news
 }
 
+interface ImportantNews {
+	news: News
+	// biome-ignore lint/style/useNamingConvention: <explanation>
+	news_article: NewsArticle
+}
+
 async function getLastImportantNews(from: Date, to: Date, importance: number, limit: number) {
 	const sqlite = new Database("../db/sqlite.db")
 	const db = drizzle(sqlite)
@@ -585,4 +595,9 @@ export {
 	searchNews,
 	getNewsFromDates,
 	getLastImportantNews
+}
+
+export type {
+	FullNews,
+	ImportantNews
 }
