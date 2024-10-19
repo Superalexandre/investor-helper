@@ -140,7 +140,13 @@ new PushManager({
 			data: {
 				url: data.options?.data?.url || "/"
 			},
-			requireInteraction: true
+			// requireInteraction: true,
+			silent: false,
+			// @ts-ignore
+			actions: [
+				{ action: 'open', title: 'Ouvrir' },
+				{ action: 'dismiss', title: 'Ignorer' }
+			],
 		}
 
 		const windowClients = await self.clients.matchAll({
@@ -170,12 +176,38 @@ new PushManager({
 			self.registration.showNotification(data.title, options)
 		}
 	},
-	handleNotificationClick: (event) => {
+	handleNotificationClick: async(event) => {
 		const data = event.notification.data
 
-		console.log("Notification click", data)
+		event.notification.close();
 
-		event.waitUntil(self.clients.openWindow(data.url || "/"))
+		const promise = new Promise((resolve, reject) => {
+			const timeout = setTimeout(() => {
+				reject("Timeout")
+			}, 5000)
+
+			self.clients.matchAll({
+				type: "window",
+				includeUncontrolled: true
+			}).then((clients) => {
+				for (const client of clients) {
+					if (client.url === data.url && "focus" in client) {
+						client.focus()
+						resolve(client)
+					}
+				}
+
+				clearTimeout(timeout)
+				reject("No client found")
+			})
+
+			self.clients.openWindow(data.url || "/").then((client) => {
+				clearTimeout(timeout)
+				resolve(client)
+			})
+		})
+
+		event.waitUntil(promise)
 	},
 	handleNotificationClose: (event) => {
 		console.log("Notification close", event)

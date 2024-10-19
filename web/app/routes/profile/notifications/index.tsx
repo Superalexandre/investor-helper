@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
-import { Form, redirect, useFetcher, useLoaderData, useSubmit } from "@remix-run/react"
+import { redirect, useFetcher, useLoaderData, useSubmit } from "@remix-run/react"
 import { getUser } from "@/session.server"
 import BackButton from "../../../components/backButton"
 import { getUserNotifications } from "../../../../utils/notifications"
@@ -17,6 +17,7 @@ import {
 import { usePush } from "@remix-pwa/push/client"
 import { useState } from "react"
 import { Input } from "../../../components/ui/input"
+import DialogNotification from "../../../components/dialogNotification"
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const user = await getUser(request)
@@ -53,20 +54,20 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Index() {
-	const { calendarNotifications, subscribedNews, fullSubscribedNews } = useLoaderData<typeof loader>()
+	const { calendarNotifications, fullSubscribedNews } = useLoaderData<typeof loader>()
 	const fetcher = useFetcher()
+	const { isSubscribed } = usePush()
 
-	console.log(subscribedNews)
-
+	const [notificationOpen, setNotificationOpen] = useState(false)
 	const [notificationNewsOpen, setNotificationNewsOpen] = useState(false)
 
 	return (
 		<div className="relative flex w-full flex-col items-center overflow-hidden">
 			<BackButton 
 				safeRedirect="/profile"
-
 			/>
 
+			<DialogNotification open={notificationOpen} setOpen={setNotificationOpen} />
 			<DialogNewNotificationNews open={notificationNewsOpen} setOpen={setNotificationNewsOpen} />
 
 			<div className="mt-4 flex w-full flex-col items-center justify-center gap-10">
@@ -109,7 +110,13 @@ export default function Index() {
 					<div className="flex flex-col items-center justify-center gap-2">
 						<Button
 							className="flex flex-row items-center justify-center gap-2"
-							onClick={() => setNotificationNewsOpen(true)}
+							onClick={() => {
+								if (isSubscribed) {
+									setNotificationNewsOpen(true)
+								} else {
+									setNotificationOpen(true)
+								}
+							}}
 						>
 							Ajouter une notification
 							<MdAdd />
@@ -162,11 +169,12 @@ function DialogNewNotificationNews({
 }) {
 	const { pushSubscription } = usePush()
 	const submit = useSubmit()
+	const fetcher = useFetcher()
 
 	return (
 		<Dialog open={open} onOpenChange={(openChange) => setOpen(openChange)}>
 			<DialogContent className="w-11/12">
-				<Form
+				<fetcher.Form
 					method="post"
 					action="/api/notifications/subscribe/news"
 					onSubmit={(e) => {
@@ -216,7 +224,7 @@ function DialogNewNotificationNews({
 							Ajouter
 						</Button>
 					</DialogFooter>
-				</Form>
+				</fetcher.Form>
 			</DialogContent>
 		</Dialog>
 	)
