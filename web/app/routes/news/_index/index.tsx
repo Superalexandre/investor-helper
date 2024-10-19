@@ -1,5 +1,4 @@
 import type { MetaFunction } from "@remix-run/node"
-import type { FullNews } from "@/utils/news"
 import { Link, useLocation } from "@remix-run/react"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -17,6 +16,7 @@ import { MdArrowBack, MdArrowForward } from "react-icons/md"
 import ImportanceBadge from "@/components/importanceBadge"
 import { useQuery } from "@tanstack/react-query"
 import { Skeleton } from "../../../components/ui/skeleton"
+import type { NewsSymbols } from "../../../../types/News"
 
 export const meta: MetaFunction = () => {
 	const title = "Investor Helper - Les actualités"
@@ -44,7 +44,7 @@ export default function Index() {
 		data: news,
 		isPending,
 		error
-	} = useQuery<FullNews[]>({
+	} = useQuery<NewsSymbols[]>({
 		queryKey: [
 			"news",
 			{

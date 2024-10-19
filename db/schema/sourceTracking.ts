@@ -1,7 +1,7 @@
 import { int, sqliteTable, text } from "drizzle-orm/sqlite-core"
 import { v4 as uuid } from "uuid"
 
-export const sourceTracking = sqliteTable("source_tracking", {
+export const sourceTrackingSchema = sqliteTable("source_tracking", {
 	id: text("id")
 		.primaryKey()
 		.unique()
@@ -22,4 +22,4 @@ export const sourceTracking = sqliteTable("source_tracking", {
 		.$defaultFn(() => new Date().toISOString())
 })
 
-export type SourceTracking = typeof sourceTracking.$inferSelect
+export type SourceTracking = typeof sourceTrackingSchema.$inferSelect

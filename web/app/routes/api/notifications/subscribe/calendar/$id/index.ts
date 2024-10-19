@@ -2,13 +2,13 @@ import { type ActionFunctionArgs, json } from "@remix-run/node"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import {
-	notificationEvent as notificationEventSchema,
-	notification as notificationSchema
+	notificationEventSchema,
+	notificationSchema
 } from "@/schema/notifications"
 // import { generateSubscriptionId } from "@remix-pwa/push"
 import { getUser } from "../../../../../../session.server"
 import { and, eq } from "drizzle-orm"
-import { events } from "../../../../../../../../db/schema/events"
+import { eventsSchema } from "../../../../../../../../db/schema/events"
 
 export function loader() {
 	return null
@@ -71,12 +71,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	}
 
 	// Check if the event is passed
-	const event = await db
+	const events = await db
 		.select()
-		.from(events)
-		.where(eq(events.id, id))
+		.from(eventsSchema)
+		.where(eq(eventsSchema.id, id))
 
-	if (event.length <= 0) {
+	if (events.length <= 0) {
 		return json({
 			success: false,
 			error: true,
@@ -84,7 +84,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		})
 	}
 
-	const eventDate = new Date(event[0].date)
+	const eventDate = new Date(events[0].date)
 	const now = new Date()
 
 	if (eventDate.getTime() < now.getTime()) {

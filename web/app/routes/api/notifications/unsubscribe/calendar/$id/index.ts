@@ -1,7 +1,7 @@
 import { type ActionFunctionArgs, json } from "@remix-run/node"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
-import { notificationEvent as notificationEventSchema } from "@/schema/notifications"
+import { notificationEventSchema } from "@/schema/notifications"
 // import { generateSubscriptionId } from "@remix-pwa/push"
 import { getUser } from "../../../../../../session.server"
 import { and, eq } from "drizzle-orm"

@@ -1,30 +1,23 @@
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
 import {
-	news as newsSchema,
-	newsRelatedSymbols as newsRelatedSymbolsSchema,
-	newsArticle as newsArticleSchema,
-	type News,
-	type NewsArticle} from "../../db/schema/news.js"
-import { symbols as symbolsSchema } from "../../db/schema/symbols.js"
+	newsSchema,
+	newsRelatedSymbolsSchema,
+	newsArticleSchema } from "../../db/schema/news.js"
+import { symbolsSchema } from "../../db/schema/symbols.js"
 import { and, desc, eq, gte, inArray, like, lte, or } from "drizzle-orm"
 import config from "../../config.js"
 
 import refreshSymbol from "./refreshSymbol.js"
 import { parse } from "node-html-parser"
 import {
-	notification,
-	notificationSubscribedNews,
-	notificationSubscribedNewsKeywords,
-	notificationSubscribedNewsSymbols
+	notificationSchema,
+	notificationSubscribedNewsSchema,
+	notificationSubscribedNewsKeywordsSchema,
+	notificationSubscribedNewsSymbolsSchema
 } from "../../db/schema/notifications.js"
 import { sendNotification } from "./notifications.js"
-
-interface FullNews {
-	news: News
-	// biome-ignore lint/suspicious/noExplicitAny: TODO: Type
-	relatedSymbols: any
-}
+import type { NewsSymbols, NewsSymbolsArticle } from "../types/News.js"
 
 async function getNews({ page = 1, limit = 10 }: { page?: number; limit?: number }) {
 	const sqlite = new Database("../db/sqlite.db")
@@ -37,7 +30,7 @@ async function getNews({ page = 1, limit = 10 }: { page?: number; limit?: number
 		.offset(limit * (page - 1))
 		.orderBy(desc(newsSchema.published))
 
-	const news: FullNews[] = []
+	const news: NewsSymbols[] = []
 	for (const newsItem of allNews) {
 		const relatedSymbols = await db
 			.select()
@@ -76,25 +69,6 @@ async function getNewsById({ id }: { id: string }) {
 	return {
 		news,
 		relatedSymbols: relatedSymbolsResults
-	}
-}
-
-interface NewsItem {
-	id: string
-	title: string
-	storyPath: string
-	sourceLogoId: string
-	published: number
-	source: string
-	urgency: number
-	provider: string
-	link: string
-	relatedSymbols: { symbol: string }[]
-	article: {
-		jsonDescription: string
-		shortDescription: string
-		importanceScore: number
-		copyright: string
 	}
 }
 
@@ -197,7 +171,7 @@ async function fetchNews() {
 		}
 	}
 
-	return newsCopy as NewsItem[]
+	return newsCopy as NewsSymbolsArticle[]
 }
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: TODO: Refactor this function
@@ -312,7 +286,7 @@ interface NotificationToSend {
 	}
 }
 
-async function getNotificationNews(news: NewsItem) {
+async function getNotificationNews(news: NewsSymbolsArticle) {
 	const sqlite = new Database("../db/sqlite.db")
 	const db = drizzle(sqlite)
 
@@ -348,12 +322,12 @@ async function getNotificationNews(news: NewsItem) {
 	// Send a notification to the users that are subscribed to the news keywords
 	const keywords = await db
 		.select()
-		.from(notificationSubscribedNewsKeywords)
+		.from(notificationSubscribedNewsKeywordsSchema)
 		.where(
 			or(
-				inArray(notificationSubscribedNewsKeywords.keyword, titleWords),
-				inArray(notificationSubscribedNewsKeywords.keyword, shortDescriptionWords),
-				inArray(notificationSubscribedNewsKeywords.keyword, longDescriptionWords)
+				inArray(notificationSubscribedNewsKeywordsSchema.keyword, titleWords),
+				inArray(notificationSubscribedNewsKeywordsSchema.keyword, shortDescriptionWords),
+				inArray(notificationSubscribedNewsKeywordsSchema.keyword, longDescriptionWords)
 			)
 		)
 
@@ -364,17 +338,17 @@ async function getNotificationNews(news: NewsItem) {
 
 	const symbols = await db
 		.select()
-		.from(notificationSubscribedNewsSymbols)
-		.where(inArray(notificationSubscribedNewsSymbols.symbol, symbolsArticle))
+		.from(notificationSubscribedNewsSymbolsSchema)
+		.where(inArray(notificationSubscribedNewsSymbolsSchema.symbol, symbolsArticle))
 
 	const notificationsToSend: NotificationToSend[] = []
 	if (keywords.length > 0 || symbols.length > 0) {
 		for (const { keyword, notificationId } of keywords) {
 			const notificationInfo = await db
 				.select()
-				.from(notificationSubscribedNews)
-				.innerJoin(notification, eq(notification.userId, notificationSubscribedNews.userId))
-				.where(eq(notificationSubscribedNews.notificationId, notificationId))
+				.from(notificationSubscribedNewsSchema)
+				.innerJoin(notificationSchema, eq(notificationSchema.userId, notificationSubscribedNewsSchema.userId))
+				.where(eq(notificationSubscribedNewsSchema.notificationId, notificationId))
 
 			notificationsToSend.push({
 				number: 1,
@@ -424,8 +398,8 @@ async function reduceAndSendNotifications(notifications: NotificationToSend[] | 
 	for (const notificationContent of reducedNotifications) {
 		const notificationsInfo = await db
 			.select()
-			.from(notification)
-			.where(eq(notification.userId, notificationContent.userId))
+			.from(notificationSchema)
+			.where(eq(notificationSchema.userId, notificationContent.userId))
 
 		for (const notificationInfo of notificationsInfo) {
 			sendNotification({
@@ -554,12 +528,6 @@ async function getNewsFromDates(from: number, to: number) {
 	return news
 }
 
-interface ImportantNews {
-	news: News
-	// biome-ignore lint/style/useNamingConvention: <explanation>
-	news_article: NewsArticle
-}
-
 async function getLastImportantNews(from: Date, to: Date, importance: number, limit: number) {
 	const sqlite = new Database("../db/sqlite.db")
 	const db = drizzle(sqlite)
@@ -595,9 +563,4 @@ export {
 	searchNews,
 	getNewsFromDates,
 	getLastImportantNews
-}
-
-export type {
-	FullNews,
-	ImportantNews
 }

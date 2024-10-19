@@ -2,7 +2,7 @@ import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
-import { wallet as walletSchema } from "./schema/users.js"
+import { walletSchema } from "./schema/users.js"
 
 // node --loader ts-node/esm ./db/createWallet.ts -u UUID
 

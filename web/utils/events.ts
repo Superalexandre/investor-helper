@@ -2,8 +2,9 @@ import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
 import config from "../../config.js"
 import { startOfWeek, formatISO, addDays } from "date-fns"
-import { type Events, events as eventsSchema } from "../../db/schema/events.js"
+import { type Events, eventsSchema } from "../../db/schema/events.js"
 import { and, asc, desc, eq, gte, isNotNull, lte } from "drizzle-orm"
+import type { EventRaw } from "../types/Events.js"
 
 // interface EconomicEvent {
 //     id: number,
@@ -171,33 +172,6 @@ async function getEventById({ id }: { id: string }) {
 	return {
 		event: event[0]
 	}
-}
-
-interface EventRaw {
-	[key: string]: string | number | null
-	id: string
-	title: string
-	country: string
-	indicator: string
-	category: string | null
-	period: string
-	referenceDate: null | string
-	source: string
-	// biome-ignore lint/style/useNamingConvention: API response
-	source_url: string
-	actual: null | number
-	previous: null | number
-	forecast: null | number
-	actualRaw: null | number
-	previousRaw: null | number
-	forecastRaw: null | number
-	currency: string
-	importance: number
-	date: string
-	ticker: string | null
-	comment: string | null
-	unit: string | null
-	scale: string | null
 }
 
 async function fetchEvents() {

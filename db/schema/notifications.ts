@@ -1,11 +1,11 @@
 import { int, sqliteTable, text } from "drizzle-orm/sqlite-core"
-import { users } from "./users.js"
-import { events } from "./events.js"
-import { symbols } from "./symbols.js"
+import { usersSchema } from "./users.js"
+import { eventsSchema } from "./events.js"
+import { symbolsSchema } from "./symbols.js"
 
-export const notification = sqliteTable("notifications", {
+export const notificationSchema = sqliteTable("notifications", {
 	userId: text("user_id")
-		.references(() => users.id)
+		.references(() => usersSchema.id)
 		.notNull(),
 	endpoint: text("endpoint").notNull(),
 	p256dh: text("p256dh").notNull(),
@@ -19,14 +19,14 @@ export const notification = sqliteTable("notifications", {
 	plateform: text("plateform").default("web").notNull()
 })
 
-export type Notifications = typeof notification.$inferSelect
+export type Notifications = typeof notificationSchema.$inferSelect
 
-export const notificationEvent = sqliteTable("notification_event", {
+export const notificationEventSchema = sqliteTable("notification_event", {
 	userId: text("user_id")
-		.references(() => users.id)
+		.references(() => usersSchema.id)
 		.notNull(),
 	eventId: text("event_id")
-		.references(() => events.id)
+		.references(() => eventsSchema.id)
 		.notNull(),
 	remindThirtyMinutesBefore: int("remind_thirty_minutes_before", {
 		mode: "boolean"
@@ -42,11 +42,11 @@ export const notificationEvent = sqliteTable("notification_event", {
 	updatedAt: text("updated_at").$defaultFn(() => new Date().toISOString())
 })
 
-export type NotificationEvent = typeof notificationEvent.$inferSelect
+export type NotificationEvent = typeof notificationEventSchema.$inferSelect
 
-export const notificationSubscribedNews = sqliteTable("notification_subscribed_news", {
+export const notificationSubscribedNewsSchema = sqliteTable("notification_subscribed_news", {
 	userId: text("user_id")
-		.references(() => users.id)
+		.references(() => usersSchema.id)
 		.notNull(),
 
 	notificationId: text("notification_id").unique().notNull(),
@@ -68,24 +68,24 @@ export const notificationSubscribedNews = sqliteTable("notification_subscribed_n
 	updatedAt: text("updated_at").$defaultFn(() => new Date().toISOString())
 })
 
-export type NotificationSubscribedNews = typeof notificationSubscribedNews.$inferSelect
+export type NotificationSubscribedNews = typeof notificationSubscribedNewsSchema.$inferSelect
 
-export const notificationSubscribedNewsKeywords = sqliteTable("notification_subscribed_news_keywords", {
+export const notificationSubscribedNewsKeywordsSchema = sqliteTable("notification_subscribed_news_keywords", {
 	notificationId: text("notification_id")
-		.references(() => notificationSubscribedNews.notificationId)
+		.references(() => notificationSubscribedNewsSchema.notificationId)
 		.notNull(),
 	keyword: text("keyword").notNull()
 })
 
-export type NotificationSubscribedNewsKeywords = typeof notificationSubscribedNewsKeywords.$inferSelect
+export type NotificationSubscribedNewsKeywords = typeof notificationSubscribedNewsKeywordsSchema.$inferSelect
 
-export const notificationSubscribedNewsSymbols = sqliteTable("notification_subscribed_news_symbols", {
+export const notificationSubscribedNewsSymbolsSchema = sqliteTable("notification_subscribed_news_symbols", {
 	notificationId: text("notification_id")
-		.references(() => notificationSubscribedNews.notificationId)
+		.references(() => notificationSubscribedNewsSchema.notificationId)
 		.notNull(),
 	symbol: text("symbol")
-		.references(() => symbols.symbolId)
+		.references(() => symbolsSchema.symbolId)
 		.notNull()
 })
 
-export type NotificationSubscribedNewsSymbols = typeof notificationSubscribedNewsSymbols.$inferSelect
+export type NotificationSubscribedNewsSymbols = typeof notificationSubscribedNewsSymbolsSchema.$inferSelect

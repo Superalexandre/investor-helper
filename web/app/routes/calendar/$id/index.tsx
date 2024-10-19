@@ -22,7 +22,7 @@ import type { Events } from "@/schema/events"
 import countries from "@/lang/countries-fr"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
-import { notificationEvent } from "@/schema/notifications"
+import { notificationEventSchema } from "@/schema/notifications"
 import { and, eq } from "drizzle-orm"
 import { usePush } from "@remix-pwa/push/client"
 import DialogNotification from "@/components/dialogNotification"
@@ -63,8 +63,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 	if (user) {
 		const resultDb = await db
 			.select()
-			.from(notificationEvent)
-			.where(and(eq(notificationEvent.userId, user.id), eq(notificationEvent.eventId, id)))
+			.from(notificationEventSchema)
+			.where(and(eq(notificationEventSchema.userId, user.id), eq(notificationEventSchema.eventId, id)))
 
 		hasNotification = resultDb.length > 0
 	}

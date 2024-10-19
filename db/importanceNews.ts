@@ -1,10 +1,6 @@
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
-import {
-	newsArticle as newsArticleSchema,
-	newsRelatedSymbols as newsRelatedSymbolsSchema,
-	news as newsSchema
-} from "./schema/news.js"
+import { newsArticleSchema, newsRelatedSymbolsSchema, newsSchema } from "./schema/news.js"
 import { eq } from "drizzle-orm"
 import { getNewsImportanceScore } from "../web/utils/news.js"
 

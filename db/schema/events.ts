@@ -1,6 +1,6 @@
 import { int, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
-export const events = sqliteTable("events", {
+export const eventsSchema = sqliteTable("events", {
 	id: text("id").primaryKey().unique(),
 	title: text("title").notNull(),
 	country: text("country").notNull(),
@@ -26,4 +26,4 @@ export const events = sqliteTable("events", {
 	date: text("date").notNull()
 })
 
-export type Events = typeof events.$inferSelect
+export type Events = typeof eventsSchema.$inferSelect

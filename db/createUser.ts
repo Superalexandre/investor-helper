@@ -2,7 +2,7 @@ import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
-import { users as usersSchema } from "./schema/users.js"
+import { usersSchema } from "./schema/users.js"
 import bcrypt from "bcrypt"
 import crypto from "node:crypto"
 

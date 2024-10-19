@@ -1,7 +1,7 @@
 import { type ActionFunctionArgs, json } from "@remix-run/node"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
-import { notification as notificationSchema } from "@/schema/notifications"
+import { notificationSchema } from "@/schema/notifications"
 import { and, eq } from "drizzle-orm"
 
 export function loader() {

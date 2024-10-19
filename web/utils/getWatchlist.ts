@@ -2,8 +2,8 @@ import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
 import {
 	type User,
-	watchList as watchListSchema,
-	watchListSymbols as watchListSymbolsSchema
+	watchListSchema,
+	watchListSymbolsSchema
 } from "../../db/schema/users.js"
 import { eq } from "drizzle-orm"
 

@@ -1,8 +1,8 @@
 import { relations } from "drizzle-orm"
 import { int, sqliteTable, text } from "drizzle-orm/sqlite-core"
-import { symbols } from "./symbols.js"
+import { symbolsSchema } from "./symbols.js"
 
-export const news = sqliteTable("news", {
+export const newsSchema = sqliteTable("news", {
 	id: text("id").primaryKey().unique(),
 	title: text("title").notNull(),
 	storyPath: text("story_path").notNull(),
@@ -17,23 +17,23 @@ export const news = sqliteTable("news", {
 	importanceScore: int("importance_score").notNull().default(0)
 })
 
-export type News = typeof news.$inferSelect
+export type News = typeof newsSchema.$inferSelect
 
-export const newsRelatedSymbols = sqliteTable("news_related_symbol", {
-	newsId: text("news_id").references(() => news.id),
-	symbol: text("symbol").references(() => symbols.symbolId)
+export const newsRelatedSymbolsSchema = sqliteTable("news_related_symbol", {
+	newsId: text("news_id").references(() => newsSchema.id),
+	symbol: text("symbol").references(() => symbolsSchema.symbolId)
 })
 
-export type NewsRelatedSymbols = typeof newsRelatedSymbols.$inferSelect
+export type NewsRelatedSymbols = typeof newsRelatedSymbolsSchema.$inferSelect
 
-export const newsRelation = relations(news, ({ many }) => ({
-	relatedSymbols: many(newsRelatedSymbols)
+export const newsRelationSchema = relations(newsSchema, ({ many }) => ({
+	relatedSymbols: many(newsRelatedSymbolsSchema)
 }))
 
-export type NewsRelatedSymbol = typeof newsRelatedSymbols.$inferSelect
+export type NewsRelatedSymbol = typeof newsRelatedSymbolsSchema.$inferSelect
 
-export const newsArticle = sqliteTable("news_article", {
-	newsId: text("news_id").references(() => news.id),
+export const newsArticleSchema = sqliteTable("news_article", {
+	newsId: text("news_id").references(() => newsSchema.id),
 	date: int("date"),
 	// htmlDescription: text("html_description")
 	//     .notNull(),
@@ -44,4 +44,4 @@ export const newsArticle = sqliteTable("news_article", {
 	copyright: text("copyright")
 })
 
-export type NewsArticle = typeof newsArticle.$inferSelect
+export type NewsArticle = typeof newsArticleSchema.$inferSelect

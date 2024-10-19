@@ -2,7 +2,7 @@ import { getUser } from "@/session.server"
 import { type ActionFunction, type ActionFunctionArgs, json, redirect } from "@remix-run/node"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
-import { wallet as walletSchema } from "../../../../../../db/schema/users"
+import { walletSchema } from "../../../../../../db/schema/users"
 
 export const action: ActionFunction = async ({ request }: ActionFunctionArgs) => {
 	const user = await getUser(request)

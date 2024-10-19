@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { usePWAManager } from "@remix-pwa/client"
 import { MdDownload } from "react-icons/md"
-import type { ImportantNews } from "@/utils/news"
+import type {  } from "@/utils/news"
 import { Link, useNavigate } from "@remix-run/react"
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { formatDistanceToNow } from "date-fns"
@@ -13,6 +13,7 @@ import countries from "../../../lang/countries-fr"
 import { useQuery } from "@tanstack/react-query"
 import { Skeleton } from "../components/ui/skeleton"
 import type { Events } from "../../../db/schema/events"
+import type { NewsArticle } from "../../types/News"
 
 export const meta: MetaFunction = () => {
 	const title = "Investor Helper"
@@ -130,7 +131,7 @@ function DisplayLastNews() {
 		data: lastNews,
 		isPending,
 		error
-	} = useQuery<ImportantNews[]>({
+	} = useQuery<NewsArticle[]>({
 		queryKey: ["importantNews"],
 		queryFn: async () => {
 			const req = await fetch("/api/news/important")

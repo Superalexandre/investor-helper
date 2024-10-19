@@ -1,4 +1,4 @@
-import { notification as notificationSchema } from "@/schema/notifications"
+import { notificationSchema } from "@/schema/notifications"
 import { sendNotifications } from "@remix-pwa/push"
 import type { LoaderFunctionArgs } from "@remix-run/node"
 import Database from "better-sqlite3"

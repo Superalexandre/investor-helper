@@ -2,7 +2,7 @@ import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
-import { walletSymbols as walletSymbolsSchema } from "./schema/users.js"
+import { walletSymbolsSchema } from "./schema/users.js"
 
 /*
 "EURONEXT:CHIP"

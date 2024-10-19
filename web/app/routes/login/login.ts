@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs"
 import Database from "better-sqlite3"
 import { eq, or, sql } from "drizzle-orm"
 import { drizzle } from "drizzle-orm/better-sqlite3"
-import { users as usersSchema } from "../../../../db/schema/users"
+import { usersSchema } from "../../../../db/schema/users"
 import crypto from "node:crypto"
 import { createUserSession } from "@/session.server"
 

@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
-import { type User, wallet as walletSchema, walletSymbols as walletSymbolsSchema } from "../../db/schema/users.js"
+import { type User, walletSchema, walletSymbolsSchema } from "../../db/schema/users.js"
 import { eq } from "drizzle-orm"
 import { getUserByToken } from "@/session.server.js"
 

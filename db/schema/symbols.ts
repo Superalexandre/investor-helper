@@ -1,6 +1,6 @@
 import { int, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
-export const symbols = sqliteTable("symbol", {
+export const symbolsSchema = sqliteTable("symbol", {
 	symbolId: text("id").primaryKey().unique(),
 	lastUpdate: text("last_update")
 		.notNull()
@@ -29,4 +29,4 @@ export const symbols = sqliteTable("symbol", {
 })
 
 // export type NewsRelatedSymbol = typeof newsRelatedSymbols.$inferSelect
-export type Symbol = typeof symbols.$inferSelect
+export type Symbol = typeof symbolsSchema.$inferSelect

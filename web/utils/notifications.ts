@@ -2,19 +2,19 @@ import Database from "better-sqlite3"
 import { getEventsNow } from "./events.js"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import {
-	notificationEvent as notificationEventSchema,
-	notification as notificationSchema,
+	notificationEventSchema,
+	notificationSchema,
 	type NotificationSubscribedNews,
-	notificationSubscribedNews,
+	notificationSubscribedNewsSchema,
 	type NotificationSubscribedNewsKeywords,
-	notificationSubscribedNewsKeywords,
+	notificationSubscribedNewsKeywordsSchema,
 	type NotificationSubscribedNewsSymbols,
-	notificationSubscribedNewsSymbols
+	notificationSubscribedNewsSymbolsSchema
 } from "../../db/schema/notifications.js"
 import { and, eq } from "drizzle-orm"
 import { sendNotifications } from "@remix-pwa/push"
 import type { User } from "../../db/schema/users.js"
-import { events } from "../../db/schema/events.js"
+import { eventsSchema } from "../../db/schema/events.js"
 
 async function sendNotificationEvent() {
 	const actualEvent = await getEventsNow()
@@ -127,26 +127,26 @@ async function getUserNotifications(user: User) {
 	const calendarNotifications = await db
 		.select()
 		.from(notificationEventSchema)
-		.innerJoin(events, eq(notificationEventSchema.eventId, events.id))
+		.innerJoin(eventsSchema, eq(notificationEventSchema.eventId, eventsSchema.id))
 		.where(eq(notificationEventSchema.userId, user.id))
 
 	const subscribedNews = await db
 		.select()
-		.from(notificationSubscribedNews)
-		.where(eq(notificationSubscribedNews.userId, user.id))
+		.from(notificationSubscribedNewsSchema)
+		.where(eq(notificationSubscribedNewsSchema.userId, user.id))
 
 	const fullSubscribedNews: FullSubscribedNews[] = []
 
 	for (const news of subscribedNews) {
 		const keywords = await db
 			.select()
-			.from(notificationSubscribedNewsKeywords)
-			.where(eq(notificationSubscribedNewsKeywords.notificationId, news.notificationId))
+			.from(notificationSubscribedNewsKeywordsSchema)
+			.where(eq(notificationSubscribedNewsKeywordsSchema.notificationId, news.notificationId))
 
 		const symbols = await db
 			.select()
-			.from(notificationSubscribedNewsSymbols)
-			.where(eq(notificationSubscribedNewsSymbols.notificationId, news.notificationId))
+			.from(notificationSubscribedNewsSymbolsSchema)
+			.where(eq(notificationSubscribedNewsSymbolsSchema.notificationId, news.notificationId))
 
 		fullSubscribedNews.push({
 			...news,

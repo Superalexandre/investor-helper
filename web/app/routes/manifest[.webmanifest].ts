@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import type { WebAppManifest } from "@remix-pwa/dev"
 import { json } from "@remix-run/node"
 

@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs"
 import Database from "better-sqlite3"
 import { eq, sql } from "drizzle-orm"
 import { drizzle } from "drizzle-orm/better-sqlite3"
-import { users as usersSchema } from "@/schema/users"
+import { usersSchema } from "@/schema/users"
 import { createUserSession } from "../../session.server"
 
 interface FormData {

@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
-import { symbols as symbolsSchema } from "../../db/schema/symbols.js"
+import { symbolsSchema } from "../../db/schema/symbols.js"
 import { eq } from "drizzle-orm"
 import getSymbolData from "./getSymbol.js"
 

@@ -2,9 +2,9 @@ import { sqliteTable, text, int } from "drizzle-orm/sqlite-core"
 // import { createId } from "@paralleldrive/cuid2"
 import crypto from "node:crypto"
 import { v4 as uuidv4 } from "uuid"
-import { symbols } from "./symbols.js"
+import { symbolsSchema } from "./symbols.js"
 
-export const users = sqliteTable("user", {
+export const usersSchema = sqliteTable("user", {
 	id: text("id")
 		.primaryKey()
 		.unique()
@@ -34,10 +34,10 @@ export const users = sqliteTable("user", {
 		.notNull()
 })
 
-export type User = typeof users.$inferSelect
+export type User = typeof usersSchema.$inferSelect
 
-export const watchList = sqliteTable("watch_list", {
-	userId: text("user_id").references(() => users.id),
+export const watchListSchema = sqliteTable("watch_list", {
+	userId: text("user_id").references(() => usersSchema.id),
 	listId: text("list_id")
 		.notNull()
 		.unique()
@@ -54,17 +54,17 @@ export const watchList = sqliteTable("watch_list", {
 		.$defaultFn(() => new Date().toISOString())
 })
 
-export type WatchList = typeof watchList.$inferSelect
+export type WatchList = typeof watchListSchema.$inferSelect
 
-export const watchListSymbols = sqliteTable("watch_list_symbol", {
-	listId: text("list_id").references(() => watchList.listId),
-	symbol: text("symbol").references(() => symbols.symbolId)
+export const watchListSymbolsSchema = sqliteTable("watch_list_symbol", {
+	listId: text("list_id").references(() => watchListSchema.listId),
+	symbol: text("symbol").references(() => symbolsSchema.symbolId)
 })
 
-export type WatchListSymbol = typeof watchListSymbols.$inferSelect
+export type WatchListSymbol = typeof watchListSymbolsSchema.$inferSelect
 
-export const wallet = sqliteTable("wallet", {
-	userId: text("user_id").references(() => users.id),
+export const walletSchema = sqliteTable("wallet", {
+	userId: text("user_id").references(() => usersSchema.id),
 	walletId: text("wallet_id")
 		.notNull()
 		.unique()
@@ -81,9 +81,9 @@ export const wallet = sqliteTable("wallet", {
 		.$defaultFn(() => new Date().toISOString())
 })
 
-export type Wallet = typeof wallet.$inferSelect
+export type Wallet = typeof walletSchema.$inferSelect
 
-export const walletSymbols = sqliteTable("wallet_symbol", {
+export const walletSymbolsSchema = sqliteTable("wallet_symbol", {
 	transactionId: text("transaction_id")
 		.notNull()
 		.unique()
@@ -93,7 +93,7 @@ export const walletSymbols = sqliteTable("wallet_symbol", {
 		.primaryKey(),
 	walletId: text("wallet_id")
 		.notNull()
-		.references(() => wallet.walletId),
+		.references(() => walletSchema.walletId),
 	symbol: text("symbol").notNull(),
 	currency: text("currency").notNull(),
 	quantity: int("quantity")
@@ -109,4 +109,4 @@ export const walletSymbols = sqliteTable("wallet_symbol", {
 	soldAt: text("sold_at")
 })
 
-export type WalletSymbol = typeof walletSymbols.$inferSelect
+export type WalletSymbol = typeof walletSymbolsSchema.$inferSelect

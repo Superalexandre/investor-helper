@@ -2,15 +2,11 @@ import { type ActionFunctionArgs, json } from "@remix-run/node"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import {
-	notificationEvent as notificationEventSchema,
-	notification as notificationSchema,
-    notificationSubscribedNews,
-    notificationSubscribedNewsKeywords
+	notificationSubscribedNewsSchema,
+    notificationSubscribedNewsKeywordsSchema
 } from "@/schema/notifications"
 // import { generateSubscriptionId } from "@remix-pwa/push"
 import { getUser } from "../../../../../session.server"
-import { and, eq } from "drizzle-orm"
-import { events } from "../../../../../../../db/schema/events"
 import { v4 as uuid } from "uuid"
 
 export function loader() {
@@ -45,7 +41,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const keysWords = formData.get("keywords") ? formData.get("keywords") as string : null
 
     const notificationId = uuid()
-    await db.insert(notificationSubscribedNews)
+    await db.insert(notificationSubscribedNewsSchema)
         .values({
             userId: user.id,
             notificationId: notificationId,
@@ -55,7 +51,7 @@ export async function action({ request }: ActionFunctionArgs) {
     if (keysWords) {
         const keys = keysWords.split(",")
         for (const key of keys) {
-            await db.insert(notificationSubscribedNewsKeywords)
+            await db.insert(notificationSubscribedNewsKeywordsSchema)
                 .values({
                     notificationId: notificationId,
                     keyword: key.trim(),
