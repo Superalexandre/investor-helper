@@ -9,7 +9,9 @@
         "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
         "start": "remix-serve ./build/server/index.js",
         "typecheck": "tsc",
-        "worker": "node --loader ts-node/esm worker.ts "
+        "worker": "node --loader ts-node/esm worker.ts",
+        "depcheck": "depcheck --ignores=ts-node,autoprefixer",
+		"duplicate": "npx jscpd . -i 'node_modules' -l 20"
     },
     "dependencies": {
         "@date-fns/tz": "^1.1.2",

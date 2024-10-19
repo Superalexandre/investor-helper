@@ -34,7 +34,7 @@ export const meta: MetaFunction = () => {
 
 export default function Index() {
 	const location = useLocation()
-	
+
 	const actualPage = location.search ? Number.parseInt(new URLSearchParams(location.search).get("page") || "1") : 1
 
 	const previousPage = location.search && actualPage - 1 >= 1 ? actualPage - 1 : 1
@@ -57,7 +57,7 @@ export default function Index() {
 
 			return json
 		},
-		refetchOnWindowFocus: true,
+		refetchOnWindowFocus: true
 	})
 
 	if (isPending) {
@@ -258,7 +258,7 @@ function DisplaySymbols({
 }
 
 function SkeletonNews() {
-	const random = Math.floor(Math.random() * 15) + 1
+	const random = 10
 	const badgeArray = Array.from({ length: random })
 
 	return (
