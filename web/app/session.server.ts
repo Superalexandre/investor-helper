@@ -3,7 +3,7 @@ import { redirect } from "@remix-run/node"
 import Database from "better-sqlite3"
 import { eq } from "drizzle-orm"
 import { drizzle } from "drizzle-orm/better-sqlite3"
-import { users as usersSchema, type User } from "../../db/schema/users"
+import { usersSchema, type User } from "../../db/schema/users"
 import "dotenv/config"
 
 const SESSION_KEY = "token"
