@@ -129,77 +129,106 @@ new PushManager({
 	handlePushEvent: async (event) => {
 		const data = event.data ? event.data.json() : {}
 
-		console.log("Push event", data)
+			console.log("Push event", data)
 
-		const options: NotificationOptions = {
-			body: data.options.body || "Nouvelle notification",
-			icon: data.options.icon || "/logo-192-192.png",
-			badge: data.options.badge || undefined,
-			// badge: "/badge.png",
-			// tag: data.tag || "notification",
-			data: {
-				url: data.options?.data?.url || "/"
-			},
-			// requireInteraction: true,
-			silent: false,
-			// @ts-ignore
-			actions: [
-				{ action: 'open', title: 'Ouvrir' },
-				{ action: 'dismiss', title: 'Ignorer' }
-			],
-		}
-
-		const windowClients = await self.clients.matchAll({
-			type: "window",
-			includeUncontrolled: true
-		})
-		const windowActiveClients = windowClients.filter((client) => client.focused)
-
-		if (windowActiveClients.length > 0) {
-			for (const client of windowActiveClients) {
-				if (client.focused) {
-					console.log("Client focused", client, client.postMessage)
-
-					client.postMessage({
-						type: "notification",
-						title: data.title,
-						body: data.options.body,
-						url: data.options.data.url || "/"
-					})
-				}
+			const options: NotificationOptions = {
+				body: data.options.body || "Nouvelle notification",
+				icon: data.options.icon || "/logo-192-192.png",
+				badge: data.options.badge || undefined,
+				// badge: "/badge.png",
+				// tag: data.tag || "notification",
+				data: {
+					url: data.options?.data?.url || "/"
+				},
+				// requireInteraction: true,
+				silent: false,
+				// @ts-ignore
+				actions: [
+					{ action: "open", title: "Ouvrir" },
+					{ action: "dismiss", title: "Ignorer" }
+				]
 			}
-		} else {
-			console.log("No active client")
 
-			// Si pas d'onglet actif, envoie une notification native
-			// event.waitUntil(self.registration.showNotification(data.title, options))
-			self.registration.showNotification(data.title, options)
-		}
+			self.clients
+				.matchAll({
+					type: "window",
+					includeUncontrolled: true
+				})
+				.then((clients) => {
+					console.log("Clients", clients)
+					let isSent = false
+
+					if (clients.length > 0) {
+						for (const client of clients) {
+							if (client.focused) {
+								console.log("Client focused", client, client.postMessage)
+
+								isSent = true
+
+								client.postMessage({
+									type: "notification",
+									title: data.title,
+									body: data.options.body,
+									url: data.options.data.url || "/"
+								})
+							}
+						}
+					}
+
+					if (!isSent || clients.length === 0) {
+						event.waitUntil(self.registration.showNotification(data.title, options))
+					}
+
+				})
+			// const windowActiveClients = windowClients.filter((client) => client.focused)
+
+			// if (windowActiveClients.length > 0) {
+			// 	for (const client of windowActiveClients) {
+			// 		if (client.focused) {
+			// 			console.log("Client focused", client, client.postMessage)
+
+			// 			client.postMessage({
+			// 				type: "notification",
+			// 				title: data.title,
+			// 				body: data.options.body,
+			// 				url: data.options.data.url || "/"
+			// 			})
+			// 		}
+			// 	}
+			// } else {
+			// 	console.log("No active client")
+
+			// 	// Si pas d'onglet actif, envoie une notification native
+			// 	// event.waitUntil(self.registration.showNotification(data.title, options))
+			// 	self.registration.showNotification(data.title, options)
+			// }
 	},
-	handleNotificationClick: async(event) => {
+	handleNotificationClick: async (event) => {
 		const data = event.notification.data
 
-		event.notification.close();
+		event.notification.close()
 
 		const promise = new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject("Timeout")
 			}, 5000)
 
-			self.clients.matchAll({
-				type: "window",
-				includeUncontrolled: true
-			}).then((clients) => {
-				for (const client of clients) {
-					if (client.url === data.url && "focus" in client) {
-						client.focus()
-						resolve(client)
+			self.clients
+				.matchAll({
+					type: "window",
+					includeUncontrolled: true
+				})
+				.then((clients) => {
+					for (const client of clients) {
+						if (client.url === data.url && "focus" in client) {
+							client.focus()
+							resolve(client)
+						}
 					}
-				}
 
-				clearTimeout(timeout)
-				reject("No client found")
-			})
+					clearTimeout(timeout)
+					reject("No client found")
+				})
 
 			self.clients.openWindow(data.url || "/").then((client) => {
 				clearTimeout(timeout)

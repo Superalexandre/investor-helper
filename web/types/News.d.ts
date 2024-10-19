@@ -38,9 +38,19 @@ interface NewsFull {
     relatedSymbols: any
 }
 
+interface NewsSymbolsChildArticle {
+	news: {
+		news: News
+		news_article: NewsArticleSchema
+	}
+    // biome-ignore lint/suspicious/noExplicitAny: TODO: Type
+	relatedSymbols: any
+}
+
 export type {
     NewsSymbolsArticle,
     NewsArticle,
     NewsSymbols,
-    NewsFull
+    NewsFull,
+	NewsSymbolsChildArticle
 }

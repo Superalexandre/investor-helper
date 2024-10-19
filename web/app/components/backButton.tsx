@@ -5,11 +5,13 @@ import { MdArrowBack } from "react-icons/md"
 export default function BackButton({
 	safeRedirect = "/",
 	safeHash = "",
-	safeSearch = ""
+	safeSearch = "",
+	label = "Retour"
 }: {
 	safeRedirect?: string,
 	safeHash?: string,
 	safeSearch?: string,
+	label?: string
 }) {
 	const location = useLocation()
 
@@ -25,7 +27,8 @@ export default function BackButton({
 					className="top-0 left-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute"
 				>
 					<MdArrowBack className="size-6" />
-					Retour
+					
+					{label}
 				</Link>
 			</Button>
 		</div>

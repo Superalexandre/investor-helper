@@ -2,21 +2,15 @@ import type { MetaFunction } from "@remix-run/node"
 import { Link, useLocation } from "@remix-run/react"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
-import { Badge } from "@/components/ui/badge"
-// import { MdPriorityHigh } from "react-icons/md"
 import formatDate from "@/utils/formatDate"
-import SymbolLogo from "@/components/symbolLogo"
-import type { NewsRelatedSymbol } from "@/schema/news"
-import type { Symbol as SymbolType } from "@/schema/symbols"
-import { useState } from "react"
-import { normalizeSymbol } from "@/utils/normalizeSymbol"
 import { ScrollTop } from "@/components/scrollTop"
 import { Button } from "@/components/ui/button"
 import { MdArrowBack, MdArrowForward } from "react-icons/md"
 import ImportanceBadge from "@/components/importanceBadge"
 import { useQuery } from "@tanstack/react-query"
-import { Skeleton } from "../../../components/ui/skeleton"
 import type { NewsSymbols } from "../../../../types/News"
+import SkeletonNews from "../../../components/skeletons/skeletonNews"
+import DisplaySymbols from "../../../components/displaySymbols"
 
 export const meta: MetaFunction = () => {
 	const title = "Investor Helper - Les actualités"
@@ -184,103 +178,5 @@ function Empty() {
 				<Button variant="default">Retourner à la première page</Button>
 			</Link>
 		</div>
-	)
-}
-
-interface FullSymbol {
-	symbol: SymbolType
-	// biome-ignore lint/style/useNamingConvention: <explanation>
-	news_related_symbol: NewsRelatedSymbol
-}
-
-function DisplaySymbols({
-	symbolList,
-	hash
-}: {
-	symbolList: FullSymbol[]
-	hash?: string
-}) {
-	const [viewAll, setViewAll] = useState(false)
-
-	if (!symbolList || symbolList.length <= 0) {
-		return null
-	}
-
-	const symbolCount = symbolList.length
-
-	const displaySymbols = viewAll ? symbolList : symbolList.slice(0, 5)
-
-	return (
-		<div className="flex flex-row flex-wrap items-center gap-1.5">
-			{displaySymbols.map((symbol) => (
-				<Link
-					to={{
-						pathname: `/data/${normalizeSymbol(symbol.symbol.symbolId)}`
-					}}
-					state={{
-						redirect: "/news",
-						hash: hash
-					}}
-					key={symbol.symbol.symbolId}
-				>
-					<Badge
-						key={symbol.symbol.symbolId}
-						variant="default"
-						className="flex h-8 flex-row items-center justify-center"
-					>
-						<SymbolLogo symbol={symbol.symbol} className="mr-1.5 size-6 rounded-full" />
-
-						{symbol.symbol.name}
-					</Badge>
-				</Link>
-			))}
-
-			{symbolList.length > 5 && !viewAll ? (
-				<Badge
-					variant="default"
-					className="flex h-8 flex-row items-center justify-center hover:cursor-pointer"
-					onClick={() => setViewAll(true)}
-				>
-					Voir tout ({symbolCount})
-				</Badge>
-			) : null}
-			{symbolList.length > 5 && viewAll ? (
-				<Badge
-					variant="default"
-					className="flex h-8 flex-row items-center justify-center hover:cursor-pointer"
-					onClick={() => setViewAll(false)}
-				>
-					Réduire
-				</Badge>
-			) : null}
-		</div>
-	)
-}
-
-function SkeletonNews() {
-	const random = 10
-	const badgeArray = Array.from({ length: random })
-
-	return (
-		<Card>
-			<CardHeader>
-				<CardTitle>
-					<Skeleton className="h-4 w-1/4" />
-				</CardTitle>
-			</CardHeader>
-
-			<CardContent>
-				<div className="flex flex-row flex-wrap items-center gap-1.5">
-					{badgeArray.map((_, index) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-						<Skeleton className="h-8 w-24 rounded-md" key={index} />
-					))}
-				</div>
-			</CardContent>
-
-			<CardFooter className="flex flex-col items-center justify-start gap-1 lg:flex-row lg:gap-2">
-				<Skeleton className="h-4 w-1/2" />
-			</CardFooter>
-		</Card>
 	)
 }

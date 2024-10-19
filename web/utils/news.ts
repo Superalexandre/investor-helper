@@ -275,6 +275,7 @@ interface NotificationToSend {
 	number: number
 
 	keyword: string[]
+	newsId: string[]
 
 	userId: string
 	notificationId: string
@@ -355,10 +356,11 @@ async function getNotificationNews(news: NewsSymbolsArticle) {
 				userId: notificationInfo[0].notifications.userId,
 				notificationId: notificationId,
 				keyword: [keyword],
+				newsId: [news.id],
 				title: `Un nouvel article parlant de ${keyword} a été publié`,
 				body: news.title,
 				data: {
-					url: `/news/${news.id}`
+					url: `/news/${news.id}?utm_source=notification`
 				}
 			})
 		}
@@ -389,6 +391,8 @@ async function reduceAndSendNotifications(notifications: NotificationToSend[] | 
 				exists.title = `${exists.number} articles qui pourrais vous intéresser ont été publiés`
 
 				exists.body = `${exists.number} articles qui pourrais vous intéresser ont été publiés`
+
+				exists.newsId.push(...notification.newsId)
 			}
 		} else {
 			reducedNotifications.push(notification)
@@ -400,6 +404,13 @@ async function reduceAndSendNotifications(notifications: NotificationToSend[] | 
 			.select()
 			.from(notificationSchema)
 			.where(eq(notificationSchema.userId, notificationContent.userId))
+
+		if (notificationContent.newsId.length > 1) {
+			const newsIds = notificationContent.newsId.join(",")
+			const newsIdsBase64 = Buffer.from(newsIds).toString("base64url")
+
+			notificationContent.data.url = `/news/focus/${newsIdsBase64}?utm_source=notification`
+		}
 
 		for (const notificationInfo of notificationsInfo) {
 			sendNotification({
