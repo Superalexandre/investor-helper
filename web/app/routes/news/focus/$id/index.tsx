@@ -1,7 +1,7 @@
 import { Link, useParams } from "@remix-run/react"
 import { ScrollTop } from "../../../../components/scrollTop"
 import { useQuery } from "@tanstack/react-query"
-import type { NewsFull, NewsSymbolsChildArticle } from "../../../../../types/News"
+import type { NewsSymbolsChildArticle } from "../../../../../types/News"
 import SkeletonNews from "../../../../components/skeletons/skeletonNews"
 import ImportanceBadge from "../../../../components/importanceBadge"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../../../../components/ui/card"
@@ -73,10 +73,7 @@ export default function Index() {
 
 	return (
 		<div className="relative w-full overflow-hidden">
-            <BackButton 
-                safeRedirect="/news"
-                label="Voir toutes les actualités"
-            />
+			<BackButton safeRedirect="/news" label="Voir toutes les actualités" />
 
 			<ScrollTop showBelow={250} />
 
@@ -89,47 +86,51 @@ export default function Index() {
 			</div>
 
 			<div className="flex flex-col space-y-6 p-4 lg:p-10">
-				{news.map(({ news, relatedSymbols }) => (
-					<div className="relative" key={news.news.id} id={news.news.id}>
-						{news.news.importanceScore > 50 ? (
-							<ImportanceBadge
-								importance={news.news.importanceScore}
-								className="-right-[10px] -top-[10px] absolute"
-							/>
-						) : null}
-
-						<Card>
-							<Link
-								to={{
-									pathname: `/news/${news.news.id}`
-								}}
-								state={{
-									redirect: `/news/focus/${id}`,
-									hash: news.news.id
-								}}
-							>
-								<CardHeader>
-									<CardTitle>{news.news.title}</CardTitle>
-								</CardHeader>
-							</Link>
-
-							<CardContent>
-								<DisplaySymbols
-									symbolList={relatedSymbols}
-									hash={news.news.id}
-									redirect={`/news/focus/${id}`}
+				{news.length > 0 ? (
+					news.map(({ news, relatedSymbols }) => (
+						<div className="relative" key={news.news.id} id={news.news.id}>
+							{news.news.importanceScore > 50 ? (
+								<ImportanceBadge
+									importance={news.news.importanceScore}
+									className="-right-[10px] -top-[10px] absolute"
 								/>
-							</CardContent>
+							) : null}
 
-							<CardFooter>
-								<p className="text-muted-foreground">
-									{formatDate(news.news.published * 1000)} - {news.news.source} (via
-									{news.news.mainSource})
-								</p>
-							</CardFooter>
-						</Card>
-					</div>
-				))}
+							<Card>
+								<Link
+									to={{
+										pathname: `/news/${news.news.id}`
+									}}
+									state={{
+										redirect: `/news/focus/${id}`,
+										hash: news.news.id
+									}}
+								>
+									<CardHeader>
+										<CardTitle>{news.news.title}</CardTitle>
+									</CardHeader>
+								</Link>
+
+								<CardContent>
+									<DisplaySymbols
+										symbolList={relatedSymbols}
+										hash={news.news.id}
+										redirect={`/news/focus/${id}`}
+									/>
+								</CardContent>
+
+								<CardFooter>
+									<p className="text-muted-foreground">
+										{formatDate(news.news.published * 1000)} - {news.news.source} (via
+										{news.news.mainSource})
+									</p>
+								</CardFooter>
+							</Card>
+						</div>
+					))
+				) : (
+					<p className="text-center font-bold text-lg">Aucune actualité trouvée</p>
+				)}
 			</div>
 		</div>
 	)
