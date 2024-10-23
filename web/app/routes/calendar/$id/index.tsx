@@ -326,8 +326,14 @@ export default function Index() {
 								{event.sourceUrl ? (
 									<p className="flex flex-row items-center gap-1">
 										Source :
-										<Link to={event.sourceUrl} target="_blank" className="underline">
-											{event.source ?? event.sourceUrl} <MdOpenInNew className="inline-block" />
+										<Link
+											to={event.sourceUrl}
+											target="_blank"
+											className="flex flex-row items-center justify-center gap-1 underline"
+										>
+											{event.source && event.source !== "" ? event.source : event.sourceUrl}
+
+											<MdOpenInNew className="inline-block" />
 										</Link>
 									</p>
 								) : null}
