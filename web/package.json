@@ -11,7 +11,7 @@
         "typecheck": "tsc",
         "worker": "node --loader ts-node/esm worker.ts",
         "depcheck": "depcheck --ignores=ts-node,autoprefixer",
-		"duplicate": "npx jscpd . -i 'node_modules' -l 20"
+        "duplicate": "npx jscpd . -i 'node_modules' -l 20"
     },
     "dependencies": {
         "@date-fns/tz": "^1.1.2",

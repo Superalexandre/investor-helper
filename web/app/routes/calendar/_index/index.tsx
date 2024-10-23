@@ -19,7 +19,7 @@ export const meta: MetaFunction = () => {
 		{ name: "og:title", content: title },
 		{ name: "description", content: description },
 		{ name: "og:description", content: description },
-		{ name: "canonical", content: "https://investor-helper.com/calendar" }
+		{ name: "canonical", content: "https://www.investor-helper.com/calendar" }
 	]
 }
 

@@ -1,6 +1,13 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Link, redirect, useLoaderData } from "@remix-run/react"
-import { MdAdd, MdDelete, MdMoreVert, MdNotificationsActive, MdOpenInNew, MdOutlineNotificationAdd } from "react-icons/md"
+import {
+	MdAdd,
+	MdDelete,
+	MdMoreVert,
+	MdNotificationsActive,
+	MdOpenInNew,
+	MdOutlineNotificationAdd
+} from "react-icons/md"
 import { ScrollTop } from "@/components/scrollTop"
 import { getEventById } from "@/utils/events"
 import { cn } from "@/lib/utils"
@@ -97,9 +104,9 @@ export const meta: MetaFunction<typeof loader> = ({ params }) => {
 		{ name: "og:description", content: description },
 		{
 			name: "canonical",
-			content: `https://investor-helper.com/calendar/${params.id}`
-		},
-		{ name: "robots", content: "noindex" }
+			content: `https://www.investor-helper.com/calendar/${params.id}`
+		}
+		// { name: "robots", content: "noindex" }
 	]
 }
 
@@ -320,7 +327,7 @@ export default function Index() {
 									<p className="flex flex-row items-center gap-1">
 										Source :
 										<Link to={event.sourceUrl} target="_blank" className="underline">
-											{event.source} <MdOpenInNew className="inline-block" />
+											{event.source ?? event.sourceUrl} <MdOpenInNew className="inline-block" />
 										</Link>
 									</p>
 								) : null}

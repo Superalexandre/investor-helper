@@ -117,9 +117,9 @@ export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
 		{ name: "og:description", content: description },
 		{
 			name: "canonical",
-			content: `https://investor-helper.com/data/${params.id}`
-		},
-		{ name: "robots", content: "noindex" }
+			content: `https://www.investor-helper.com/data/${params.id}`
+		}
+		// { name: "robots", content: "noindex" }
 	]
 }
 

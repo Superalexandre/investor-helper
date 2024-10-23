@@ -8,6 +8,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../../../.
 import formatDate from "../../../../../utils/formatDate"
 import DisplaySymbols from "../../../../components/displaySymbols"
 import BackButton from "../../../../components/backButton"
+import type { MetaFunction } from "@remix-run/node"
 
 // export function loader({ params }: LoaderFunctionArgs) {
 // 	const { id } = params
@@ -28,6 +29,23 @@ import BackButton from "../../../../components/backButton"
 //         true: true
 //     }
 // }
+
+export const meta: MetaFunction = ({ params }) => {
+	const title = "Investor Helper - Les actualités"
+	const description = "Les actualités qui pourraient vous intéresser"
+
+	return [
+		{ title: title },
+		{ name: "og:title", content: title },
+		{ name: "description", content: description },
+		{ name: "og:description", content: description },
+		{
+			name: "canonical",
+			content: `https://www.investor-helper.com/focus/${params.id}`
+		},
+		{ name: "robots", content: "noindex" }
+	]
+}
 
 export default function Index() {
 	const { id } = useParams()
