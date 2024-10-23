@@ -7,10 +7,10 @@ export default function TimeCounter({
 	diff,
 	separator = true
 }: { date: string; diff?: number; diffOngoing?: number; separator?: boolean }) {
-	const [time, setTime] = useState<number>(0)
-
 	const eventDate = new Date(date)
 	const now = new Date()
+
+	const [time, setTime] = useState<number>(eventDate.getTime() - now.getTime())
 
 	useEffect(() => {
 		const interval = setInterval(() => {
