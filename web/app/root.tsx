@@ -175,7 +175,7 @@ export default function App() {
 export function ErrorBoundary() {
 	const error = useRouteError()
 
-	// console.error(typeof error)
+	console.error(error)
 
 	if (error && typeof error === "object" && "status" in error && error.status === 404) {
 		return (
@@ -195,8 +195,12 @@ export function ErrorBoundary() {
 		<div className="flex flex-grow flex-col items-center justify-center gap-4">
 			<h1 className="text-center font-bold text-3xl text-red-500">Une erreur est survenue !</h1>
 
-			{error && typeof error === "object" && "message" in error ? (
-				<p>{error.message as string}</p>
+			{error && typeof error === "object" && ("message" in error || "status" in error) ? (
+				<>
+					<p>{"status" in error ? error.status as string : ""}</p>
+					<p>{"message" in error ? error.message as string : ""}</p>
+				</>
+
 			) : (
 				<p>Une erreur est survenue lors du chargement de la page.</p>
 			)}
