@@ -208,6 +208,11 @@ new PushManager({
 
 		event.notification.close()
 
+		// Check if the action is dismiss
+		if (event.action === "dismiss") {
+			return
+		}
+
 		const promise = new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject("Timeout")
