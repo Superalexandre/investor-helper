@@ -218,21 +218,23 @@ export default function Index() {
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent className="mx-4">
-							<DropdownMenuItem>
-								<Button variant="ghost" onClick={subscribeEvent}>
-									{isSubscribed && hasNotification ? (
-										<p className="flex flex-row justify-start gap-1.5">
-											Modifier la notification
-											<MdNotificationsActive className="size-5" />
-										</p>
-									) : (
-										<p className="flex flex-row justify-start gap-1.5">
-											Ajouter une notification
-											<MdOutlineNotificationAdd className="size-5" />
-										</p>
-									)}
-								</Button>
-							</DropdownMenuItem>
+							{event.isPast ? null : (
+								<DropdownMenuItem>
+									<Button variant="ghost" onClick={subscribeEvent}>
+										{isSubscribed && hasNotification ? (
+											<p className="flex flex-row justify-start gap-1.5">
+												Modifier la notification
+												<MdNotificationsActive className="size-5" />
+											</p>
+										) : (
+											<p className="flex flex-row justify-start gap-1.5">
+												Ajouter une notification
+												<MdOutlineNotificationAdd className="size-5" />
+											</p>
+										)}
+									</Button>
+								</DropdownMenuItem>
+							)}
 							<DropdownMenuItem>
 								<CopyButton content={`https://www.investor-helper.com/calendar/${event.id}`} />
 							</DropdownMenuItem>
