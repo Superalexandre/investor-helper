@@ -129,25 +129,30 @@ new PushManager({
 	handlePushEvent: async (event) => {
 		const data = event.data ? event.data.json() : {}
 
-			console.log("Push event", data)
+		console.log("Push event", data)
 
-			const options: NotificationOptions = {
-				body: data.options.body || "Nouvelle notification",
-				icon: data.options.icon || "/logo-192-192.png",
-				badge: data.options.badge || undefined,
-				// badge: "/badge.png",
-				// tag: data.tag || "notification",
-				data: {
-					url: data.options?.data?.url || "/"
-				},
-				// requireInteraction: true,
-				silent: false,
-				// @ts-ignore
-				actions: [
-					{ action: "open", title: "Ouvrir" },
-					{ action: "dismiss", title: "Ignorer" }
-				]
-			}
+		const options: NotificationOptions = {
+			body: data.options.body || "Nouvelle notification",
+			icon: data.options.icon || "/logo-192-192.png",
+			badge: data.options.badge || undefined,
+			// badge: "/badge.png",
+			// tag: data.tag || "notification",
+			data: {
+				url: data.options?.data?.url || "/"
+			},
+			// requireInteraction: true,
+			silent: false,
+			// @ts-ignore
+			actions: [
+				{ action: "open", title: "Ouvrir" },
+				{ action: "dismiss", title: "Ignorer" }
+			]
+		}
+
+		const promise = new Promise((resolve, reject) => {
+			const timeout = setTimeout(() => {
+				reject("Timeout")
+			}, 5000)
 
 			self.clients
 				.matchAll({
@@ -158,53 +163,42 @@ new PushManager({
 					console.log("Clients", clients)
 					let isSent = false
 
-					if (clients.length > 0) {
-						for (const client of clients) {
-							if (client.focused) {
-								console.log("Client focused", client, client.postMessage)
+					for (const client of clients) {
+						if (client.focused) {
+							console.log("Client focused", client, client.postMessage)
 
-								isSent = true
+							isSent = true
 
-								client.postMessage({
-									type: "notification",
-									title: data.title,
-									body: data.options.body,
-									url: data.options.data.url || "/"
-								})
-							}
+							client.postMessage({
+								type: "notification",
+								title: data.title,
+								body: data.options.body,
+								url: data.options.data.url || "/"
+							})
+
+							clearTimeout(timeout)
+							resolve(true)
 						}
 					}
 
 					if (!isSent || clients.length === 0) {
-						event.waitUntil(self.registration.showNotification(data.title, options))
+						// event.waitUntil(self.registration.showNotification(data.title, options))
+						self.registration.showNotification(data.title, options).then(() => {
+							console.log("Notification sent")
+
+							clearTimeout(timeout)
+							resolve(true)
+						})
 					}
-
 				})
-			// const windowActiveClients = windowClients.filter((client) => client.focused)
+		})
 
-			// if (windowActiveClients.length > 0) {
-			// 	for (const client of windowActiveClients) {
-			// 		if (client.focused) {
-			// 			console.log("Client focused", client, client.postMessage)
-
-			// 			client.postMessage({
-			// 				type: "notification",
-			// 				title: data.title,
-			// 				body: data.options.body,
-			// 				url: data.options.data.url || "/"
-			// 			})
-			// 		}
-			// 	}
-			// } else {
-			// 	console.log("No active client")
-
-			// 	// Si pas d'onglet actif, envoie une notification native
-			// 	// event.waitUntil(self.registration.showNotification(data.title, options))
-			// 	self.registration.showNotification(data.title, options)
-			// }
+		event.waitUntil(promise)
 	},
 	handleNotificationClick: async (event) => {
 		const data = event.notification.data
+
+		console.log("Notification click", event, data)
 
 		event.notification.close()
 
@@ -225,19 +219,31 @@ new PushManager({
 				})
 				.then((clients) => {
 					for (const client of clients) {
-						if (client.url === data.url && "focus" in client) {
-							client.focus()
-							resolve(client)
+						const clientUrl = new URL(client.url)
+
+						if (clientUrl.pathname === data.url && "focus" in client) {
+							try {
+								client.focus().then(() => {
+									clearTimeout(timeout)
+									return resolve(client)
+								})
+							} catch (error) {
+								console.error("Client focus error", error)
+								return reject(error)
+							}
+
+							// clearTimeout(timeout)
+							// return resolve(client)
 						}
 					}
-
-					clearTimeout(timeout)
-					reject("No client found")
 				})
 
 			self.clients.openWindow(data.url || "/").then((client) => {
 				clearTimeout(timeout)
-				resolve(client)
+
+				console.log("Client open", client)
+
+				return resolve(client)
 			})
 		})
 
