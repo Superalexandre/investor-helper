@@ -198,8 +198,6 @@ new PushManager({
 	handleNotificationClick: async (event) => {
 		const data = event.notification.data
 
-		console.log("Notification click", event, data)
-
 		event.notification.close()
 
 		// Check if the action is dismiss
@@ -212,36 +210,34 @@ new PushManager({
 				reject("Timeout")
 			}, 5000)
 
-			self.clients
-				.matchAll({
-					type: "window",
-					includeUncontrolled: true
-				})
-				.then((clients) => {
-					for (const client of clients) {
-						const clientUrl = new URL(client.url)
+			// self.clients
+			// 	.matchAll({
+			// 		type: "window",
+			// 		includeUncontrolled: true
+			// 	})
+			// 	.then((clients) => {
+			// 		for (const client of clients) {
+			// 			const clientUrl = new URL(client.url)
 
-						if (clientUrl.pathname === data.url && "focus" in client) {
-							try {
-								client.focus().then(() => {
-									clearTimeout(timeout)
-									return resolve(client)
-								})
-							} catch (error) {
-								console.error("Client focus error", error)
-								return reject(error)
-							}
+			// 			if (clientUrl.pathname === data.url && "focus" in client) {
+			// 				try {
+			// 					client.focus().then(() => {
+			// 						clearTimeout(timeout)
+			// 						return resolve(client)
+			// 					})
+			// 				} catch (error) {
+			// 					console.error("Client focus error", error)
+			// 					return reject(error)
+			// 				}
 
-							// clearTimeout(timeout)
-							// return resolve(client)
-						}
-					}
-				})
+			// 				// clearTimeout(timeout)
+			// 				// return resolve(client)
+			// 			}
+			// 		}
+			// 	})
 
 			self.clients.openWindow(data.url || "/").then((client) => {
 				clearTimeout(timeout)
-
-				console.log("Client open", client)
 
 				return resolve(client)
 			})
