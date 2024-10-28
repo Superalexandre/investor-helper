@@ -78,6 +78,7 @@ export function Layout({ children }: { children: ReactNode }) {
 					content="investment, financial news, stock market, economic calendar, investor tools"
 				/>
 				<meta name="robots" content="index, follow" />
+				<meta name="theme-color" content="#0f172a" />
 
 				{/* <meta property="og:title" content="Investor Helper - Stay Updated on Financial News" /> */}
 				{/* <meta property="og:description" content="Get the latest financial news and track investment opportunities with our comprehensive calendar." /> */}
@@ -100,10 +101,7 @@ export function Layout({ children }: { children: ReactNode }) {
 				{children}
 
 				<Toaster />
-				<Sonner 
-					expand={false}
-					visibleToasts={3}
-				/>
+				<Sonner expand={false} visibleToasts={3} />
 
 				<ScrollRestoration />
 				<Scripts />
@@ -143,11 +141,19 @@ export default function App() {
 				console.log("SW message", event)
 
 				if (event.data && event.data.type === "notification") {
+					const id = Date.now().toString()
+
 					sonner(event.data.title, {
 						description: event.data.body,
 						closeButton: true,
+						id: id,
 						action: (
-							<Link to={event.data.url}>
+							<Link
+								to={event.data.url}
+								onClick={() => {
+									sonner.dismiss(id)
+								}}
+							>
 								<Button type="button" variant="default">
 									Ouvrir
 								</Button>
@@ -156,7 +162,7 @@ export default function App() {
 					})
 				}
 			}
-			
+
 			navigator.serviceWorker.addEventListener("message", handleMessages)
 
 			return () => {
@@ -197,10 +203,9 @@ export function ErrorBoundary() {
 
 			{error && typeof error === "object" && ("message" in error || "status" in error) ? (
 				<>
-					<p>{"status" in error ? error.status as string : ""}</p>
-					<p>{"message" in error ? error.message as string : ""}</p>
+					<p>{"status" in error ? (error.status as string) : ""}</p>
+					<p>{"message" in error ? (error.message as string) : ""}</p>
 				</>
-
 			) : (
 				<p>Une erreur est survenue lors du chargement de la page.</p>
 			)}
