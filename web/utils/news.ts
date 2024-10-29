@@ -384,16 +384,23 @@ async function reduceAndSendNotifications(notifications: NotificationToSend[] | 
 			(notif) => notif.userId === notification.userId && notif.notificationId === notification.notificationId
 		)
 
+		// Prevent duplicates news
+		if (exists?.newsId.includes(notification.newsId[0])) {
+			exists.keyword.push(...notification.keyword)
+			
+			continue
+		}
+
 		if (exists) {
 			exists.number++
+			
+			exists.newsId.push(...notification.newsId)
+			// if (exists.number > 1) {
+			// 	exists.title = `${exists.number} articles qui pourrais vous intéresser ont été publiés`
 
-			if (exists.number > 1) {
-				exists.title = `${exists.number} articles qui pourrais vous intéresser ont été publiés`
+			// 	exists.body = `${exists.number} articles qui pourrais vous intéresser ont été publiés`
 
-				exists.body = `${exists.number} articles qui pourrais vous intéresser ont été publiés`
-
-				exists.newsId.push(...notification.newsId)
-			}
+			// }
 		} else {
 			reducedNotifications.push(notification)
 		}
@@ -408,6 +415,19 @@ async function reduceAndSendNotifications(notifications: NotificationToSend[] | 
 		if (notificationContent.newsId.length > 1) {
 			const newsIds = notificationContent.newsId.join(",")
 			const newsIdsBase64 = Buffer.from(newsIds).toString("base64url")
+
+			if (notificationContent.number > 1) {
+				notificationContent.title = `${notificationContent.number} articles qui pourrais vous intéresser ont été publiés`
+				notificationContent.body = `${notificationContent.number} articles qui pourrais vous intéresser ont été publiés`
+			} 
+
+			if (notificationContent.keyword.length > 1) {
+				const originalTitle = notificationContent.title
+
+				notificationContent.title = `1 articles parlant de ${notificationContent.keyword.join(", ")} a été publiés`
+				notificationContent.body = originalTitle
+				// notificationContent.body = `${notificationContent.number} articles parlant de ${notificationContent.keyword.join(", ")} ont été publiés`
+			}
 
 			notificationContent.data.url = `/news/focus/${newsIdsBase64}?utm_source=notification`
 		}
