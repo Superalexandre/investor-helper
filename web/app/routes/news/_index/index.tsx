@@ -123,7 +123,7 @@ export default function Index() {
 							</CardContent>
 
 							<CardFooter>
-								<p className="flex flex-row items-center gap-1 text-muted-foreground">
+								<p className="flex flex-row flex-wrap items-center gap-1 text-muted-foreground">
 									{formatDate(item.news.published * 1000)} - {item.news.source}
 									<span>(via {item.news.mainSource})</span>
 								</p>

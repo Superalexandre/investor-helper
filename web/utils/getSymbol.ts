@@ -62,7 +62,8 @@ export default async function getSymbolData(symbolId: string) {
 		"description",
 		"base_currency_logoid",
 		"currency",
-		"exchange"
+		"exchange",
+		"isin"
 	]
 
 	const url = `https://scanner.tradingview.com/symbol?symbol=${reverseNormalizeSymbol(symbolId)}&fields=${fields.join("%2C")}&no_404=true&label-product=right-details`
