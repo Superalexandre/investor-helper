@@ -219,7 +219,7 @@ export default function Index() {
 						</DropdownMenuTrigger>
 						<DropdownMenuContent className="mx-4">
 							{event.isPast ? null : (
-								<DropdownMenuItem>
+								<DropdownMenuItem asChild={true} className="p-6 pl-4 hover:cursor-pointer">
 									<Button variant="ghost" onClick={subscribeEvent}>
 										{isSubscribed && hasNotification ? (
 											<p className="flex flex-row justify-start gap-1.5">
@@ -235,10 +235,10 @@ export default function Index() {
 									</Button>
 								</DropdownMenuItem>
 							)}
-							<DropdownMenuItem>
+							<DropdownMenuItem asChild={true} className="p-6 pl-4 hover:cursor-pointer">
 								<CopyButton content={`https://www.investor-helper.com/calendar/${event.id}`} />
 							</DropdownMenuItem>
-							<DropdownMenuItem>
+							<DropdownMenuItem asChild={true} className="p-6 pl-4 hover:cursor-pointer">
 								<ShareButton
 									title={event.title}
 									text={event.comment ?? ""}

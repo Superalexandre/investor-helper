@@ -2,11 +2,14 @@ import { MdContentCopy } from "react-icons/md"
 import { Button } from "./ui/button"
 import { useCopyToClipboard } from "usehooks-ts"
 import { toast as sonner } from "sonner"
+import { cn } from "../lib/utils"
 
 export default function CopyButton({
-	content
+	content,
+    className
 }: {
-    content: string
+    content: string,
+    className?: string
 }) {
     const [, copy] = useCopyToClipboard()
 
@@ -30,7 +33,7 @@ export default function CopyButton({
 		<Button
 			variant="ghost"
 			onClick={copyCallback}
-			className="flex w-full flex-row items-center justify-start gap-1.5"
+			className={cn("flex w-full flex-row items-center justify-start gap-1.5", className)}
 		>
 			Copier le lien
 

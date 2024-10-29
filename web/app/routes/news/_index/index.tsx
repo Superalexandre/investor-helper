@@ -84,8 +84,9 @@ export default function Index() {
 		<div>
 			<ScrollTop showBelow={250} />
 
-			<div className="flex flex-col items-center justify-center space-y-4">
-				<p className="pt-4 text-center font-bold text-2xl">Dernières actualités</p>
+			<div className="flex flex-col items-center justify-center space-y-1 pt-4">
+				<p className="text-center font-bold text-2xl">Dernières actualités</p>
+				{actualPage > 1 ? <p className="text-muted-foreground text-sm">Page {actualPage}</p> : null}
 
 				{/* <Button variant="default">
                     Rafraîchir
@@ -122,9 +123,9 @@ export default function Index() {
 							</CardContent>
 
 							<CardFooter>
-								<p className="text-muted-foreground">
-									{formatDate(item.news.published * 1000)} - {item.news.source} (via
-									{item.news.mainSource})
+								<p className="flex flex-row items-center gap-1 text-muted-foreground">
+									{formatDate(item.news.published * 1000)} - {item.news.source}
+									<span>(via {item.news.mainSource})</span>
 								</p>
 							</CardFooter>
 						</Card>
@@ -133,35 +134,37 @@ export default function Index() {
 			</div>
 
 			<div className="flex flex-row items-center justify-center gap-4 pb-4">
-				<Link
-					to={{
-						pathname: "/news",
-						search: `?page=${previousPage}`
-					}}
+				<Button
+					variant="default"
+					className="flex flex-row content-center items-center justify-center gap-2"
+					asChild={true}
 				>
-					<Button
-						variant="default"
-						className="flex flex-row content-center items-center justify-center gap-2"
+					<Link
+						to={{
+							pathname: "/news",
+							search: `?page=${previousPage}`
+						}}
 					>
 						<MdArrowBack className="size-5" />
 						Page précédente
-					</Button>
-				</Link>
+					</Link>
+				</Button>
 
-				<Link
-					to={{
-						pathname: "/news",
-						search: `?page=${nextPage}`
-					}}
+				<Button
+					variant="default"
+					className="flex flex-row content-center items-center justify-center gap-2"
+					asChild={true}
 				>
-					<Button
-						variant="default"
-						className="flex flex-row content-center items-center justify-center gap-2"
+					<Link
+						to={{
+							pathname: "/news",
+							search: `?page=${nextPage}`
+						}}
 					>
 						Page suivante
 						<MdArrowForward className="size-5" />
-					</Button>
-				</Link>
+					</Link>
+				</Button>
 			</div>
 		</div>
 	)
