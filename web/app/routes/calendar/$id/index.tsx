@@ -208,7 +208,7 @@ export default function Index() {
 			{/* <BackButton /> */}
 
 			<div className="flex w-full flex-row items-center justify-evenly">
-				<BackButton />
+				<BackButton safeRedirect="/calendar" safeHash={event.id} />
 
 				<div className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute">
 					<DropdownMenu>
@@ -219,8 +219,12 @@ export default function Index() {
 						</DropdownMenuTrigger>
 						<DropdownMenuContent className="mx-4">
 							{event.isPast ? null : (
-								<DropdownMenuItem asChild={true} className="p-6 pl-4 hover:cursor-pointer">
-									<Button variant="ghost" onClick={subscribeEvent}>
+								<DropdownMenuItem asChild={true} className="p-0">
+									<Button
+										variant="ghost"
+										onClick={subscribeEvent}
+										className="p-6 pl-4 hover:cursor-pointer"
+									>
 										{isSubscribed && hasNotification ? (
 											<p className="flex flex-row justify-start gap-1.5">
 												Modifier la notification
@@ -235,14 +239,18 @@ export default function Index() {
 									</Button>
 								</DropdownMenuItem>
 							)}
-							<DropdownMenuItem asChild={true} className="p-6 pl-4 hover:cursor-pointer">
-								<CopyButton content={`https://www.investor-helper.com/calendar/${event.id}`} />
+							<DropdownMenuItem asChild={true} className="p-0">
+								<CopyButton
+									content={`https://www.investor-helper.com/calendar/${event.id}`}
+									className="p-6 pl-4 hover:cursor-pointer"
+								/>
 							</DropdownMenuItem>
-							<DropdownMenuItem asChild={true} className="p-6 pl-4 hover:cursor-pointer">
+							<DropdownMenuItem asChild={true} className="p-0">
 								<ShareButton
 									title={event.title}
 									text={event.comment ?? ""}
 									url={`https://www.investor-helper.com/calendar/${event.id}`}
+									className="p-6 pl-4 hover:cursor-pointer"
 								/>
 							</DropdownMenuItem>
 						</DropdownMenuContent>

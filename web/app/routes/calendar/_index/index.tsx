@@ -1,12 +1,16 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import type { MetaFunction } from "@remix-run/node"
-import { Link } from "@remix-run/react"
+// import { Link, useLocation, useNavigate } from "@remix-run/react"
+import { Link, useLocation } from "@remix-run/react"
 import countries from "../../../../../lang/countries-fr"
 import { ScrollTop } from "@/components/scrollTop"
 import TimeCounter from "../../../components/timeCounter"
 import { useQuery } from "@tanstack/react-query"
 import type { Events } from "../../../../../db/schema/events"
 import { Skeleton } from "../../../components/ui/skeleton"
+import { useEffect, useRef } from "react"
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs"
+// import { useState } from "react"
 // import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 export const meta: MetaFunction = () => {
@@ -24,17 +28,97 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Index() {
-	const { data: events, isPending, error } = useQuery<Events[]>({
+	// const navigate = useNavigate()
+	// const location = useLocation()
+
+	// const urlTab = location.hash !== "" ? location.hash.replace("#", "") : "economicCalendar"
+	// const [tab, setTab] = useState(urlTab)
+
+	// const redirect = (id: string) => {
+	// 	navigate(`/calendar#${id}`)
+
+	// 	setTab(id)
+	// }
+
+	return (
+		<div>
+			<ScrollTop showBelow={250} />
+
+			<div className="flex flex-col items-center justify-center space-y-4">
+				<p className="pt-4 text-center font-bold text-2xl">Les événements</p>
+			</div>
+
+			{/* <Accordion type="single" collapsible className="px-4 lg:px-10">
+                <AccordionItem value="item-1">
+                    <AccordionTrigger>Événements important passés aujourd'hui</AccordionTrigger>
+                    <AccordionContent>
+                        TOUT LES ÉVÉNEMENTS PASSÉS
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion> */}
+
+			<div className="w-full px-4 pt-4 lg:px-10 lg:pt-10">
+				<EconomicCalendar />
+			</div>
+			{/* <Tabs
+				defaultValue={tab}
+				className="min-h-max w-full px-4 pt-4 lg:px-10 lg:pt-10"
+			>
+				<TabsList className="w-full">
+					<TabsTrigger className="w-full" value="economicCalendar" onClick={() => redirect("economicCalendar")}>
+						Économie
+					</TabsTrigger>
+					<TabsTrigger className="w-full" value="revenueCalendar" onClick={() => redirect("revenueCalendar")}>
+						Revenus
+					</TabsTrigger>
+					<TabsTrigger className="w-full" value="dividendsCalendar" onClick={() => redirect("dividendsCalendar")}>
+						Dividendes
+					</TabsTrigger>
+				</TabsList>
+				<TabsContent value="economicCalendar">
+					<EconomicCalendar />
+				</TabsContent>
+				<TabsContent value="revenueCalendar">
+					<p>Test</p>
+				</TabsContent>
+				<TabsContent value="dividendsCalendar">
+					<p>Test</p>
+				</TabsContent>
+			</Tabs> */}
+		</div>
+	)
+}
+
+function EconomicCalendar() {
+	const location = useLocation()
+	const calendarRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
+
+	const {
+		data: events,
+		isPending,
+		error
+	} = useQuery<Events[]>({
 		queryKey: ["events"],
 		queryFn: async () => {
-			const req = await fetch("/api/calendar/data")
+			const req = await fetch("/api/calendar/economic")
 
 			const json = await req.json()
 
 			return json
 		},
-		refetchOnWindowFocus: true,
+		refetchOnWindowFocus: true
 	})
+
+	useEffect(() => {
+		if (location.hash && events && events.length > 0) {
+			const eventId = location.hash.replace("#", "")
+			const newsRef = calendarRefs.current[eventId]
+
+			if (newsRef) {
+				newsRef.scrollIntoView({ behavior: "smooth" })
+			}
+		}
+	}, [location.hash, events])
 
 	const importance: Record<number, { name: string; color: string }> = {
 		[-1]: {
@@ -56,10 +140,7 @@ export default function Index() {
 
 		return (
 			<div>
-				<div className="flex flex-col items-center justify-center space-y-4">
-					<p className="pt-4 text-center font-bold text-2xl">Les événements</p>
-				</div>
-				<div className="flex flex-col space-y-6 p-4 lg:p-10">
+				<div className="flex flex-col space-y-6">
 					{skeletonArray.map((_, index) => (
 						// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
 						<SkeletonCalendar key={index} />
@@ -74,70 +155,51 @@ export default function Index() {
 	}
 
 	return (
-		<div>
-			<ScrollTop showBelow={250} />
+		<div className="flex flex-col space-y-6">
+			{events.map((event) => (
+				<div className="relative" key={event.id} id={event.id} ref={(element) => {
+					calendarRefs.current[event.id] = element
+				}}>
+					<Card>
+						<Link
+							to={`/calendar/${event.id}`}
+							state={{
+								redirect: "/calendar",
+								hash: `#${event.id}`
+							}}
+						>
+							<CardHeader>
+								<CardTitle>
+									<span>{event.title}</span>
+									<span> - </span>
+									<span className={importance[event.importance].color}>
+										Importance {importance[event.importance].name}
+									</span>
+								</CardTitle>
+							</CardHeader>
+						</Link>
 
-			<div className="flex flex-col items-center justify-center space-y-4">
-				<p className="pt-4 text-center font-bold text-2xl">Les événements</p>
-			</div>
+						<CardContent>{event.comment}</CardContent>
 
-			{/* <Accordion type="single" collapsible className="px-4 lg:px-10">
-                <AccordionItem value="item-1">
-                    <AccordionTrigger>Événements important passés aujourd'hui</AccordionTrigger>
-                    <AccordionContent>
-                        TOUT LES ÉVÉNEMENTS PASSÉS
-                    </AccordionContent>
-                </AccordionItem>
-            </Accordion> */}
-
-			<div className="flex flex-col space-y-6 p-4 lg:p-10">
-				{events.map((event) => (
-					<div className="relative" key={event.id} id={event.id}>
-						{/* <Badge variant="destructive" className="absolute -right-[10px] -top-[10px]">
-                            <MdPriorityHigh className="size-5" />
-                        </Badge> */}
-
-						<Card>
-							<Link
-								to={`/calendar/${event.id}`}
-								state={{
-									redirect: "/calendar",
-									hash: `#${event.id}`
-								}}
-							>
-								<CardHeader>
-									<CardTitle>
-										<span>{event.title}</span>
-										<span> - </span>
-										<span className={importance[event.importance].color}>
-											Importance {importance[event.importance].name}
-										</span>
-									</CardTitle>
-								</CardHeader>
-							</Link>
-
-							<CardContent>{event.comment}</CardContent>
-
-							<CardFooter className="flex flex-col items-center justify-start gap-1 lg:flex-row lg:gap-2">
-								<span className="text-center">{countries[event.country]}</span>
-								<span className="hidden lg:block">-</span>
-								<span className="text-center">
-									{new Date(event.date || "").toLocaleDateString("fr-FR", {
-										hour: "numeric",
-										minute: "numeric",
-										year: "numeric",
-										month: "long",
-										day: "numeric",
-										timeZoneName: "shortOffset",
-										weekday: "long"
-									})}
-								</span>
-								<TimeCounter date={event.date} diff={20 * 60 * 1000} />
-							</CardFooter>
-						</Card>
-					</div>
-				))}
-			</div>
+						<CardFooter className="flex flex-col items-center justify-start gap-1 lg:flex-row lg:gap-2">
+							<span className="text-center">{countries[event.country]}</span>
+							<span className="hidden lg:block">-</span>
+							<span className="text-center">
+								{new Date(event.date || "").toLocaleDateString("fr-FR", {
+									hour: "numeric",
+									minute: "numeric",
+									year: "numeric",
+									month: "long",
+									day: "numeric",
+									timeZoneName: "shortOffset",
+									weekday: "long"
+								})}
+							</span>
+							<TimeCounter date={event.date} diff={20 * 60 * 1000} />
+						</CardFooter>
+					</Card>
+				</div>
+			))}
 		</div>
 	)
 }

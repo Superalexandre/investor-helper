@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query"
 import type { NewsSymbols } from "../../../../types/News"
 import SkeletonNews from "../../../components/skeletons/skeletonNews"
 import DisplaySymbols from "../../../components/displaySymbols"
+import { useEffect, useRef } from "react"
 
 export const meta: MetaFunction = () => {
 	const title = "Investor Helper - Les actualités"
@@ -28,6 +29,7 @@ export const meta: MetaFunction = () => {
 
 export default function Index() {
 	const location = useLocation()
+	const newsRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
 	const actualPage = location.search ? Number.parseInt(new URLSearchParams(location.search).get("page") || "1") : 1
 
@@ -53,6 +55,17 @@ export default function Index() {
 		},
 		refetchOnWindowFocus: true
 	})
+
+	useEffect(() => {
+		if (location.hash && news && news.length > 0) {
+			const newsId = location.hash.replace("#", "")
+			const newsRef = newsRefs.current[newsId]
+
+			if (newsRef) {
+				newsRef.scrollIntoView({ behavior: "smooth" })
+			}
+		}
+	}, [location.hash, news])
 
 	if (isPending) {
 		const skeletonArray = Array.from({ length: 10 })
@@ -95,7 +108,14 @@ export default function Index() {
 
 			<div className="flex flex-col space-y-6 p-4 lg:p-10">
 				{news.map((item) => (
-					<div className="relative" key={item.news.id} id={item.news.id}>
+					<div
+						className="relative"
+						key={item.news.id}
+						id={item.news.id}
+						ref={(element) => {
+							newsRefs.current[item.news.id] = element
+						}}
+					>
 						{item.news.importanceScore > 50 ? (
 							<ImportanceBadge
 								importance={item.news.importanceScore}

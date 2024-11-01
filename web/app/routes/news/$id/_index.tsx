@@ -72,16 +72,18 @@ export default function Index() {
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent className="mx-4">
-							<DropdownMenuItem>
+							<DropdownMenuItem asChild={true} className="p-0">
 								<CopyButton 
 									content={`https://investor-helper.com/news/${news.news.id}`}
+									className="p-6 pl-4 hover:cursor-pointer"
 								/>
 							</DropdownMenuItem>
-							<DropdownMenuItem>
+							<DropdownMenuItem asChild={true} className="p-0">
 								<ShareButton 
 									title={news.news.title}
 									text={news.news_article.shortDescription || news.news.title}
 									url={`https://investor-helper.com/news/${news.news.id}`}
+									className="p-6 pl-4 hover:cursor-pointer"
 								/>
 							</DropdownMenuItem>
 						</DropdownMenuContent>
