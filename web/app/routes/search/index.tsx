@@ -182,9 +182,10 @@ export default function Index() {
 											<Button
 												variant="outline"
 												key={news.id}
-												className="flex w-full flex-row items-center justify-between border-none p-2"
+												className="flex w-full flex-row items-center justify-between border-none p-2 "
 											>
-												<p>{news.title}</p>
+												<p className="overflow-hidden">{news.title}</p>
+												<p className="pl-10">{news.source}</p>
 											</Button>
 										</Link>
 									))
@@ -211,12 +212,12 @@ export default function Index() {
 													key={`${normalizeSymbolHtml(symbol.symbol)}-${i}`}
 													className="flex w-full flex-row items-center justify-between border-none p-2"
 												>
-													<p>
+													<p className="overflow-hidden">
 														{normalizeSymbolHtml(symbol.description)} (
 														{normalizeSymbolHtml(symbol.symbol)})
 													</p>
 
-													<p>{symbol.exchange}</p>
+													<p className="pl-10">{symbol.exchange}</p>
 												</Button>
 											</Link>
 										)
