@@ -97,7 +97,7 @@ export default function Index() {
 
 			return json
 		},
-		refetchOnWindowFocus: true,
+		refetchOnWindowFocus: true
 	})
 
 	const hidden = !debouncedValue || isPending || error

@@ -334,12 +334,12 @@ export default function Index() {
 
 							<div className="flex flex-col items-center">
 								{event.sourceUrl ? (
-									<p className="flex flex-row items-center gap-1">
+									<p className="flex flex-row flex-wrap items-center justify-center gap-1">
 										Source :
 										<Link
 											to={event.sourceUrl}
 											target="_blank"
-											className="flex flex-row items-center justify-center gap-1 underline"
+											className="flex flex-row items-center justify-center gap-1 text-center underline"
 										>
 											{event.source && event.source !== "" ? event.source : event.sourceUrl}
 
