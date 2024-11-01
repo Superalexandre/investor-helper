@@ -165,7 +165,8 @@ function EconomicCalendar() {
 							to={`/calendar/${event.id}`}
 							state={{
 								redirect: "/calendar",
-								hash: `#${event.id}`
+								hash: `#${event.id}`,
+								search: location.search
 							}}
 						>
 							<CardHeader>

@@ -130,7 +130,8 @@ export default function Index() {
 								}}
 								state={{
 									redirect: "/news",
-									hash: item.news.id
+									hash: item.news.id,
+									search: location.search
 								}}
 							>
 								<CardHeader>
