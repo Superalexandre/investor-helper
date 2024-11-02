@@ -1,5 +1,7 @@
 import { searchNews } from "@/utils/news"
 import { json, type LoaderFunction, type LoaderFunctionArgs } from "@remix-run/node"
+import type { News } from "../../../../../db/schema/news"
+import type { RawSearchResult } from "../../../../types/Search"
 
 export async function searchSymbol(search: string, searching = "undefined") {
 	const url = new URL(
@@ -45,17 +47,15 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 		)
 	}
 
-	// biome-ignore lint/suspicious/noEvolvingTypes: TODO: type this
-	const symbolsResult = []
-	// biome-ignore lint/suspicious/noEvolvingTypes: TODO: type this
-	const newsResult = []
+	const symbolsResult: RawSearchResult[] = []
+	const newsResult: News[] = []
 
 	if (searching && ["allSymbol", "stocks", "crypto"].includes(searching)) {
 		const symbols = await searchSymbol(search, searching === "allSymbol" ? "undefined" : searching)
 
 		symbolsResult.push(...symbols.symbols)
 	} else if (searching && ["news"].includes(searching)) {
-		const news = await searchNews(search)
+		const news = await searchNews(search, -1)
 
 		newsResult.push(...news)
 	} else if (searching && ["all"].includes(searching)) {
@@ -67,6 +67,8 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 	} else {
 		console.error("Unknown searching parameter", searching)
 	}
+
+	console.log("symbolsResult", symbolsResult)
 
 	return json({
 		symbols: symbolsResult,

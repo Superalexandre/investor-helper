@@ -1,9 +1,6 @@
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
-import {
-	newsSchema,
-	newsRelatedSymbolsSchema,
-	newsArticleSchema } from "../../db/schema/news.js"
+import { newsSchema, newsRelatedSymbolsSchema, newsArticleSchema } from "../../db/schema/news.js"
 import { symbolsSchema } from "../../db/schema/symbols.js"
 import { and, desc, eq, gte, inArray, like, lte, or } from "drizzle-orm"
 import config from "../../config.js"
@@ -387,13 +384,13 @@ async function reduceAndSendNotifications(notifications: NotificationToSend[] | 
 		// Prevent duplicates news
 		if (exists?.newsId.includes(notification.newsId[0])) {
 			exists.keyword.push(...notification.keyword)
-			
+
 			continue
 		}
 
 		if (exists) {
 			exists.number++
-			
+
 			exists.newsId.push(...notification.newsId)
 			// if (exists.number > 1) {
 			// 	exists.title = `${exists.number} articles qui pourrais vous intéresser ont été publiés`
@@ -416,16 +413,18 @@ async function reduceAndSendNotifications(notifications: NotificationToSend[] | 
 			const newsIds = notificationContent.newsId.join(",")
 			const newsIdsBase64 = Buffer.from(newsIds).toString("base64url")
 
-			if (notificationContent.number > 1) {
-				notificationContent.title = `${notificationContent.number} articles qui pourrais vous intéresser ont été publiés`
-				notificationContent.body = `${notificationContent.number} articles qui pourrais vous intéresser ont été publiés`
-			} 
+			const newsNumber = notificationContent.newsId.length
+
+			if (newsNumber > 1) {
+				notificationContent.title = `${newsNumber} articles qui pourrais vous intéresser ont été publiés`
+				notificationContent.body = `${newsNumber} articles qui pourrais vous intéresser ont été publiés`
+			}
 
 			if (notificationContent.keyword.length > 1) {
-				const originalTitle = notificationContent.title
+				// const originalTitle = notificationContent.title
 
-				notificationContent.title = `1 articles parlant de ${notificationContent.keyword.join(", ")} a été publiés`
-				notificationContent.body = originalTitle
+				notificationContent.title = `${newsNumber} articles parlant de ${notificationContent.keyword.join(", ")} a été publiés`
+				notificationContent.body = `${newsNumber} articles parlant de ${notificationContent.keyword.join(", ")} a été publiés`
 				// notificationContent.body = `${notificationContent.number} articles parlant de ${notificationContent.keyword.join(", ")} ont été publiés`
 			}
 
@@ -521,15 +520,36 @@ function getNewsImportanceScore(
 	return score
 }
 
-async function searchNews(search: string) {
+async function searchNews(search: string, limit = 10) {
 	const sqlite = new Database("../db/sqlite.db")
 	const db = drizzle(sqlite)
 
 	const news = await db
-		.select()
+		.select({
+			id: newsSchema.id,
+			title: newsSchema.title,
+			storyPath: newsSchema.storyPath,
+			sourceLogoId: newsSchema.sourceLogoId,
+			published: newsSchema.published,
+			source: newsSchema.source,
+			urgency: newsSchema.urgency,
+			provider: newsSchema.provider,
+			link: newsSchema.link,
+			mainSource: newsSchema.mainSource,
+			lang: newsSchema.lang,
+			importanceScore: newsSchema.importanceScore
+		})
 		.from(newsSchema)
-		.where(like(newsSchema.title, `%${search}%`))
+		.innerJoin(newsArticleSchema, eq(newsSchema.id, newsArticleSchema.newsId))
+		.where(
+			or(
+				like(newsSchema.title, `%${search}%`),
+				like(newsArticleSchema.shortDescription, `%${search}%`),
+				like(newsArticleSchema.jsonDescription, `%${search}%`)
+			)
+		)
 		.orderBy(desc(newsSchema.published))
+		.limit(limit)
 
 	return news
 }
