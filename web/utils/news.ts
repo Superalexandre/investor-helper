@@ -410,7 +410,7 @@ async function reduceAndSendNotifications(notifications: NotificationToSend[] | 
 			.where(eq(notificationSchema.userId, notificationContent.userId))
 
 		if (notificationContent.newsId.length > 1) {
-			const newsIds = notificationContent.newsId.join(",")
+			const newsIds = notificationContent.newsId.join("-")
 			const newsIdsBase64 = Buffer.from(newsIds).toString("base64url")
 
 			const newsNumber = notificationContent.newsId.length

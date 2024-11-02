@@ -16,7 +16,7 @@ export const loader: LoaderFunction = async({ request }: LoaderFunctionArgs) => 
         return json({ error: "Invalid id" }, { status: 400 })
     }
 
-    const articles = decodedId.split(",")
+    const articles = decodedId.split("-")
 
     if (articles.length === 0) {
         return json({ error: "No articles provided" }, { status: 400 })
