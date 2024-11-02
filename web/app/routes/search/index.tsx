@@ -1,12 +1,12 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useRef, useState } from "react"
-import { useDebounceValue } from "usehooks-ts"
+import { useDebounceValue } from "@/hooks/useDebounceValue"
 import { cn } from "@/lib/utils"
 import { normalizeSymbol, normalizeSymbolHtml } from "@/utils/normalizeSymbol"
 import type { News } from "@/schema/news"
 import { Link, useLocation, useNavigate } from "@remix-run/react"
-import { MdClose } from "react-icons/md"
+import { MdClose, MdTune } from "react-icons/md"
 import type { MetaFunction } from "@remix-run/node"
 import { useQuery } from "@tanstack/react-query"
 import { Skeleton } from "../../components/ui/skeleton"
@@ -65,24 +65,28 @@ export default function Index() {
 		navigate(url)
 	}
 
-	const [debouncedValue, setValue] = useDebounceValue(searchParam ?? "", 750)
+	const [debouncedValue, setDebouncedValue, setForceValue] = useDebounceValue(searchParam ?? "", 750)
 	const [searchingIn, setSearchingIn] = useState<SearchType>((searchInParam as SearchType) ?? "all")
 
-	const reset = () => {
-		if (inputRef.current) {
-			inputRef.current.value = ""
-		}
+	// const reset = () => {
+	// 	console.log("reset")
 
-		setValue("")
+	// 	if (inputRef.current) {
+	// 		inputRef.current.value = ""
+	// 	}
 
-		navigate(pathname)
-	}
+	// 	setForceValue("")
+
+	// 	navigate(pathname)
+	// }
 
 	const { data, isPending, error } = useQuery<{ symbols: SelectSymbolType[]; news: News[] }>({
 		queryKey: ["search", debouncedValue, searchingIn],
 		queryFn: async () => {
+			console.log("searching", debouncedValue, searchingIn)
+
 			if (!debouncedValue) {
-				reset()
+				navigate(pathname)
 
 				return {
 					symbols: [],
@@ -109,28 +113,48 @@ export default function Index() {
 	return (
 		<div className="flex flex-col items-center justify-center p-4">
 			<div className="relative w-full">
-				<div>
-					<Input
-						className="w-full"
-						name="symbol"
-						type="text"
-						placeholder="Rechercher un symbole, une action, une crypto, une news..."
-						onChange={(event) => setValue(event.target.value)}
-						defaultValue={searchParam ?? ""}
-						ref={inputRef}
-						required={true}
-						autoFocus={true}
-					/>
+				<div className="flex w-full flex-row items-center gap-2">
+					<div className="relative w-full">
+						<Input
+							className="w-full"
+							name="symbol"
+							type="text"
+							placeholder="Rechercher un symbole, une action, une crypto, une news..."
+							onChange={(event) => setDebouncedValue(event.target.value)}
+							defaultValue={searchParam ?? ""}
+							ref={inputRef}
+							required={true}
+							autoFocus={true}
+						/>
 
-					{hidden ? null : (
-						<Button variant="ghost" onClick={reset} className="absolute top-0 right-0">
-							<MdClose className="size-6" />
+						{hidden ? null : (
+							<Button
+								variant="ghost"
+								onClick={() => {
+									if (inputRef.current) {
+										inputRef.current.value = ""
+									}
+
+									setForceValue("")
+								}}
+								className="absolute top-0 right-0"
+							>
+								<MdClose className="size-6" />
+							</Button>
+						)}
+					</div>
+
+					{/* {hidden ? null : (
+						<Button className="flex flex-row items-center justify-center gap-2" variant="outline">
+							<MdTune className="size-6" />
+
+							<span className="hidden lg:block">Filter</span>
 						</Button>
-					)}
+					)} */}
 				</div>
 
 				{hidden ? null : (
-					<div className="absolute top-full left-0 z-10 mt-1 flex w-full flex-col gap-1 overflow-x-hidden">
+					<div className="absolute top-full left-0 z-10 mt-2 flex w-full flex-col gap-1 overflow-x-hidden">
 						<div className="flex flex-row items-center gap-1 overflow-x-auto">
 							<Button
 								variant={searchingIn === "all" ? "default" : "outline"}
