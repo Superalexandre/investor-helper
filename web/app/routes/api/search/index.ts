@@ -68,8 +68,6 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 		console.error("Unknown searching parameter", searching)
 	}
 
-	console.log("symbolsResult", symbolsResult)
-
 	return json({
 		symbols: symbolsResult,
 		news: newsResult
