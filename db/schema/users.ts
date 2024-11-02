@@ -31,6 +31,11 @@ export const usersSchema = sqliteTable("user", {
 		.$defaultFn(() => new Date().toISOString()),
 	updatedAt: text("updated_at")
 		.$defaultFn(() => new Date().toISOString())
+		.notNull(),
+	consentRgpd: int("consent_rgpd", {
+		mode: "boolean"
+	})
+		.default(true)
 		.notNull()
 })
 

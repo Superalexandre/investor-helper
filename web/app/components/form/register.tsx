@@ -8,6 +8,8 @@ import * as zod from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { ShowButtonComponent } from "./showHideButton"
+import { Label } from "../ui/label"
+import { Checkbox } from "../ui/checkbox"
 
 const schema = zod.object({
 	name: zod.string().min(3).max(32).trim(),
@@ -20,11 +22,11 @@ const schema = zod.object({
 		.regex(/^[a-zA-Z0-9_]+$/),
 	email: zod.string().email().trim().toLowerCase(),
 	password: zod.string().min(8).max(255),
-	passwordConfirmation: zod.string().min(8).max(255)
+	passwordConfirmation: zod.string().min(8).max(255),
+	terms: zod.boolean().refine(value => value === true, "You must agree to the terms and conditions")
 })
 
 type FormData = zod.infer<typeof schema>
-
 const resolver = zodResolver(schema)
 
 interface RegisterProps {
@@ -141,6 +143,36 @@ export default function Register({ redirect, callback }: RegisterProps) {
 					<ShowButtonComponent show={showPasswordConfirmation} setShow={setShowPasswordConfirmation} />
 				}
 			/>
+
+			<div className="flex flex-col items-center">
+				<div className="flex flex-row items-center gap-2">
+					<Checkbox
+						id="terms"
+						required={true}
+						{...register("terms", {
+							required: true,
+							value: true
+						})}
+					/>
+
+					<Label htmlFor="terms" className="space-x-1 text-white">
+						<span>J'accepte les</span>
+						<Link to="/terms" className="text-white underline hover:text-slate-400">
+							conditions d'utilisation
+						</Link>
+						<span>et la</span>
+						<Link to="/privacy" className="text-white underline hover:text-slate-400">
+							politique de confidentialité
+						</Link>
+					</Label>
+				</div>
+
+				{errors?.terms ? (
+					<span className="w-full text-center text-red-500 lg:text-left">
+						{errors.terms?.message?.toString()}
+					</span>
+				) : null}
+			</div>
 
 			<Link
 				to={{

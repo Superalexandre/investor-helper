@@ -15,12 +15,13 @@ interface FormData {
 	username: string
 	email: string
 	password: string
-	passwordConfirmation: string
+	passwordConfirmation: string,
+	terms: boolean
 }
 
 const uniqueRegex = /UNIQUE constraint failed: accounts\.(\w+)/
 
-export default async function createAccount({ request, name, firstName, username, email, password }: FormData) {
+export default async function createAccount({ request, name, firstName, username, email, password, passwordConfirmation, terms }: FormData) {
 	const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
 	const db = drizzle(sqlite)
 
@@ -70,6 +71,41 @@ export default async function createAccount({ request, name, firstName, username
 				success: false,
 				error: true,
 				errors,
+				message: "Une erreur est survenue lors de la création du compte !"
+			},
+			{ status: 500 }
+		)
+	}
+
+	if (password !== passwordConfirmation) {
+		return json(
+			{
+				success: false,
+				error: true,
+				errors: {
+					password: {
+						message: "Les mots de passe ne correspondent pas"
+					},
+					passwordConfirmation: {
+						message: "Les mots de passe ne correspondent pas"
+					}
+				},
+				message: "Une erreur est survenue lors de la création du compte !"
+			},
+			{ status: 500 }
+		)
+	}
+
+	if (!terms) {
+		return json(
+			{
+				success: false,
+				error: true,
+				errors: {
+					terms: {
+						message: "Vous devez accepter les conditions d'utilisation"
+					}
+				},
 				message: "Une erreur est survenue lors de la création du compte !"
 			},
 			{ status: 500 }
