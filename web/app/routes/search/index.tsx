@@ -199,7 +199,8 @@ export default function Index() {
 											to={`/news/${news.id}`}
 											state={{
 												redirect: pathname,
-												search: `?search=${debouncedValue}`
+												search: `?search=${debouncedValue}&searching=${searchingIn}`,
+												hash: null
 											}}
 											key={news.id}
 										>
