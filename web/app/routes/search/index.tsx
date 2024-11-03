@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useRef, useState } from "react"
+import { type RefObject, useRef, useState } from "react"
 import { useDebounceValue } from "@/hooks/useDebounceValue"
 import { cn } from "@/lib/utils"
 import { normalizeSymbol, normalizeSymbolHtml } from "@/utils/normalizeSymbol"
@@ -39,19 +39,75 @@ export const meta: MetaFunction = () => {
 	]
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: TODO: Refactor this component
 export default function Index() {
 	const location = useLocation()
 	const pathname = location.pathname
-
 	const navigate = useNavigate()
-
 	const inputRef = useRef<HTMLInputElement>(null)
 
+	const { searchParam, searchInParam } = getSearchParams(location)
+	const [debouncedValue, setDebouncedValue, setForceValue] = useDebounceValue(searchParam ?? "", 750)
+	const [searchingIn, setSearchingIn] = useState<SearchType>((searchInParam as SearchType) ?? "all")
+
+	useInvalidSearchParamRedirect(searchInParam, searchParam, pathname, navigate)
+
+	const { data, isPending, error } = useSearchQuery(debouncedValue, searchingIn, pathname, navigate)
+
+	const hidden = !debouncedValue || isPending || error
+
+	if (error) {
+		throw error
+	}
+
+	return (
+		<div className="flex flex-col items-center justify-center p-4">
+			<div className="relative w-full">
+				<SearchInput
+					inputRef={inputRef}
+					setDebouncedValue={setDebouncedValue}
+					searchParam={searchParam}
+					hidden={!!hidden}
+					setForceValue={setForceValue}
+				/>
+
+				{hidden ? null : (
+					<div className="absolute top-full left-0 z-10 mt-2 flex w-full flex-col gap-1 overflow-x-hidden">
+						<Filter 
+							searchingIn={searchingIn} 
+							setSearchingIn={setSearchingIn}
+						/>
+
+						<div className={cn(hidden ? "hidden" : "flex flex-col")}>
+							{!isPending && data.news.length > 0 ? <DisplayNews news={data.news} /> : null}
+
+							{!isPending && data.symbols.length > 0 ? <DisplaySymbols symbols={data.symbols} /> : null}
+						</div>
+					</div>
+				)}
+
+				{isPending ? (
+					<div className="mt-2">
+						<div className="flex flex-col gap-2">
+							{Array.from({ length: 50 }).map((_, index) => (
+								// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+								<SkeletonSearch key={index} />
+							))}
+						</div>
+					</div>
+				) : null}
+			</div>
+		</div>
+	)
+}
+
+function getSearchParams(location: ReturnType<typeof useLocation>) {
 	const searchParams = new URLSearchParams(location.search)
 	const searchParam = searchParams.get("search")
 	const searchInParam = searchParams.get("searching")
+	return { searchParam, searchInParam }
+}
 
+function useInvalidSearchParamRedirect(searchInParam: string | null, searchParam: string | null, pathname: string, navigate: ReturnType<typeof useNavigate>) {
 	const validParams = ["all", "allSymbol", "stocks", "crypto", "news"]
 	if (searchInParam && !validParams.includes(searchInParam)) {
 		let url = pathname
@@ -64,23 +120,10 @@ export default function Index() {
 
 		navigate(url)
 	}
+}
 
-	const [debouncedValue, setDebouncedValue, setForceValue] = useDebounceValue(searchParam ?? "", 750)
-	const [searchingIn, setSearchingIn] = useState<SearchType>((searchInParam as SearchType) ?? "all")
-
-	// const reset = () => {
-	// 	console.log("reset")
-
-	// 	if (inputRef.current) {
-	// 		inputRef.current.value = ""
-	// 	}
-
-	// 	setForceValue("")
-
-	// 	navigate(pathname)
-	// }
-
-	const { data, isPending, error } = useQuery<{ symbols: SelectSymbolType[]; news: News[] }>({
+function useSearchQuery(debouncedValue: string, searchingIn: SearchType, pathname: string, navigate: ReturnType<typeof useNavigate>) {
+	return useQuery<{ symbols: SelectSymbolType[]; news: News[] }>({
 		queryKey: ["search", debouncedValue, searchingIn],
 		queryFn: async () => {
 			console.log("searching", debouncedValue, searchingIn)
@@ -103,166 +146,148 @@ export default function Index() {
 		},
 		refetchOnWindowFocus: true
 	})
+}
 
-	const hidden = !debouncedValue || isPending || error
-
-	if (error) {
-		throw error
-	}
-
+function SearchInput({
+	inputRef,
+	setDebouncedValue,
+	searchParam,
+	hidden,
+	setForceValue
+}: {
+	inputRef: RefObject<HTMLInputElement>
+	setDebouncedValue: (value: string) => void
+	searchParam: string | null
+	hidden: boolean
+	setForceValue: (value: string) => void
+}) {
 	return (
-		<div className="flex flex-col items-center justify-center p-4">
+		<div className="flex w-full flex-row items-center gap-2">
 			<div className="relative w-full">
-				<div className="flex w-full flex-row items-center gap-2">
-					<div className="relative w-full">
-						<Input
-							className="w-full"
-							name="symbol"
-							type="text"
-							placeholder="Rechercher un symbole, une action, une crypto, une news..."
-							onChange={(event) => setDebouncedValue(event.target.value)}
-							defaultValue={searchParam ?? ""}
-							ref={inputRef}
-							required={true}
-							autoFocus={true}
-						/>
-
-						{hidden ? null : (
-							<Button
-								variant="ghost"
-								onClick={() => {
-									if (inputRef.current) {
-										inputRef.current.value = ""
-									}
-
-									setForceValue("")
-								}}
-								className="absolute top-0 right-0"
-							>
-								<MdClose className="size-6" />
-							</Button>
-						)}
-					</div>
-
-					{/* {hidden ? null : (
-						<Button className="flex flex-row items-center justify-center gap-2" variant="outline">
-							<MdTune className="size-6" />
-
-							<span className="hidden lg:block">Filter</span>
-						</Button>
-					)} */}
-				</div>
+				<Input
+					className="w-full"
+					name="symbol"
+					type="text"
+					placeholder="Rechercher un symbole, une action, une crypto, une news..."
+					onChange={(event) => setDebouncedValue(event.target.value)}
+					defaultValue={searchParam ?? ""}
+					ref={inputRef}
+					required={true}
+					autoFocus={true}
+				/>
 
 				{hidden ? null : (
-					<div className="absolute top-full left-0 z-10 mt-2 flex w-full flex-col gap-1 overflow-x-hidden">
-						<div className="flex flex-row items-center gap-1 overflow-x-auto">
-							<Button
-								variant={searchingIn === "all" ? "default" : "outline"}
-								onClick={() => setSearchingIn("all")}
-							>
-								Tout
-							</Button>
+					<Button
+						variant="ghost"
+						onClick={() => {
+							if (inputRef.current) {
+								inputRef.current.value = ""
+							}
 
-							<Button
-								variant={searchingIn === "news" ? "default" : "outline"}
-								onClick={() => setSearchingIn("news")}
-							>
-								News
-							</Button>
-
-							<Button
-								variant={searchingIn === "allSymbol" ? "default" : "outline"}
-								onClick={() => setSearchingIn("allSymbol")}
-							>
-								Tous les symboles
-							</Button>
-
-							<Button
-								variant={searchingIn === "stocks" ? "default" : "outline"}
-								onClick={() => setSearchingIn("stocks")}
-							>
-								Actions
-							</Button>
-
-							<Button
-								variant={searchingIn === "crypto" ? "default" : "outline"}
-								onClick={() => setSearchingIn("crypto")}
-							>
-								Crypto
-							</Button>
-						</div>
-
-						<div className={cn(hidden ? "hidden" : "flex flex-col")}>
-							{!isPending && data.news.length > 0
-								? data.news.map((news) => (
-										<Link
-											to={`/news/${news.id}`}
-											state={{
-												redirect: pathname,
-												search: `?search=${debouncedValue}&searching=${searchingIn}`,
-												hash: null
-											}}
-											key={news.id}
-										>
-											<Button
-												variant="outline"
-												key={news.id}
-												className="flex w-full flex-row items-center justify-between border-none p-2 "
-											>
-												<p className="overflow-hidden">{news.title}</p>
-												<p className="pl-10">{news.source}</p>
-											</Button>
-										</Link>
-									))
-								: null}
-
-							{!isPending && data.symbols.length > 0
-								? data.symbols.map((symbol, i) => {
-										const prefix = symbol.prefix?.toUpperCase() ?? symbol.exchange.toUpperCase()
-										const normalizedSymbol = normalizeSymbolHtml(symbol.symbol)
-
-										const fullUrl = normalizeSymbol(`${prefix}:${normalizedSymbol}`)
-
-										return (
-											<Link
-												to={`/data/${fullUrl}`}
-												state={{
-													redirect: pathname,
-													search: `?search=${debouncedValue}`
-												}}
-												key={`${normalizeSymbolHtml(symbol.symbol)}-${i}`}
-											>
-												<Button
-													variant="outline"
-													key={`${normalizeSymbolHtml(symbol.symbol)}-${i}`}
-													className="flex w-full flex-row items-center justify-between border-none p-2"
-												>
-													<p className="overflow-hidden">
-														{normalizeSymbolHtml(symbol.description)} (
-														{normalizeSymbolHtml(symbol.symbol)})
-													</p>
-
-													<p className="pl-10">{symbol.exchange}</p>
-												</Button>
-											</Link>
-										)
-									})
-								: null}
-						</div>
-					</div>
+							setForceValue("")
+						}}
+						className="absolute top-0 right-0"
+					>
+						<MdClose className="size-6" />
+					</Button>
 				)}
-
-				{isPending ? (
-					<div className="mt-2">
-						<div className="flex flex-col gap-2">
-							{Array.from({ length: 50 }).map((_, index) => (
-								// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-								<SkeletonSearch key={index} />
-							))}
-						</div>
-					</div>
-				) : null}
 			</div>
+		</div>
+	)
+}
+
+function Filter({
+	searchingIn,
+	setSearchingIn
+}: {
+	searchingIn: SearchType
+	setSearchingIn: (searchingIn: SearchType) => void
+}) {
+	return (
+		<div className="flex flex-row items-center gap-1 overflow-x-auto">
+			{/* <Button className="flex flex-row items-center justify-center gap-2" variant="outline">
+				<MdTune className="size-6" />
+			
+				<span className="hidden lg:block">Filter</span>
+			</Button> */}
+
+			<Button variant={searchingIn === "all" ? "default" : "outline"} onClick={() => setSearchingIn("all")}>
+				Tout
+			</Button>
+
+			<Button variant={searchingIn === "news" ? "default" : "outline"} onClick={() => setSearchingIn("news")}>
+				News
+			</Button>
+
+			<Button
+				variant={searchingIn === "allSymbol" ? "default" : "outline"}
+				onClick={() => setSearchingIn("allSymbol")}
+			>
+				Tous les symboles
+			</Button>
+
+			<Button variant={searchingIn === "stocks" ? "default" : "outline"} onClick={() => setSearchingIn("stocks")}>
+				Actions
+			</Button>
+
+			<Button variant={searchingIn === "crypto" ? "default" : "outline"} onClick={() => setSearchingIn("crypto")}>
+				Crypto
+			</Button>
+		</div>
+	)
+}
+
+function DisplaySymbols({ symbols }: { symbols: SelectSymbolType[] }) {
+	return (
+		<div className="flex flex-col gap-1">
+			{symbols.map((symbol, i) => {
+				const prefix = symbol.prefix?.toUpperCase() ?? symbol.exchange.toUpperCase()
+				const normalizedSymbol = normalizeSymbolHtml(symbol.symbol)
+
+				const fullUrl = normalizeSymbol(`${prefix}:${normalizedSymbol}`)
+
+				return (
+					<Link
+						to={`/data/${fullUrl}`}
+						state={{
+							redirect: "/search",
+							search: `?search=${normalizedSymbol}`
+						}}
+						key={`${normalizeSymbolHtml(symbol.symbol)}-${i}`}
+					>
+						<Button
+							variant="outline"
+							key={`${normalizeSymbolHtml(symbol.symbol)}-${i}`}
+							className="flex w-full flex-row items-center justify-between border-none p-2"
+						>
+							<p className="overflow-hidden">
+								{normalizeSymbolHtml(symbol.description)} ({normalizeSymbolHtml(symbol.symbol)})
+							</p>
+
+							<p className="pl-10">{symbol.exchange}</p>
+						</Button>
+					</Link>
+				)
+			})}
+		</div>
+	)
+}
+
+function DisplayNews({ news }: { news: News[] }) {
+	return (
+		<div className="flex flex-col gap-1">
+			{news.map((news) => (
+				<Link to={`/news/${news.id}`} key={news.id}>
+					<Button
+						variant="outline"
+						key={news.id}
+						className="flex w-full flex-row items-center justify-between border-none p-2 "
+					>
+						<p className="overflow-hidden">{news.title}</p>
+						<p className="pl-10">{news.source}</p>
+					</Button>
+				</Link>
+			))}
 		</div>
 	)
 }

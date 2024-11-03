@@ -11,7 +11,7 @@ import {
 	type NotificationSubscribedNewsSymbols,
 	notificationSubscribedNewsSymbolsSchema
 } from "../../db/schema/notifications.js"
-import { and, eq } from "drizzle-orm"
+import { and, eq, gte } from "drizzle-orm"
 import { sendNotifications } from "@remix-pwa/push"
 import type { User } from "../../db/schema/users.js"
 import { eventsSchema } from "../../db/schema/events.js"
@@ -119,16 +119,13 @@ async function getUserNotifications(user: User) {
 	const sqlite = new Database("../db/sqlite.db")
 	const db = drizzle(sqlite)
 
-	const notifications = await db
-		.select()
-		.from(notificationSchema)
-		.where(eq(notificationSchema.userId, user.id))
+	const notifications = await db.select().from(notificationSchema).where(eq(notificationSchema.userId, user.id))
 
 	const calendarNotifications = await db
 		.select()
 		.from(notificationEventSchema)
 		.innerJoin(eventsSchema, eq(notificationEventSchema.eventId, eventsSchema.id))
-		.where(eq(notificationEventSchema.userId, user.id))
+		.where(and(eq(notificationEventSchema.userId, user.id), gte(eventsSchema.date, new Date().toISOString())))
 
 	const subscribedNews = await db
 		.select()
@@ -154,7 +151,6 @@ async function getUserNotifications(user: User) {
 			symbols: symbols
 		})
 	}
-
 
 	return {
 		notifications,
