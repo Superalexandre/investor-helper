@@ -7,11 +7,11 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle
-} from "./ui/dialog"
-import { Button } from "./ui/button"
+} from "../ui/dialog"
+import { Button } from "../ui/button"
 import { usePush } from "@remix-pwa/push/client"
 import config from "@/lib/config"
-import { Alert, AlertDescription, AlertTitle } from "./ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
 
 interface DialogNotificationProps {
 	open: boolean

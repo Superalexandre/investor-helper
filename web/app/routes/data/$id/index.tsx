@@ -21,7 +21,7 @@ import { fr } from "date-fns/locale"
 import { format, formatDistanceStrict } from "date-fns"
 import currencies from "@/lang/currencies"
 import { useWindowSize } from "usehooks-ts"
-import BackButton from "@/components/backButton"
+import BackButton from "@/components/button/backButton"
 
 function differences(prices: Period[]) {
 	const differencePrice = prices[0].close - prices[prices.length - 1].close

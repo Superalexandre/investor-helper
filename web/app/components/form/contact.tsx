@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form } from "@remix-run/react"
-import * as zod from "zod"
+import { z as zod } from "zod"
 import InputForm, { type FieldErrors } from "./inputForm"
 import { useRemixForm } from "remix-hook-form"
 import { Button } from "../ui/button"
@@ -9,6 +9,7 @@ import { Textarea } from "../ui/textarea"
 import { Label } from "../ui/label"
 import { useEffect } from "react"
 import { toast as sonner } from "sonner"
+import Loading from "../loading"
 
 const schema = zod.object({
 	name: zod.string().min(3).max(32).trim(),
@@ -42,7 +43,7 @@ export default function Contact() {
 			sonner("Message envoyé", {
 				description: "Votre message a bien été envoyé",
 				closeButton: true,
-				id: "register-success"
+				id: "send-success"
 			})
 		}
 	}, [reset, isSubmitSuccessful])
@@ -87,14 +88,14 @@ export default function Contact() {
 					className={`${isSubmitting ? "opacity-50" : "hover:bg-green-700"} flex flex-row items-center justify-center gap-2 rounded bg-green-500 p-4 text-white`}
 					disabled={isSubmitting}
 				>
-					<MdSend size={20} className={`${isSubmitting ? "hidden" : "block"}`} />
-					<div className={`${isSubmitting ? "block" : "hidden"} loader size-5`} />
-					Créer un compte
-				</Button>
-
-				{/* <button type="submit" className="btn btn-primary">
+					{isSubmitting ? (
+						<Loading className="size-5 border-2" />
+					) : (
+						<MdSend size={20} />
+					)}
+					
 					Envoyer
-				</button> */}
+				</Button>
 			</div>
 		</Form>
 	)

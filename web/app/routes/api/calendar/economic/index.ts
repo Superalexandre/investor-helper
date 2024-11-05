@@ -13,7 +13,7 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 	const events = await getEvents({
 		limit: limitResult,
 		page: pageResult,
-		desc: "asc"
+		order: "asc"
 	})
 
     // Await fake delay

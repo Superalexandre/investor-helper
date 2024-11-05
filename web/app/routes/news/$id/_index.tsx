@@ -9,13 +9,13 @@ import SymbolLogo from "@/components/symbolLogo"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { normalizeSymbol } from "@/utils/normalizeSymbol"
 import { ScrollTop } from "@/components/scrollTop"
-import BackButton from "@/components/backButton"
+import BackButton from "@/components/button/backButton"
 import type { JSX } from "react"
 import { Button } from "../../../components/ui/button"
 import { MdMoreVert } from "react-icons/md"
-import ShareButton from "../../../components/shareButton"
+import ShareButton from "../../../components/button/shareButton"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../components/ui/dropdown-menu"
-import CopyButton from "../../../components/copyButton"
+import CopyButton from "../../../components/button/copyButton"
 
 export async function loader({ params }: LoaderFunctionArgs) {
 	const { id } = params

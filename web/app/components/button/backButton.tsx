@@ -1,5 +1,5 @@
 import { useNavigate } from "@remix-run/react"
-import { Button } from "./ui/button"
+import { Button } from "../ui/button"
 import { MdArrowBack } from "react-icons/md"
 
 export default function BackButton({

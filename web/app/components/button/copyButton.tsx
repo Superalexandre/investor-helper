@@ -1,8 +1,8 @@
 import { MdContentCopy } from "react-icons/md"
-import { Button } from "./ui/button"
+import { Button } from "../ui/button"
 import { useCopyToClipboard } from "usehooks-ts"
 import { toast as sonner } from "sonner"
-import { cn } from "../lib/utils"
+import { cn } from "../../lib/utils"
 
 export default function CopyButton({
 	content,

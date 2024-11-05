@@ -1,5 +1,6 @@
 import type { MetaFunction } from "@remix-run/node"
 import Content from "./content.mdx"
+import BackButton from "../../components/button/backButton"
 
 export const meta: MetaFunction = () => {
 	const title = "Investor Helper - Conditions d'utilisation"
@@ -17,7 +18,9 @@ export const meta: MetaFunction = () => {
 
 export default function Index() {
     return (
-        <div className="flex flex-col items-center gap-10">
+        <div className="relative flex flex-col items-center gap-10">
+			<BackButton />
+
             <Content />
         </div>
     )

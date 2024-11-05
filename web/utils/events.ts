@@ -142,8 +142,8 @@ calendarHono.get("/", async (req) => {
 async function getEvents({
 	page = 1,
 	limit = 10,
-	desc: descOrder = "desc"
-}: { page?: number; limit?: number; desc?: "asc" | "desc" }) {
+	order = "desc"
+}: { page?: number; limit?: number; order?: "asc" | "desc" }) {
 	const sqlite = new Database("../db/sqlite.db")
 	const db = drizzle(sqlite)
 
@@ -157,7 +157,7 @@ async function getEvents({
 		.limit(limit)
 		.offset(limit * (page - 1))
 		.where(and(isNotNull(eventsSchema.date), gte(eventsSchema.date, referenceDate.toISOString())))
-		.orderBy(descOrder === "asc" ? asc(eventsSchema.date) : desc(eventsSchema.date))
+		.orderBy(order === "asc" ? asc(eventsSchema.date) : desc(eventsSchema.date))
 	// .orderBy(desc(eventsSchema.referenceDate))
 
 	return allEvents

@@ -3,13 +3,13 @@ import InputForm, { type FieldErrors } from "./inputForm"
 import { useEffect, useState } from "react"
 import { MdAdd, MdBadge, MdEmail, MdPassword } from "react-icons/md"
 import { useRemixForm } from "remix-hook-form"
-// biome-ignore lint/style/noNamespaceImport: Zod is a namespace
-import * as zod from "zod"
+import { z as zod } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
-import { ShowButtonComponent } from "./showHideButton"
+import { ShowButtonComponent } from "../button/showHideButton"
 import { Label } from "../ui/label"
 import { Checkbox } from "../ui/checkbox"
+import Loading from "../loading"
 
 const schema = zod.object({
 	name: zod.string().min(3).max(32).trim(),
@@ -192,8 +192,12 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				className={`${isSubmitting ? "opacity-50" : "hover:bg-green-700"} flex flex-row items-center justify-center gap-2 rounded bg-green-500 p-4 text-white`}
 				disabled={isSubmitting}
 			>
-				<MdAdd size={20} className={`${isSubmitting ? "hidden" : "block"}`} />
-				<div className={`${isSubmitting ? "block" : "hidden"} loader size-5`} />
+				{isSubmitting ? (
+					<Loading className="size-5 border-2" />
+				) : (
+					<MdAdd size={20} />
+				)}
+
 				Créer un compte
 			</Button>
 		</Form>

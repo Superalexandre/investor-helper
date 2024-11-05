@@ -7,7 +7,7 @@ import ImportanceBadge from "../../../../components/importanceBadge"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../../../../components/ui/card"
 import formatDate from "../../../../../utils/formatDate"
 import DisplaySymbols from "../../../../components/displaySymbols"
-import BackButton from "../../../../components/backButton"
+import BackButton from "../../../../components/button/backButton"
 import type { MetaFunction } from "@remix-run/node"
 
 // export function loader({ params }: LoaderFunctionArgs) {

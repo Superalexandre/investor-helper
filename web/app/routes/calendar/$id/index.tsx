@@ -11,10 +11,10 @@ import {
 import { ScrollTop } from "@/components/scrollTop"
 import { getEventById } from "@/utils/events"
 import { cn } from "@/lib/utils"
-import BackButton from "@/components/backButton"
+import BackButton from "@/components/button/backButton"
 import { Button } from "@/components/ui/button"
 import { getUser } from "../../../session.server"
-import DialogAccount from "@/components/dialogAccount"
+import DialogAccount from "@/components/dialog/dialogAccount"
 import { useState } from "react"
 import {
 	Dialog,
@@ -32,7 +32,7 @@ import Database from "better-sqlite3"
 import { notificationEventSchema } from "@/schema/notifications"
 import { and, eq } from "drizzle-orm"
 import { usePush } from "@remix-pwa/push/client"
-import DialogNotification from "@/components/dialogNotification"
+import DialogNotification from "@/components/dialog/dialogNotification"
 import TimeCounter from "@/components/timeCounter"
 import {
 	DropdownMenu,
@@ -40,8 +40,8 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger
 } from "../../../components/ui/dropdown-menu"
-import ShareButton from "../../../components/shareButton"
-import CopyButton from "../../../components/copyButton"
+import ShareButton from "../../../components/button/shareButton"
+import CopyButton from "../../../components/button/copyButton"
 import { toast as sonner } from "sonner"
 import Loading from "../../../components/loading"
 

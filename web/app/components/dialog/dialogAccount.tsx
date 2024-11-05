@@ -1,8 +1,8 @@
 import type { Dispatch, SetStateAction } from "react"
-import Login from "./form/login"
-import Register from "./form/register"
-import { Card, CardContent } from "./ui/card"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog"
+import Login from "../form/login"
+import Register from "../form/register"
+import { Card, CardContent } from "../ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface DialogAccountProps {

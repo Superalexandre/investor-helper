@@ -1,6 +1,6 @@
 import { MdShare } from "react-icons/md"
-import { Button } from "./ui/button"
-import { cn } from "../lib/utils"
+import { Button } from "../ui/button"
+import { cn } from "../../lib/utils"
 
 export default function ShareButton({
 	title,

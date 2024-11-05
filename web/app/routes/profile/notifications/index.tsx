@@ -1,7 +1,7 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Link, redirect, useFetcher, useLoaderData, useSubmit } from "@remix-run/react"
 import { getUser } from "@/session.server"
-import BackButton from "../../../components/backButton"
+import BackButton from "../../../components/button/backButton"
 import { getUserNotifications } from "../../../../utils/notifications"
 import { Button } from "../../../components/ui/button"
 import { MdAdd, MdDelete } from "react-icons/md"
@@ -17,7 +17,7 @@ import {
 import { usePush } from "@remix-pwa/push/client"
 import { useRef, useState } from "react"
 import { Input } from "../../../components/ui/input"
-import DialogNotification from "../../../components/dialogNotification"
+import DialogNotification from "../../../components/dialog/dialogNotification"
 import { Badge } from "../../../components/ui/badge"
 import Loading from "../../../components/loading"
 
