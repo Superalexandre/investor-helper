@@ -1,5 +1,6 @@
 import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node"
 import {
+	isRouteErrorResponse,
 	Link,
 	// ClientLoaderFunctionArgs,
 	Links,
@@ -181,13 +182,39 @@ export default function App() {
 export function ErrorBoundary() {
 	const error = useRouteError()
 
-	console.error(error)
+	if (isRouteErrorResponse(error)) {
+		if (error.status === 404) {
+			return (
+				<div className="flex flex-grow flex-col items-center justify-center gap-4">
+					<h1 className="font-bold text-3xl">Page introuvable</h1>
+					<p>Désolé la page que vous cherchez n'est pas trouvable.</p>
+					<Link to="/">
+						<Button type="button" variant="default">
+							Retour à l'accueil
+						</Button>
+					</Link>
+				</div>
+			)
+		}
 
-	if (error && typeof error === "object" && "status" in error && error.status === 404) {
 		return (
 			<div className="flex flex-grow flex-col items-center justify-center gap-4">
-				<h1 className="font-bold text-3xl">Page introuvable</h1>
-				<p>Désolé la page que vous cherchez n'est pas trouvable.</p>
+				<h1 className="font-bold text-3xl">Une erreur est survenue ! ({error.status})</h1>
+				<p>{error.statusText}</p>
+				<Link to="/">
+					<Button type="button" variant="default">
+						Retour à l'accueil
+					</Button>
+				</Link>
+			</div>
+		)
+	}
+
+	if (error instanceof Error) {
+		return (
+			<div className="flex flex-grow flex-col items-center justify-center gap-4">
+				<h1 className="font-bold text-3xl">Une erreur est survenue !</h1>
+				<p>{error.message}</p>
 				<Link to="/">
 					<Button type="button" variant="default">
 						Retour à l'accueil
@@ -199,18 +226,7 @@ export function ErrorBoundary() {
 
 	return (
 		<div className="flex flex-grow flex-col items-center justify-center gap-4">
-			<h1 className="text-center font-bold text-3xl text-red-500">Une erreur est survenue !</h1>
-
-			{error && typeof error === "object" && ("message" in error || "status" in error) ? (
-				<>
-					<p>{"status" in error ? (error.status as string) : ""}</p>
-					<p>{"message" in error ? (error.message as string) : ""}</p>
-				</>
-			) : (
-				<p>Une erreur est survenue lors du chargement de la page.</p>
-			)}
-
-			{error && typeof error === "object" && "status" in error ? <p>{error.status as string}</p> : null}
+			<h1 className="font-bold text-3xl">Une erreur inconnue est survenue !</h1>
 
 			<Link to="/">
 				<Button type="button" variant="default">
