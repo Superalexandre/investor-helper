@@ -62,7 +62,7 @@ export default function Index() {
 			<ScrollTop showBelow={250} />
 
 			<div className="flex w-full flex-row items-center justify-evenly">
-				<BackButton safeRedirect="/news" safeHash={news.news.id} />
+				<BackButton />
 
 				<div className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute">
 					<DropdownMenu>

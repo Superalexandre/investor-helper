@@ -205,10 +205,8 @@ export default function Index() {
 				setHasNotification={setHasNotification}
 			/>
 
-			{/* <BackButton /> */}
-
 			<div className="flex w-full flex-row items-center justify-evenly">
-				<BackButton safeRedirect="/calendar" safeHash={event.id} />
+				<BackButton />
 
 				<div className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute">
 					<DropdownMenu>
