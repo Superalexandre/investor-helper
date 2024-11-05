@@ -302,7 +302,9 @@ async function getNotificationNews(news: NewsSymbolsArticle) {
 		const flatten = (node: any) => {
 			// console.log(node)
 			if (typeof node === "string") {
-				articleText += node
+				articleText += node.toLowerCase()
+
+				return
 			}
 
 			if (node.children) {
@@ -312,9 +314,9 @@ async function getNotificationNews(news: NewsSymbolsArticle) {
 			}
 		}
 
-		flatten(news.article?.jsonDescription)
+		flatten(JSON.parse(news.article.jsonDescription))
 
-		longDescriptionWords = articleText.split(" ").map((word) => word.toLowerCase())
+		longDescriptionWords = articleText.split(" ")
 	}
 
 	// Send a notification to the users that are subscribed to the news keywords
