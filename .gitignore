@@ -4,6 +4,7 @@ tsconfig.tsbuildinfo
 
 *.js
 *.db
+*.db-journal
 
 db/migrations/
 !/extension/tailwind.config.js

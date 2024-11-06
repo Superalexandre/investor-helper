@@ -621,7 +621,7 @@ export function FindSymbols({
 					<DialogDescription className="hidden">Rechercher un symbole</DialogDescription>
 				</DialogHeader>
 
-				<div className="flex flex-col gap-4">
+				<div className="flex flex-col gap-4 w-auto">
 					<Search
 						onClick={(symbol) => {
 							setTempSelectedSymbol(symbol)
@@ -663,7 +663,7 @@ export function FindSymbols({
 								{date ? format(date, "PPP") : <span>Date d'achat</span>}
 							</Button>
 						</PopoverTrigger>
-						<PopoverContent className="w-auto p-0">
+						<PopoverContent className="w-auto p-0" align="start">
 							<Calendar
 								mode="single"
 								locale={fr}
