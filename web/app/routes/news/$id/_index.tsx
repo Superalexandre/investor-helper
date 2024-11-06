@@ -14,7 +14,12 @@ import type { JSX } from "react"
 import { Button } from "../../../components/ui/button"
 import { MdMoreVert } from "react-icons/md"
 import ShareButton from "../../../components/button/shareButton"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../components/ui/dropdown-menu"
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger
+} from "../../../components/ui/dropdown-menu"
 import CopyButton from "../../../components/button/copyButton"
 
 export async function loader({ params }: LoaderFunctionArgs) {
@@ -62,7 +67,7 @@ export default function Index() {
 			<ScrollTop showBelow={250} />
 
 			<div className="flex w-full flex-row items-center justify-evenly">
-				<BackButton />
+				<BackButton fallbackRedirect="/news" />
 
 				<div className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute">
 					<DropdownMenu>
@@ -73,13 +78,13 @@ export default function Index() {
 						</DropdownMenuTrigger>
 						<DropdownMenuContent className="mx-4">
 							<DropdownMenuItem asChild={true} className="p-0">
-								<CopyButton 
+								<CopyButton
 									content={`https://investor-helper.com/news/${news.news.id}`}
 									className="p-6 pl-4 hover:cursor-pointer"
 								/>
 							</DropdownMenuItem>
 							<DropdownMenuItem asChild={true} className="p-0">
-								<ShareButton 
+								<ShareButton
 									title={news.news.title}
 									text={news.news_article.shortDescription || news.news.title}
 									url={`https://investor-helper.com/news/${news.news.id}`}

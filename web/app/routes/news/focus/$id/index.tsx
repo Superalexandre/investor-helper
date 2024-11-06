@@ -91,7 +91,7 @@ export default function Index() {
 
 	return (
 		<div className="relative w-full overflow-hidden">
-			<BackButton forceRedirect="/news" label="Voir toutes les actualités" />
+			<BackButton forceRedirect="/news" fallbackRedirect="/news" label="Voir toutes les actualités" />
 
 			<ScrollTop showBelow={250} />
 

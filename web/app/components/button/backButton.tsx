@@ -1,15 +1,29 @@
-import { useNavigate } from "@remix-run/react"
+import { type Path, useNavigate } from "@remix-run/react"
 import { Button } from "../ui/button"
 import { MdArrowBack } from "react-icons/md"
+import { useEffect, useState } from "react"
+
+type To = string | Partial<Path>
 
 export default function BackButton({
 	forceRedirect,
+	fallbackRedirect,
 	label = "Retour"
 }: {
 	forceRedirect?: string
+	fallbackRedirect?: string
 	label?: string
 }) {
 	const navigate = useNavigate()
+	const [goTo, setGoTo] = useState<string | number>(-1)
+
+	useEffect(() => {
+		if (window.history.length <= 1) {
+			setGoTo(fallbackRedirect || "/")
+		}
+	}, [fallbackRedirect])
+
+	console.log("goTo", goTo)
 
 	return (
 		<div className="w-full">
@@ -21,7 +35,7 @@ export default function BackButton({
 						return navigate(forceRedirect)
 					}
 
-					navigate(-1)
+					navigate(goTo as To)
 				}}
 			>
 				<MdArrowBack className="size-6" />

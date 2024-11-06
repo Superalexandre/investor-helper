@@ -206,7 +206,7 @@ export default function Index() {
 			/>
 
 			<div className="flex w-full flex-row items-center justify-evenly">
-				<BackButton />
+				<BackButton fallbackRedirect="/calendar" />
 
 				<div className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute">
 					<DropdownMenu>
