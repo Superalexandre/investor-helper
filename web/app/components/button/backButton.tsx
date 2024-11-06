@@ -18,7 +18,7 @@ export default function BackButton({
 	const [goTo, setGoTo] = useState<string | number>(-1)
 
 	useEffect(() => {
-		if (window.history.length <= 1) {
+		if (window.history.length <= 1 || !window.history.state?.idx) {
 			setGoTo(fallbackRedirect || "/")
 		}
 	}, [fallbackRedirect])
