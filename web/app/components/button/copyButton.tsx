@@ -32,7 +32,11 @@ export default function CopyButton({
 	return (
 		<Button
 			variant="ghost"
-			onClick={copyCallback}
+			onClick={(event) => {
+                copyCallback()
+
+                event.currentTarget.blur()
+            }}
 			className={cn("flex w-full flex-row items-center justify-start gap-1.5", className)}
 		>
 			Copier le lien

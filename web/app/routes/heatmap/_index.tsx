@@ -1,11 +1,9 @@
 import type { MetaFunction } from "@remix-run/node"
-import { useLoaderData, useNavigate, useNavigation } from "@remix-run/react"
+import { useLoaderData, useNavigate } from "@remix-run/react"
 import { ClientOnly } from "remix-utils/client-only"
 import { Stage, Layer, Rect, Text, Image, Group } from "react-konva"
-import { Fragment } from "react/jsx-runtime";
 import { type RefObject, useRef, useState } from "react";
 import type { KonvaEventObject } from "konva/lib/Node";
-// import { useImage } from "use-image"
 
 interface SymbolData {
     name: string

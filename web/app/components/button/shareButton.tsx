@@ -34,7 +34,11 @@ export default function ShareButton({
 	return (
 		<Button
 			variant="ghost"
-			onClick={shareCallback}
+			onClick={(event) => {
+				shareCallback()
+
+				event.currentTarget.blur()
+			}}
 			className={cn("flex w-full flex-row items-center justify-start gap-1.5", className)}
 		>
 			Partager
