@@ -1,14 +1,18 @@
-import type { MetaFunction } from "@remix-run/node"
-import { useLoaderData, useNavigate } from "@remix-run/react"
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
+import { Form, useActionData, useLoaderData, useNavigate, useSearchParams, useSubmit } from "@remix-run/react"
 import { ClientOnly } from "remix-utils/client-only"
 import { Stage, Layer, Rect, Text, Image, Group } from "react-konva"
 import { type RefObject, useRef, useState } from "react";
 import type { KonvaEventObject } from "konva/lib/Node";
+import Konva from "konva";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 
 interface SymbolData {
     name: string
     symbol: string
-    color: string
+    color: {
+        background: string
+    }
     price: number
     currency: string
     exchange: string
@@ -30,7 +34,67 @@ interface AllItemsData extends ItemData {
     rectWidth: number
 }
 
-export async function loader() {
+interface Markets {
+    [key: string]: {
+        url: string
+        symbolset: string[]
+        markets: string[]
+    }
+}
+
+const colors = {
+    "darkGreen": {
+        background: "#16a34a", // text-green-600
+    },
+    "green": {
+        background: "#22c55e", // text-green-500
+    },
+    "lightGreen": {
+        background: "#4ade80", // text-green-400
+    },
+    "gray": {
+        background: "#9ca3af", //text-gray-500
+    },
+
+    "darkRed": {
+        background: "#dc2626", // red-600
+    },
+    "red": {
+        background: "#ef4444", // red-500
+    },
+    "lightRed": {
+        background: "#f87171" // red-400
+    }
+}
+
+const textConfig = {
+    fontFamily: "Arial",
+    fontStyle: "bold",
+    fill: "#333",
+}
+
+async function getData(market = "SP500") {
+
+    const markets: Markets = {
+        "SP500": {
+            "url": "https://scanner.tradingview.com/america/scan?label-product=heatmap-stock",
+            "symbolset": [
+                "SYML:SP;SPX"
+            ],
+            "markets": [
+                "america"
+            ]
+        },
+        "CAC40": {
+            "url": "https://scanner.tradingview.com/france/scan?label-product=heatmap-stock",
+            "symbolset": [
+                "SYML:EURONEXT;PX1"
+            ],
+            "markets": [
+                "france"
+            ]
+        }
+    }
 
     const body = {
         "columns": [
@@ -38,7 +102,9 @@ export async function loader() {
             "currency",
             "exchange",
             "change",
-            "logoid"
+            "logoid",
+
+            "description"
         ],
         // biome-ignore lint/style/useNamingConvention: <explanation>
         "ignore_unknown_fields": false,
@@ -54,13 +120,9 @@ export async function loader() {
             "sortOrder": "desc"
         },
         "symbols": {
-            "symbolset": [
-                "SYML:SP;SPX"
-            ]
+            "symbolset": markets[market].symbolset
         },
-        "markets": [
-            "america"
-        ],
+        "markets": markets[market].markets,
         "filter": [
             {
                 "left": "market_cap_basic",
@@ -81,7 +143,7 @@ export async function loader() {
         ]
     }
 
-    const res = await fetch("https://scanner.tradingview.com/america/scan?label-product=heatmap-stock", {
+    const res = await fetch(markets[market].url, {
         method: "POST",
         body: JSON.stringify(body)
     })
@@ -92,19 +154,23 @@ export async function loader() {
     for (const item of json.data) {
         const change = item.d[3]
 
-        const green = "#33cc66"
-        const red = "#ef4444"
-        const gray = "#6b7280"
-
-        let color = gray
-        if (change > 0.5) {
-            color = green
+        let color = colors.gray
+        if (change >= 3) {
+            color = colors.darkGreen
+        } else if (change >= 1.5) {
+            color = colors.green
+        } else if (change >= 0.5) {
+            color = colors.lightGreen
+        } else if (change <= -3) {
+            color = colors.darkRed
+        } else if (change <= -1.5) {
+            color = colors.red
         } else if (change < -0.5) {
-            color = red
+            color = colors.lightRed
         }
 
         data.push({
-            name: item.s,
+            name: item.d[5],
             symbol: item.s,
             color: color,
             price: item.d[0],
@@ -115,6 +181,28 @@ export async function loader() {
         })
     }
 
+
+    return data
+}
+
+export async function loader({ request }: LoaderFunctionArgs) {
+    const url = new URL(request.url)
+
+    const data = await getData(url.searchParams.get("market") ?? undefined)
+
+    return {
+        data
+    }
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+    let market = "SP500"
+    const body = await request.formData()
+    if (body.get("market")) {
+        market = body.get("market") as string
+    }
+
+    const data = await getData(market)
 
     return {
         data
@@ -136,22 +224,53 @@ export const meta: MetaFunction = () => {
 
 export default function Index() {
     const { data } = useLoaderData<typeof loader>()
+    const lastData = useActionData<typeof action>()
+    
+    const submit = useSubmit()
+    const navigate = useNavigate()
+    const [searchParams] = useSearchParams()
+
     const containerRef = useRef<HTMLDivElement>(null)
+
+    const handleSubmit = (value: string) => {
+        const formData = new FormData()
+
+        formData.append("market", value)
+
+        submit(formData, { method: "post" })
+
+        navigate(`/heatmap?market=${value}`)
+    }
+
+    // Get the search market from the URL
+    const market = searchParams.get("market") || "SP500"
 
     return (
         <div className="h-full flex-1" ref={containerRef}>
             <ClientOnly fallback={<p>Chargement</p>}>
                 {() => (
-                    <>
-                        <Heatmap data={data} containerRef={containerRef} />
-                    
+                    <Form className="relative" method="POST">
+                        <div className="absolute top-0 left-0 z-10 m-4">
+
+                            <Select name="market" defaultValue={market} onValueChange={(value) => handleSubmit(value)}>
+                                <SelectTrigger className="bg-background">
+                                    <SelectValue placeholder="Choisir un marché" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="SP500">S&P 500</SelectItem>
+                                    <SelectItem value="CAC40">CAC 40</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <Heatmap data={lastData ? lastData.data : data} containerRef={containerRef} />
+
                         <div className="absolute bottom-0 left-0 m-4 flex flex-row items-center gap-4">
                             <img src="/logo-1024-1024.webp" alt="Investor Helper" className="h-16 w-16" />
-                            
+
                             <p className="font-bold text-lg">Investor Helper</p>
                         </div>
-                    </>
-
+                    </Form>
                 )}
             </ClientOnly>
         </div>
@@ -237,6 +356,29 @@ const dragHandler = (e: KonvaEventObject<DragEvent>, height: number, width: numb
 
 }
 
+const calculateTextHeight = (
+    text: string,
+    fontSize: number,
+    fontFamily = "Arial",
+    fontStyle = "normal"
+) => {
+    // Crée un objet Text temporaire pour mesurer la hauteur
+    const tempText = new Konva.Text({
+        text,
+        fontSize,
+        fontFamily,
+        fontStyle,
+    });
+
+    // Récupère la hauteur du texte
+    const textHeight = tempText.height();
+
+    // Libère l'objet temporaire en le supprimant (si nécessaire)
+    tempText.destroy();
+
+    return textHeight;
+};
+
 function Heatmap({
     data,
     containerRef
@@ -244,14 +386,12 @@ function Heatmap({
     data: SymbolData[],
     containerRef: RefObject<HTMLDivElement>
 }) {
+    const fillWidth = false
+
     const navigate = useNavigate()
 
     const [scale, setScale] = useState(1)
     const [position, setPosition] = useState({ x: 0, y: 0 })
-
-    // console.log(data)
-
-    // Obtenir la taille de l'écran
 
     const containerSize = containerRef.current?.getBoundingClientRect()
 
@@ -260,7 +400,12 @@ function Heatmap({
 
     // Calculer le nombre optimal de colonnes et de lignes pour que les rectangles couvrent bien l'espace
     const totalItems = data.length;
-    const rectSize = Math.sqrt((width * height) / totalItems)// * 1.5
+    const rectSize = Math.sqrt((width * height) / totalItems) * 1
+
+    let columnsCount = Math.floor(width / rectSize) - 1;
+    columnsCount = Math.max(columnsCount, 1);
+
+    const rectWidth = fillWidth ? width / columnsCount : rectSize * 1.5;
 
     const items: ItemData[] = []
 
@@ -316,11 +461,6 @@ function Heatmap({
         // let rowIndex = 0
 
         for (const item of column) {
-            // const scaleFactor = Math.max(0.2, 1 * Math.exp(-item.columnIndex / (totalColItems / 4)))
-
-            // console.log(scaleFactor)
-
-            const rectWidth = rectSize + 50// * scaleFactor
             const x = item.columnIndex * rectWidth
             const y = lastY
 
@@ -369,56 +509,90 @@ function Heatmap({
             >
                 {allItems.map((item) => {
                     const text = `${item.name}\n${item.price}€\n${item.change}%`
-                    const textHeight = 15
+                    const smallText = `${item.name}`
+                    const fontSize = 20
+
+                    const textHeight = calculateTextHeight(text, fontSize, textConfig.fontFamily, textConfig.fontStyle)
+                    const smallTextHeight = calculateTextHeight(smallText, fontSize, textConfig.fontFamily, textConfig.fontStyle)
 
                     const image = new window.Image()
                     image.src = `/api/image/symbol?name=${item.logo}`
 
-                    const imageSize = 40
-                    const imageX = item.x + item.rectWidth / 2 - imageSize / 2
-                    const imageY = item.y + item.rectHeight / 2 - imageSize * 1.5
+                    // const imageSize = 40
+                    const imageSize = fontSize * 2
+                    const imageX = item.rectWidth / 2 - imageSize / 2
+                    const imageY = item.rectHeight / 2 - imageSize * 1.5
+
+                    const width = item.rectWidth;
+                    const height = item.rectHeight;
 
                     return (
-                        <Group 
+                        <Group
                             key={item.symbol}
-                            
+
+                            x={item.x}
+                            y={item.y}
+                            clip={{
+                                x: 0,
+                                y: 0,
+                                width: width,
+                                height: height,
+                            }}
+
                             onClick={() => {
                                 navigate(`/data/${item.symbol}`)
                             }}
 
 
-                            // onMouseOver={(e) => {
-                            //     hoverHandler(e, item)
-                            // }}
+                        // onMouseOver={(e) => {
+                        //     hoverHandler(e, item)
+                        // }}
                         >
                             <Rect
-                                x={item.x}
-                                y={item.y}
-                                height={item.rectHeight}
-                                width={item.rectWidth}
-                                fill={item.color}
-                                stroke="yellow"
+                                height={height}
+                                width={width}
+                                fill={item.color.background}
                             />
 
-                            <Image
-                                x={imageX}
-                                y={imageY}
-                                width={imageSize}
-                                height={imageSize}
-                                cornerRadius={99999}
-                                image={image}
-                            />
+                            {item.rectHeight > textHeight + (imageSize + 10) ? (
+                                <Image
+                                    x={imageX}
+                                    y={imageY - 10}
+                                    width={imageSize}
+                                    height={imageSize}
+                                    cornerRadius={99999}
+                                    image={image}
+                                />
+                            ) : null}
 
-                            <Text
-                                x={item.x}
-                                y={item.y + item.rectHeight / 2 - textHeight}
-                                width={item.rectWidth}
-                                align="center"
+                            {item.rectHeight > textHeight ? (
+                                <Text
+                                    x={0}
+                                    y={height / 2 - textHeight / 2}
+                                    width={width}
+                                    align="center"
+                                    text={text}
+                                    fontSize={fontSize}
+                                    fill={textConfig.fill}
+                                    padding={5}
+                                    fontStyle={textConfig.fontStyle}
+                                />
+                            ) : null}
 
-                                text={text}
-                                fontSize={12}
-                                fill="#333"
-                            />
+                            {item.rectHeight < textHeight &&
+                                item.rectHeight > smallTextHeight ? (
+                                <Text
+                                    x={0}
+                                    y={height / 2 - smallTextHeight / 2}
+                                    width={width}
+                                    align="center"
+                                    text={smallText}
+                                    fontSize={fontSize}
+                                    fill={textConfig.fill}
+                                    padding={5}
+                                    fontStyle={textConfig.fontStyle}
+                                />
+                            ) : null}
                         </Group>
                     )
                 })}
