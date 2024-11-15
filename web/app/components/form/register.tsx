@@ -72,7 +72,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 			action="/register"
 			method="post"
 			onSubmit={handleSubmit}
-			className="flex size-full flex-col items-center justify-center gap-4"
+			className="flex size-full max-h-full flex-col items-center justify-center gap-4"
 		>
 			<InputForm
 				type="text"
@@ -189,11 +189,12 @@ export default function Register({ redirect, callback }: RegisterProps) {
 			<Button
 				variant="default"
 				type="submit"
-				className={`${isSubmitting ? "opacity-50" : "hover:bg-green-700"} flex flex-row items-center justify-center gap-2 rounded bg-green-500 p-4 text-white`}
+				className="flex flex-row items-center justify-center gap-2"
+				// className={`${isSubmitting ? "opacity-50" : "hover:bg-green-700"} flex flex-row items-center justify-center gap-2 rounded bg-green-500 p-4 text-white`}
 				disabled={isSubmitting}
 			>
 				{isSubmitting ? (
-					<Loading className="size-5 border-2" />
+					<Loading className="size-5 border-2 text-black" />
 				) : (
 					<MdAdd size={20} />
 				)}

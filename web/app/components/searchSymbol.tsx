@@ -8,8 +8,6 @@ import { useDebounceValue, useOnClickOutside } from "usehooks-ts"
 import { Label } from "./ui/label"
 import { cn } from "@/lib/utils"
 import { normalizeSymbolHtml } from "@/utils/normalizeSymbol"
-import type { News } from "@/schema/news"
-import { useNavigate } from "@remix-run/react"
 
 interface SelectSymbolType {
 	symbol: string
@@ -25,17 +23,13 @@ interface SelectSymbolType {
 
 type SearchType = "all" | "allSymbol" | "stocks" | "crypto" | "news"
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: TODO: Refactor this component
-export function Search({
+export function SearchSymbol({
 	onClick,
-	// onBlur = "none",
-	// onFocus = "none",
 	replace = false,
 	required = false,
 	placeholder = "Rechercher un symbole",
 	displayLabel = true,
 	resultSize = "h-32",
-	searching = ["allSymbol"],
 	idInput = "symbol"
 }: {
 	onClick?: (symbol: SelectSymbolType) => void
@@ -49,17 +43,13 @@ export function Search({
 	searching?: SearchType[]
 	idInput?: string
 }) {
-	const navigate = useNavigate()
-
 	const refInput = useRef<HTMLInputElement>(null)
 	const refContainer = useRef<HTMLDivElement>(null)
 
 	const [resultSymbols, setResultSymbols] = useState<SelectSymbolType[]>([])
-	const [resultNews, setResultNews] = useState<News[]>([])
 
 	const [debouncedValue, setValue] = useDebounceValue("", 750)
 	const [hidden, setHidden] = useState(true)
-	const [searchingIn, setSearchingIn] = useState<SearchType>(searching[0])
 
 	const [, setLoading] = useState(false)
 
@@ -68,7 +58,6 @@ export function Search({
 	useEffect(() => {
 		if (!debouncedValue) {
 			setResultSymbols([])
-			setResultNews([])
 			setHidden(true)
 
 			return
@@ -76,16 +65,33 @@ export function Search({
 
 		setLoading(true)
 
-		fetch(`/api/search?search=${debouncedValue}&searching=${searchingIn}`)
+		fetch(`/api/search?search=${debouncedValue}&searching=allSymbol`)
 			.then((response) => response.json())
 			.then((data) => {
 				setResultSymbols(data.symbols as SelectSymbolType[])
-				setResultNews(data.news as News[])
-
+				
 				setLoading(false)
 				setHidden(false)
 			})
-	}, [debouncedValue, searchingIn])
+	}, [debouncedValue])
+
+	const addSymbol = (symbol: SelectSymbolType) => {
+		if (refInput.current && !replace) {
+			refInput.current.value = ""
+		}
+
+		if (refInput.current && replace) {
+			refInput.current.value = `${normalizeSymbolHtml(symbol.description)} (${normalizeSymbolHtml(symbol.symbol)})`
+		}
+
+		setValue("")
+		setResultSymbols([])
+		setHidden(true)
+
+		if (onClick !== undefined) {
+			onClick(symbol)
+		}
+	}
 
 	return (
 		<div className="relative w-full" ref={refContainer}>
@@ -103,94 +109,13 @@ export function Search({
 
 			{hidden ? null : (
 				<div className="absolute top-full left-0 z-10 mt-1 flex w-full flex-col gap-1 overflow-x-hidden overflow-y-scroll">
-					{searching.length > 1 ? (
-						<div className="flex flex-row items-center gap-1">
-							<Button
-								variant={searchingIn === "all" ? "default" : "outline"}
-								onClick={() => setSearchingIn("all")}
-							>
-								Tout
-							</Button>
-
-							<Button
-								variant={searchingIn === "news" ? "default" : "outline"}
-								onClick={() => setSearchingIn("news")}
-							>
-								News
-							</Button>
-
-							<Button
-								variant={searchingIn === "allSymbol" ? "default" : "outline"}
-								onClick={() => setSearchingIn("allSymbol")}
-							>
-								Tous les symboles
-							</Button>
-
-							<Button
-								variant={searchingIn === "stocks" ? "default" : "outline"}
-								onClick={() => setSearchingIn("stocks")}
-							>
-								Actions
-							</Button>
-
-							<Button
-								variant={searchingIn === "crypto" ? "default" : "outline"}
-								onClick={() => setSearchingIn("crypto")}
-							>
-								Crypto
-							</Button>
-						</div>
-					) : null}
-
 					<Card className={cn(resultSize, hidden ? "hidden" : "block")}>
-						{resultNews.length > 0
-							? resultNews.map((news) => (
-									<Button
-										variant="outline"
-										key={news.id}
-										onClick={() => {
-											navigate(`/news/${news.id}`)
-
-											setHidden(true)
-											setValue("")
-											setResultNews([])
-											setResultSymbols([])
-
-											if (refInput.current?.value) {
-												refInput.current.value = ""
-											}
-										}}
-										className="flex w-full flex-row items-center justify-between border-none p-2"
-									>
-										<p>{news.title}</p>
-									</Button>
-								))
-							: null}
-
 						{resultSymbols.length > 0
 							? resultSymbols.map((symbol, i) => (
 									<Button
 										variant="outline"
 										key={`${normalizeSymbolHtml(symbol.symbol)}-${i}`}
-										// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: TODO: Refactor this component
-										onClick={() => {
-											if (refInput.current && !replace) {
-												refInput.current.value = ""
-											}
-
-											if (refInput.current && replace) {
-												refInput.current.value = `${normalizeSymbolHtml(symbol.description)} (${normalizeSymbolHtml(symbol.symbol)})`
-											}
-
-											setValue("")
-											setResultSymbols([])
-											setResultNews([])
-											setHidden(true)
-
-											if (onClick !== undefined) {
-												onClick(symbol)
-											}
-										}}
+										onClick={() => addSymbol(symbol)}
 										className="flex w-full flex-row items-center justify-between border-none p-2"
 									>
 										<p>
@@ -233,7 +158,7 @@ export default function SelectSymbol({
 				))}
 			</div>
 
-			<Search
+			<SearchSymbol
 				onClick={(symbol) => {
 					const normalizedSymbol = {
 						...symbol,

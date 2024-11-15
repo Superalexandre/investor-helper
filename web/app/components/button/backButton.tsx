@@ -23,8 +23,6 @@ export default function BackButton({
 		}
 	}, [fallbackRedirect])
 
-	console.log("goTo", goTo)
-
 	return (
 		<div className="w-full">
 			<Button

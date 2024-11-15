@@ -105,11 +105,11 @@ export default function Login({ redirect, callback }: LoginProps) {
 			<Button
 				variant="default"
 				type="submit"
-				className={`${isSubmitting ? "opacity-50" : "hover:bg-green-700"} flex flex-row items-center justify-center gap-2 rounded bg-green-500 p-4 text-white`}
+				className="flex flex-row items-center justify-center gap-2"
 				disabled={isSubmitting}
 			>
 				{isSubmitting ? (
-					<Loading className="size-5 border-2" />
+					<Loading className="size-5 border-2 text-black" />
 				) : (
 					<MdLogin size={20} />
 				)}

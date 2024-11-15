@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { type Dispatch, type FormEvent, type SetStateAction, useRef, useState } from "react"
-import { Search, type SelectSymbolType } from "@/components/search"
+import { SearchSymbol, type SelectSymbolType } from "@/components/searchSymbol"
 import getPrices, { closeClient, type Period } from "@/utils/getPrices"
 import { ClientOnly } from "remix-utils/client-only"
 import {
@@ -294,7 +294,7 @@ export default function Index() {
 
 			{/* <AddNotification /> */}
 
-			<AddSymbols triggerText="Ajouter un symbole" walletId={wallet.walletId} />
+			<DialogAddSymbols triggerText="Ajouter un symbole" walletId={wallet.walletId} />
 
 			<ChartWallet
 				// prices={prices}
@@ -466,7 +466,7 @@ export function ChartWallet({
 	)
 }
 
-export function AddSymbols({ triggerText, walletId }: { triggerText: string; walletId: string }) {
+export function DialogAddSymbols({ triggerText, walletId }: { triggerText: string; walletId: string }) {
 	const [selectedSymbol, setSelectedSymbol] = useState<SelectSymbolType[]>([])
 	const [open, setOpen] = useState(false)
 	const submit = useSubmit()
@@ -615,14 +615,14 @@ export function FindSymbols({
 					Ajouter un symbole
 				</Button>
 			</DialogTrigger>
-			<DialogContent>
+			<DialogContent className="overflow-hidden">
 				<DialogHeader>
 					<DialogTitle>Rechercher une action, une crypto</DialogTitle>
 					<DialogDescription className="hidden">Rechercher un symbole</DialogDescription>
 				</DialogHeader>
 
-				<div className="flex flex-col gap-4 w-auto">
-					<Search
+				<div className="flex w-auto flex-col gap-4">
+					<SearchSymbol
 						onClick={(symbol) => {
 							setTempSelectedSymbol(symbol)
 						}}

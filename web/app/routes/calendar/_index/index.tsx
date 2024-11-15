@@ -7,8 +7,8 @@ import { ScrollTop } from "@/components/scrollTop"
 import TimeCounter from "../../../components/timeCounter"
 import { useQuery } from "@tanstack/react-query"
 import type { Events } from "../../../../../db/schema/events"
-import { Skeleton } from "../../../components/ui/skeleton"
 import { useEffect, useRef } from "react"
+import SkeletonCalendar from "../../../components/skeletons/skeletonCalendar"
 // import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs"
 // import { useState } from "react"
 // import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
@@ -202,25 +202,5 @@ function EconomicCalendar() {
 				</div>
 			))}
 		</div>
-	)
-}
-
-function SkeletonCalendar() {
-	return (
-		<Card>
-			<CardHeader>
-				<CardTitle>
-					<Skeleton className="h-4 w-1/4" />
-				</CardTitle>
-			</CardHeader>
-
-			<CardContent>
-				<Skeleton className="h-32 w-full" />
-			</CardContent>
-
-			<CardFooter className="flex flex-col items-center justify-start gap-1 lg:flex-row lg:gap-2">
-				<Skeleton className="h-4 w-1/2" />
-			</CardFooter>
-		</Card>
 	)
 }

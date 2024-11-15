@@ -4,17 +4,15 @@ import { drizzle } from "drizzle-orm/better-sqlite3"
 import {
 	notificationEventSchema,
 	notificationSchema,
-	type NotificationSubscribedNews,
 	notificationSubscribedNewsSchema,
-	type NotificationSubscribedNewsKeywords,
 	notificationSubscribedNewsKeywordsSchema,
-	type NotificationSubscribedNewsSymbols,
 	notificationSubscribedNewsSymbolsSchema
 } from "../../db/schema/notifications.js"
 import { and, eq, gte } from "drizzle-orm"
 import { sendNotifications } from "@remix-pwa/push"
 import type { User } from "../../db/schema/users.js"
 import { eventsSchema } from "../../db/schema/events.js"
+import type { NotificationSubscribedFullNews } from "../types/Notifications.js"
 
 async function sendNotificationEvent() {
 	const actualEvent = await getEventsNow()
@@ -110,11 +108,6 @@ function sendNotification({
 	}
 }
 
-interface FullSubscribedNews extends NotificationSubscribedNews {
-	keywords: NotificationSubscribedNewsKeywords[]
-	symbols: NotificationSubscribedNewsSymbols[]
-}
-
 async function getUserNotifications(user: User) {
 	const sqlite = new Database("../db/sqlite.db")
 	const db = drizzle(sqlite)
@@ -132,7 +125,7 @@ async function getUserNotifications(user: User) {
 		.from(notificationSubscribedNewsSchema)
 		.where(eq(notificationSubscribedNewsSchema.userId, user.id))
 
-	const fullSubscribedNews: FullSubscribedNews[] = []
+	const fullSubscribedNews: NotificationSubscribedFullNews[] = []
 
 	for (const news of subscribedNews) {
 		const keywords = await db
