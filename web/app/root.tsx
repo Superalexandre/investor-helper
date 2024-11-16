@@ -8,9 +8,8 @@ import {
 	Outlet,
 	Scripts,
 	ScrollRestoration,
+	useLoaderData,
 	useRouteError,
-	// useLoaderData,
-	useRouteLoaderData
 } from "@remix-run/react"
 import { ManifestLink, useSWEffect } from "@remix-pwa/sw"
 // import { useNetworkConnectivity } from "@remix-pwa/client"
@@ -47,7 +46,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		})
 	}
 
-	return { logged: user !== null }
+	return { logged: user !== null, user }
 }
 
 // export async function workerLoader({ request }: WorkerLoaderArgs) {
@@ -61,7 +60,7 @@ export const links: LinksFunction = () => [{ rel: "stylesheet", href: stylesheet
 export function Layout({ children }: { children: ReactNode }) {
 	useSWEffect()
 
-	const data = useRouteLoaderData<typeof loader>("root")
+	const { logged, user } = useLoaderData<typeof loader>()
 
 	return (
 		<html lang="fr" className="dark bg-background" translate="no">
@@ -97,7 +96,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" /> */}
 			</head>
 			<body className="flex min-h-screen flex-col">
-				<Header logged={data?.logged ?? false} />
+				<Header logged={logged ?? false} />
 
 				{children}
 
