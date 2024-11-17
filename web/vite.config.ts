@@ -1,4 +1,4 @@
-import MillionLint from "@million/lint"
+// import MillionLint from "@million/lint"
 import { vitePlugin as remix } from "@remix-run/dev"
 import { defineConfig } from "vite"
 import tsconfigPaths from "vite-tsconfig-paths"
@@ -17,8 +17,6 @@ const _plugins = [
 		routes: (defineRoutes) => {
 			return flatRoutes("routes", defineRoutes)
 		},
-		//   tailwind: true,
-		//   postcss: true,
 		future: {
 			// biome-ignore lint/style/useNamingConvention: This is a valid option.
 			v3_fetcherPersist: true,
