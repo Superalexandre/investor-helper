@@ -1,4 +1,4 @@
-// import MillionLint from "@million/lint"
+import MillionLint from "@million/lint"
 import { vitePlugin as remix } from "@remix-run/dev"
 import { defineConfig } from "vite"
 import tsconfigPaths from "vite-tsconfig-paths"
@@ -32,12 +32,14 @@ const _plugins = [
 	tsconfigPaths()
 ]
 
-// if (!isProduction) _plugins.push(MillionLint.vite({
-//     dev: true,
-//     // rsc: true,
-//     // dev: true,
-//     // framework: "react"
-// }))
+// if (!isProduction) {
+// 	_plugins.push(
+// 		MillionLint.vite({
+// 			react: "18",
+// 			rsc: true,
+// 		})
+// 	)
+// }
 
 export default defineConfig({
 	server: {

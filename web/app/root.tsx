@@ -30,7 +30,7 @@ import { useChangeLanguage } from "remix-i18next/react"
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const locale = await i18next.getLocale(request)
-	
+
 	const user = await getUser(request)
 	const url = new URL(request.url)
 
@@ -84,7 +84,7 @@ export function Layout({ children }: { children: ReactNode }) {
 				/>
 				<meta name="robots" content="index, follow" />
 				<meta name="theme-color" content="#0f172a" />
-				
+
 				<meta property="og:url" content="https://www.investor-helper.com" />
 				<meta property="og:type" content="website" />
 				<meta property="og:image" content="https://www.investor-helper.com/logo-512-512.png" />
@@ -166,7 +166,7 @@ export function ErrorBoundary() {
 					<p>{t("error.notFoundMessage")}</p>
 					<Link to="/">
 						<Button type="button" variant="default">
-						{t("backHome")}
+							{t("backHome")}
 						</Button>
 					</Link>
 				</div>

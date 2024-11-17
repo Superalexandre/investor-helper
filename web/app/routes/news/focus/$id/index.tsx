@@ -8,31 +8,29 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../../../.
 import formatDate from "../../../../../utils/formatDate"
 import DisplaySymbols from "../../../../components/displaySymbols"
 import BackButton from "../../../../components/button/backButton"
-import type { MetaFunction } from "@remix-run/node"
+import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
+import { useTranslation } from "react-i18next"
+import i18next from "../../../../i18next.server"
 
-// export function loader({ params }: LoaderFunctionArgs) {
-// 	const { id } = params
+export async function loader({ request }: LoaderFunctionArgs) {
 
-// 	// Redirect to the news page if the id is not provided
-// 	if (!id) {
-// 		return redirect("/news")
-// 	}
+	const t = await i18next.getFixedT(request, "newsFocus")
 
-//     // Convert the id from base64 to a string
-//     //Buffer.from(newsIds).toString("base64url")
-//     const decodedId = Buffer.from(id, "base64").toString("utf-8")
-//     const articles =
+	const title = t("title")
+	const description = t("description")
 
-//     console.log(decodedId)
+	return {
+		title: title,
+		description: description
+    }
+}
 
-// 	return {
-//         true: true
-//     }
-// }
+export const meta: MetaFunction<typeof loader> = ({ data, params }) => {
+	if (!data) {
+		return []
+	}
 
-export const meta: MetaFunction = ({ params }) => {
-	const title = "Investor Helper - Les actualités"
-	const description = "Les actualités qui pourraient vous intéresser"
+	const { title, description } = data
 
 	return [
 		{ title: title },
@@ -47,7 +45,12 @@ export const meta: MetaFunction = ({ params }) => {
 	]
 }
 
+export const handle = {
+	i18n: "newsFocus"
+}
+
 export default function Index() {
+	const { t, i18n } = useTranslation("newsFocus")
 	const { id } = useParams()
 
 	const {
@@ -73,7 +76,7 @@ export default function Index() {
 		return (
 			<div>
 				<div className="flex flex-col items-center justify-center space-y-4">
-					<p className="pt-4 text-center font-bold text-2xl">Actualités qui pourraient vous intéresser</p>
+					<p className="pt-4 text-center font-bold text-2xl">{t("couldBeInteresting")}</p>
 				</div>
 				<div className="flex flex-col space-y-6 p-4 lg:p-10">
 					{skeletonArray.map((_, index) => (
@@ -91,12 +94,12 @@ export default function Index() {
 
 	return (
 		<div className="relative w-full overflow-hidden">
-			<BackButton forceRedirect="/news" fallbackRedirect="/news" label="Voir toutes les actualités" />
+			<BackButton forceRedirect="/news" fallbackRedirect="/news" label={t("seeAll")} />
 
 			<ScrollTop showBelow={250} />
 
 			<div className="flex flex-col items-center justify-center space-y-4">
-				<p className="pt-4 text-center font-bold text-2xl">Actualités qui pourraient vous intéresser</p>
+				<p className="pt-4 text-center font-bold text-2xl">{t("couldBeInteresting")}</p>
 
 				{/* <Button variant="default">
                     Rafraîchir
@@ -134,20 +137,22 @@ export default function Index() {
 										symbolList={relatedSymbols}
 										hash={news.news.id}
 										redirect={`/news/focus/${id}`}
+										t={t}
 									/>
 								</CardContent>
 
 								<CardFooter>
 									<p className="text-muted-foreground">
-										{formatDate(news.news.published * 1000)} - {news.news.source} (via
-										{news.news.mainSource})
+										{formatDate(news.news.published * 1000, {
+											locale: i18n.language
+										})} - {news.news.source}
 									</p>
 								</CardFooter>
 							</Card>
 						</div>
 					))
 				) : (
-					<p className="text-center font-bold text-lg">Aucune actualité trouvée</p>
+					<p className="text-center font-bold text-lg">{t("noNews")}</p>
 				)}
 			</div>
 		</div>
