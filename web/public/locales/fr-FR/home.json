@@ -1,0 +1,21 @@
+{
+    "title": "Investor Helper",
+    "description": "Bienvenue sur Investor Helper",
+    "welcome": "Bienvenue sur Investor Helper",
+    "downloadApp": "Télécharger l'application",
+    "download": "Télécharger",
+    "lastNews": "Dernières actualités importantes",
+    "seeMore": "Voir plus",
+    "nextEvents": "Prochains événements importants",
+    "by": "Par",
+    "country": "Pays",
+    "importance": "Importance",
+    "errors": {
+        "loading": "Erreur lors du chargement des données",
+        "emptyNews": "Aucune actualité importante",
+        "emptyEvents": "Aucun événement important"
+    },
+    "low": "faible",
+    "medium": "moyenne",
+    "high": "élevée"
+}

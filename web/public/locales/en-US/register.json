@@ -1,0 +1,23 @@
+{
+    "title": "Investor Helper - Create an Account",
+    "description": "Create an account on Investor Helper to access exclusive features. Track your investments, favorite stocks, and cryptocurrencies. Stay informed about the latest financial and economic news.",
+
+    "createAccount": "Create an Account",
+
+    "accept": "I accept the",
+    "and": "and the",
+
+    "terms": "terms of service",
+    "privacy": "privacy policy",
+
+    "haveAccount": "Already have an account? Log in",
+
+    "placeholders": {
+        "name": "Name",
+        "firstName": "First Name",
+        "username": "Username",
+        "email": "Email",
+        "password": "Password",
+        "confirmPassword": "Confirm Password"
+    }
+}

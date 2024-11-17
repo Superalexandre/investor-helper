@@ -1,0 +1,23 @@
+{
+    "title": "Investor Helper - Créer un compte",
+    "description": "Créez un compte sur Investor Helper pour accéder à des fonctionnalités exclusives. Suivez vos investissements, vos actions et vos cryptomonnaies préférées. Restez informé des dernières actualités financières et économiques.",
+
+    "createAccount": "Créer un compte",
+
+    "accept": "J'accepte les",
+    "and": "et la",
+
+    "terms": "conditions d'utilisation",
+    "privacy": "politique de confidentialité",
+
+    "haveAccount": "Vous avez déjà un compte ? Connectez-vous",
+
+    "placeholders": {
+        "name": "Nom",
+        "firstName": "Prénom",
+        "username": "Nom d'utilisateur",
+        "email": "Email",
+        "password": "Mot de passe",
+        "confirmPassword": "Confirmer le mot de passe"
+    }
+}

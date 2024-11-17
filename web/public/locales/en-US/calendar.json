@@ -1,0 +1,12 @@
+{
+    "title": "Investor Helper - Calendar",
+    "description": "Check out our economic events calendar to stay on top of key dates that influence financial markets. Follow economic announcements, financial report releases, and central bank decisions. This calendar is an essential tool for anticipating market movements and adjusting your investment strategies based on global events.",
+
+    "events": "Events",
+
+    "low": "low",
+    "medium": "medium",
+    "high": "high",
+
+    "importance": "Importance"
+}

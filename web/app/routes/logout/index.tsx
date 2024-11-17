@@ -1,6 +1,7 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 
 import { logout } from "../../session.server"
+// import i18next from "../../i18next.server"
 
 const redirectUrl = "/login"
 
@@ -21,5 +22,7 @@ export function action({ request }: ActionFunctionArgs) {
 }
 
 export function loader({ request }: LoaderFunctionArgs) {
+	// const t = i18next.getFixedT(request, "logout")
+
 	return logout(request, redirectUrl)
 }

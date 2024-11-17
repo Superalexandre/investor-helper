@@ -2,7 +2,7 @@ import { MdContactSupport } from "react-icons/md"
 import Contact, { type FormData, resolver } from "../../components/form/contact"
 import { Card, CardContent, CardTitle } from "../../components/ui/card"
 import { getValidatedFormData } from "remix-hook-form"
-import { json, type ActionFunctionArgs } from "@remix-run/node"
+import type { ActionFunctionArgs } from "@remix-run/node"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import { contactSchema } from "@/schema/contact"
@@ -12,7 +12,7 @@ export async function action({ request }: ActionFunctionArgs) {
 	const { errors, data, receivedValues: defaultValues } = await getValidatedFormData<FormData>(request, resolver)
 
 	if (errors) {
-		return json({ errors, defaultValues })
+		return { errors, defaultValues }
 	}
 
 	const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
@@ -25,9 +25,9 @@ export async function action({ request }: ActionFunctionArgs) {
 		message: data.message
 	})
 
-	return json({
-        message: "Message envoyé avec succès"
-    })
+	return {
+		message: "Message envoyé avec succès"
+	}
 }
 
 export default function Index() {

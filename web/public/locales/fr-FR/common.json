@@ -1,0 +1,32 @@
+{
+    "header": {
+        "home": "Accueil",
+        "news": "Actualités",
+        "calendar": "Calendrier",
+        "search": "Rechercher",
+        "profile": "Profil",
+        "logout": "Déconnexion",
+        "login": "Connexion",
+        "register": "Inscription",
+    
+        "sheetTitle": "Menu",
+        "sheetDescription": "Navigation principale du site"
+    },
+    "open": "Ouvrir",
+    "backHome": "Retour à l'accueil",
+    "error": {
+        "notFoundTitle": "Page introuvable",
+        "notFoundMessage": "La page que vous cherchez n'existe pas.",
+    
+        "errorTitle": "Une erreur est survenue",
+        "errorMessage": "Une erreur est survenue lors du chargement de la page."
+    },
+    "copyLink": {
+        "trigger": "Copier le lien",
+        "success": "Lien copié avec succès",
+        "error": "Impossible de copier le lien"
+    },
+    "shareLink": {
+        "trigger": "Partager"
+    }
+}

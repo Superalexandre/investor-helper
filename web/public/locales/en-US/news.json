@@ -1,0 +1,16 @@
+{
+    "title": "Investor Helper - News",
+    "description": "Discover the latest economic news on Investor Helper. Stay up to date with live financial updates, global market trends, and in-depth analyses of the economy. Whether you're an investor or a finance enthusiast, keep track of essential information that impacts markets and your investments.",
+
+    "lastNews": "Latest News",
+    "page": "Page",
+    "previousPage": "Previous Page",
+    "nextPage": "Next Page",
+    "firstPage": "Back to the First Page",
+    "errors": {
+        "empty": "No news available at the moment"
+    },
+    
+    "seeAll": "See all",
+    "seeLess": "See less"
+}

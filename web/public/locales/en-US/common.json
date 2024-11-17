@@ -1,0 +1,32 @@
+{
+    "header": {
+        "home": "Home",
+        "news": "News",
+        "calendar": "Calendar",
+        "search": "Search",
+        "profile": "Profile",
+        "logout": "Logout",
+        "login": "Login",
+        "register": "Register",
+    
+        "sheetTitle": "Menu",
+        "sheetDescription": "Main site navigation"
+    },
+    "open": "Open",
+    "backHome": "Back to home",
+    "error": {
+        "notFoundTitle": "Page not found",
+        "notFoundMessage": "The page you are looking for does not exist.",
+    
+        "errorTitle": "An error occurred",
+        "errorMessage": "An error occurred while loading the page."
+    },
+    "copyLink": {
+        "trigger": "Copy link",
+        "success": "Link copied successfully",
+        "error": "Unable to copy link"
+    },
+    "shareLink": {
+        "trigger": "Share"
+    }
+}

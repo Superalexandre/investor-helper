@@ -1,0 +1,21 @@
+{
+    "title": "Investor Helper",
+    "description": "Welcome to Investor Helper",
+    "welcome": "Welcome to Investor Helper",
+    "downloadApp": "Download the app",
+    "download": "Download",
+    "lastNews": "Latest important news",
+    "seeMore": "See more",
+    "nextEvents": "Upcoming important events",
+    "by": "By",
+    "country": "Country",
+    "importance": "Importance",
+    "errors": {
+        "loading": "Error while loading data",
+        "emptyNews": "No important news",
+        "emptyEvents": "No important events"
+    },
+    "low": "low",
+    "medium": "medium",
+    "high": "high"
+}

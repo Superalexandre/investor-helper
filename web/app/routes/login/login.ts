@@ -1,4 +1,3 @@
-import { json } from "@remix-run/node"
 import bcrypt from "bcryptjs"
 import Database from "better-sqlite3"
 import { eq, or, sql } from "drizzle-orm"
@@ -9,9 +8,9 @@ import { createUserSession } from "@/session.server"
 
 export default async function login({
 	request,
-	mailOrUsername,
+	emailOrUsername,
 	password
-}: { request: Request; mailOrUsername: string; password: string }) {
+}: { request: Request; emailOrUsername: string; password: string }) {
 	const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
 	const db = drizzle(sqlite)
 
@@ -22,7 +21,7 @@ export default async function login({
 	const cipher = crypto.createCipheriv(algorithm, key, iv)
 
 	// Decrypt the mail
-	let encrypted = cipher.update(mailOrUsername.toLowerCase(), "utf8", "hex")
+	let encrypted = cipher.update(emailOrUsername.toLowerCase(), "utf8", "hex")
 	encrypted += cipher.final("hex")
 
 	const users = await db
@@ -30,44 +29,40 @@ export default async function login({
 		.from(usersSchema)
 		.where(
 			or(
-				eq(sql<string>`lower(${usersSchema.username})`, mailOrUsername.toLowerCase()),
+				eq(sql<string>`lower(${usersSchema.username})`, emailOrUsername.toLowerCase()),
 				eq(usersSchema.email, encrypted)
 			)
 		)
 
 	if (!users || users.length === 0 || !users[0]) {
-		return json(
-			{
-				success: false,
-				error: true,
-				errors: {
-					mailOrUsername: {
-						message: "Nom d'utilisateur ou email introuvable"
-					}
-				},
-				message: "Nom d'utilisateur ou email introuvable"
+		return {
+			success: false,
+			error: true,
+			errors: {
+				mailOrUsername: {
+					message: "Nom d'utilisateur ou email introuvable"
+				}
 			},
-			{ status: 404 }
-		)
+			message: "Nom d'utilisateur ou email introuvable"
+		}
 	}
 
 	const user = users[0]
 
 	const match = await bcrypt.compare(password, user.password)
 	if (!match) {
-		return json(
-			{
-				success: false,
-				error: true,
-				errors: {
-					password: { message: "Mot de passe incorrect" }
-				},
-				message: "Mot de passe incorrect"
-			},
-			{ status: 401 }
-		)
-	}
+		console.log("Password incorrect")
 
+		return {
+			success: false,
+			error: true,
+			errors: {
+				password: { message: "Mot de passe incorrect" }
+			},
+			message: "Mot de passe incorrect"
+		}
+	}
+	
 	// Check if the url have a redirect parameter
 	const url = new URL(request.url)
 	const redirectUrl = url.searchParams.get("redirect")

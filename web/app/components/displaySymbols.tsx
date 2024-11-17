@@ -5,6 +5,7 @@ import { Link } from "@remix-run/react"
 import { Badge } from "./ui/badge"
 import SymbolLogo from "./symbolLogo"
 import type { Symbol as SymbolType } from "@/schema/symbols"
+import type { TFunction } from "i18next"
 
 interface FullSymbol {
 	symbol: SymbolType
@@ -14,12 +15,14 @@ interface FullSymbol {
 
 export default function DisplaySymbols({
 	symbolList,
-    redirect,
-	hash
+	redirect,
+	hash,
+	t
 }: {
 	symbolList: FullSymbol[]
-    redirect?: string
+	redirect?: string
 	hash?: string
+	t: TFunction
 }) {
 	const [viewAll, setViewAll] = useState(false)
 
@@ -62,7 +65,7 @@ export default function DisplaySymbols({
 					className="flex h-8 flex-row items-center justify-center hover:cursor-pointer"
 					onClick={() => setViewAll(true)}
 				>
-					Voir tout ({symbolCount})
+					{t("seeAll")} ({symbolCount})
 				</Badge>
 			) : null}
 			{symbolList.length > 5 && viewAll ? (
@@ -71,7 +74,7 @@ export default function DisplaySymbols({
 					className="flex h-8 flex-row items-center justify-center hover:cursor-pointer"
 					onClick={() => setViewAll(false)}
 				>
-					Réduire
+					{t("seeLess")}
 				</Badge>
 			) : null}
 		</div>

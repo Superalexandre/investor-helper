@@ -8,9 +8,10 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { ShowButtonComponent } from "../button/showHideButton"
 import Loading from "../loading"
+import { useTranslation } from "react-i18next"
 
 const schema = zod.object({
-	mailOrUsername: zod.string().trim().min(3).max(255),
+	emailOrUsername: zod.string().trim().min(3).max(255),
 	password: zod
 		.string({
 			coerce: true
@@ -28,6 +29,9 @@ interface LoginProps {
 }
 
 export default function Login({ redirect, callback }: LoginProps) {
+	const { t } = useTranslation("login", {
+		useSuspense: false
+	})
 	const [showPassword, setShowPassword] = useState(false)
 	const [params] = useSearchParams()
 
@@ -49,7 +53,7 @@ export default function Login({ redirect, callback }: LoginProps) {
 		mode: "onSubmit",
 		submitConfig: {
 			action: `/login?redirect=${preferredRedirect}`,
-			method: "post"
+			method: "POST"
 		},
 		resolver,
 	})
@@ -64,15 +68,15 @@ export default function Login({ redirect, callback }: LoginProps) {
 	return (
 		<Form
 			action="/login"
-			method="post"
+			method="POST"
 			onSubmit={handleSubmit}
 			className="flex size-full flex-col items-center justify-center gap-4"
 		>
 			<InputForm
 				type="text"
-				name="mailOrUsername"
-				id="mailOrUsername"
-				placeholder="Nom d'utilisateur ou email"
+				name="emailOrUsername"
+				id="emailOrUsername"
+				placeholder={t("placeholders.emailOrUsername")}
 				autoComplete="username email"
 				errors={errors as FieldErrors}
 				register={register}
@@ -83,7 +87,7 @@ export default function Login({ redirect, callback }: LoginProps) {
 				type={showPassword ? "text" : "password"}
 				name="password"
 				id="password"
-				placeholder="Mot de passe"
+				placeholder={t("placeholders.password")}
 				autoComplete="current-password"
 				errors={errors as FieldErrors}
 				register={register}
@@ -98,7 +102,7 @@ export default function Login({ redirect, callback }: LoginProps) {
 				}}
 				className="text-center text-white underline hover:text-slate-400"
 			>
-				Pas encore inscrit ? Créez un compte
+				{t("notRegistered")}
 			</Link>
 			{/* <Link to="/forgot-password" className="text-white underline hover:text-slate-400 text-center">Mot de passe oublié ?</Link> */}
 
@@ -114,7 +118,7 @@ export default function Login({ redirect, callback }: LoginProps) {
 					<MdLogin size={20} />
 				)}
 
-				Se connecter
+				{t("connect")}
 			</Button>
 		</Form>
 	)

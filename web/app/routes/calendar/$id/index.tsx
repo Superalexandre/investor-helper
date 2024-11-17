@@ -26,7 +26,6 @@ import {
 	DialogTitle
 } from "@/components/ui/dialog"
 import type { Events } from "@/schema/events"
-import countries from "@/lang/countries-fr"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
 import { notificationEventSchema } from "@/schema/notifications"
@@ -44,8 +43,13 @@ import ShareButton from "../../../components/button/shareButton"
 import CopyButton from "../../../components/button/copyButton"
 import { toast as sonner } from "sonner"
 import Loading from "../../../components/loading"
+import i18next from "../../../i18next.server"
+import { useTranslation } from "react-i18next"
+import { countries } from "../../../i18n"
+import type { TFunction } from "i18next"
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
+	const t = await i18next.getFixedT(request, "calendarId")
 	const { id } = params
 
 	// Redirect to the news page if the id is not provided
@@ -80,21 +84,29 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 	// if (!news) return redirect("/news")
 
+	const title = t("title")
+
 	return {
 		event: {
 			...event,
 			isPast
 		},
 		user,
-		hasNotif: hasNotification
+		hasNotif: hasNotification,
+		title
 		// news,
 		// relatedSymbols
 	}
 }
 
-export const meta: MetaFunction<typeof loader> = ({ params }) => {
-	const title = "Investor Helper - Calendrier"
-	// const description = data?.news.news.title ?? ""
+export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
+	if (!data) {
+		return []
+	}
+
+	const { title } = data
+
+	// TODO: Add description
 	const description = ""
 
 	return [
@@ -110,7 +122,12 @@ export const meta: MetaFunction<typeof loader> = ({ params }) => {
 	]
 }
 
+export const handle = {
+	i18n: "calendarId"
+}
+
 export default function Index() {
+	const { t, i18n } = useTranslation("calendarId")
 	const { isSubscribed } = usePush()
 	const { user, event, hasNotif } = useLoaderData<typeof loader>()
 
@@ -120,21 +137,6 @@ export default function Index() {
 	const [showDialogNotification, setShowDialogNotification] = useState(false)
 	const [showDialogNewNotification, setShowDialogNewNotification] = useState(false)
 	const [showDialogDeleteNotification, setShowDialogDeleteNotification] = useState(false)
-
-	const importance: Record<number, { name: string; color: string }> = {
-		[-1]: {
-			name: "faible",
-			color: "text-green-500"
-		},
-		0: {
-			name: "moyen",
-			color: "text-orange-500"
-		},
-		1: {
-			name: "élevé",
-			color: "text-red-500"
-		}
-	}
 
 	const subscribeEvent = () => {
 		if (event.isPast) {
@@ -206,7 +208,7 @@ export default function Index() {
 			/>
 
 			<div className="flex w-full flex-row items-center justify-evenly">
-				<BackButton fallbackRedirect="/calendar" />
+				<BackButton fallbackRedirect="/calendar" label={t("back")} />
 
 				<div className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute">
 					<DropdownMenu>
@@ -225,12 +227,12 @@ export default function Index() {
 									>
 										{isSubscribed && hasNotification ? (
 											<p className="flex flex-row justify-start gap-1.5">
-												Modifier la notification
+												{t("editNotification")}
 												<MdNotificationsActive className="size-5" />
 											</p>
 										) : (
 											<p className="flex flex-row justify-start gap-1.5">
-												Ajouter une notification
+												{t("addNotification")}
 												<MdOutlineNotificationAdd className="size-5" />
 											</p>
 										)}
@@ -257,97 +259,126 @@ export default function Index() {
 			</div>
 
 			<div className="w-full px-4 lg:w-1/2">
-				<div className="flex flex-col items-center justify-center pb-8">
-					<h1 className="pt-4 text-center font-bold text-2xl">{event.title}</h1>
+				<EventDetails event={event} t={t} language={i18n.language} />
+			</div>
+		</div>
+	)
+}
 
-					<h2 className={cn(importance[event.importance].color, "text-xl")}>
-						Importance {importance[event.importance].name}
-					</h2>
+function EventDetails({ event, t, language }: {
+	event: Events
+	t: TFunction
+	language: string
+}) {
+
+	const importance: Record<number, { name: string; color: string }> = {
+		[-1]: {
+			name: t("low"),
+			color: "text-green-500"
+		},
+		0: {
+			name: t("medium"),
+			color: "text-orange-500"
+		},
+		1: {
+			name: t("high"),
+			color: "text-red-500"
+		}
+	}
+
+	return (
+		<div className="flex flex-col items-center justify-center pb-8">
+			<div className="pb-8">
+				<h1 className="pt-4 text-center font-bold text-2xl">{event.title}</h1>
+
+				<h2 className={cn(importance[event.importance].color, "text-center text-xl")}>
+					{t("importance")} {importance[event.importance].name}
+				</h2>
+				
+			</div>
+
+			<div className="flex w-full flex-col items-center gap-8">
+				<div className="flex w-full flex-col items-center">
+					<h2 className="font-bold text-xl">{t("description")}</h2>
+					<p className="">{event?.comment ?? t("noDescription")}</p>
 				</div>
 
-				<div className="flex w-full flex-col items-center gap-8">
-					<div className="flex w-full flex-col items-center">
-						<h2 className="font-bold text-xl">Description</h2>
-						<p className="">{event?.comment ?? "Aucune description"}</p>
-					</div>
+				<div className="flex flex-col items-center">
+					<h2 className="font-bold text-xl">{t("date")}</h2>
 
-					<div className="flex flex-col items-center">
-						<h2 className="font-bold text-xl">Date</h2>
-
-						<div className="flex flex-col items-center justify-center lg:flex-row lg:gap-1">
-							<p>
-								{new Date(event.date).toLocaleDateString("fr", {
-									weekday: "long",
-									year: "numeric",
-									month: "long",
-									day: "numeric",
-									hour: "numeric",
-									minute: "numeric",
-									second: "numeric"
-								})}
-							</p>
-							<div className="flex flex-row items-center">
-								<p>(</p>
-								<TimeCounter date={event.date} separator={false} />
-								<p>)</p>
-							</div>
+					<div className="flex flex-col items-center justify-center lg:flex-row lg:gap-1">
+						<p>
+							{new Date(event.date).toLocaleDateString(language, {
+								weekday: "long",
+								year: "numeric",
+								month: "long",
+								day: "numeric",
+								hour: "numeric",
+								minute: "numeric",
+								second: "numeric"
+							})}
+						</p>
+						<div className="flex flex-row items-center">
+							<p>(</p>
+							<TimeCounter date={event.date} separator={false} />
+							<p>)</p>
 						</div>
-
-						{event.period ? <p>Période : {event.period}</p> : null}
 					</div>
 
-					{event.forecast || event.previous || event.actual ? (
+					{event.period ? <p>{t("period")} : {event.period}</p> : null}
+				</div>
+
+				{event.forecast || event.previous || event.actual ? (
+					<div className="flex flex-col items-center">
+						<h2 className="font-bold text-xl">{t("numbers")}</h2>
+
 						<div className="flex flex-col items-center">
-							<h2 className="font-bold text-xl">Chiffres</h2>
-
-							<div className="flex flex-col items-center">
-								<p className="flex flex-row items-center gap-1">
-									Précédent :
-									<DisplayNumber number={event.previous} unit={event.unit} scale={event.scale} />
-								</p>
-								<p className="flex flex-row items-center gap-1">
-									Actuel :
-									<DisplayNumber number={event.actual} unit={event.unit} scale={event.scale} />
-								</p>
-								<p className="flex flex-row items-center gap-1">
-									Prévisions :
-									<DisplayNumber number={event.forecast} unit={event.unit} scale={event.scale} />
-								</p>
-							</div>
+							<p className="flex flex-row items-center gap-1">
+								{t("previous")} :
+								<DisplayNumber number={event.previous} unit={event.unit} scale={event.scale} t={t} />
+							</p>
+							<p className="flex flex-row items-center gap-1">
+								{t("actual")} :
+								<DisplayNumber number={event.actual} unit={event.unit} scale={event.scale} t={t} />
+							</p>
+							<p className="flex flex-row items-center gap-1">
+								{t("forecast")} :
+								<DisplayNumber number={event.forecast} unit={event.unit} scale={event.scale} t={t} />
+							</p>
 						</div>
-					) : null}
+					</div>
+				) : null}
 
-					<div className="flex flex-col items-center">
-						<h2 className="font-bold text-xl">Autres informations</h2>
+				<div className="flex flex-col items-center">
+					<h2 className="font-bold text-xl">{t("other")}</h2>
 
-						<div className="flex flex-col items-center gap-4">
-							<div className="flex flex-col items-center">
-								<p>Indicateur : {event.indicator ?? "aucun indicateur"}</p>
-							</div>
+					<div className="flex flex-col items-center gap-4">
+						<div className="flex flex-col items-center">
+							<p>{t("indicator")} : {event.indicator ?? t("noIndicator")}</p>
+						</div>
 
-							<div className="flex flex-col items-center">
-								<p>Pays : {countries[event.country]}</p>
-								<p>Monnaie : {event.currency}</p>
-							</div>
+						<div className="flex flex-col items-center">
+							<p>{t("country")} : {countries[language][event.country]}</p>
+							<p>{t("currency")} : {event.currency}</p>
+						</div>
 
-							<div className="flex flex-col items-center">
-								{event.sourceUrl ? (
-									<p className="flex flex-row flex-wrap items-center justify-center gap-1">
-										Source :
-										<Link
-											to={event.sourceUrl}
-											target="_blank"
-											className="flex flex-row items-center justify-center gap-1 text-center underline"
-										>
-											{event.source && event.source !== "" ? event.source : event.sourceUrl}
+						<div className="flex flex-col items-center">
+							{event.sourceUrl ? (
+								<p className="flex flex-row flex-wrap items-center justify-center gap-1">
+									{t("source")} :
+									<Link
+										to={event.sourceUrl}
+										target="_blank"
+										className="flex flex-row items-center justify-center gap-1 text-center underline"
+									>
+										{event.source && event.source !== "" ? event.source : event.sourceUrl}
 
-											<MdOpenInNew className="inline-block" />
-										</Link>
-									</p>
-								) : null}
+										<MdOpenInNew className="inline-block" />
+									</Link>
+								</p>
+							) : null}
 
-								{!event.sourceUrl && event.source ? <p>Source : {event.source}</p> : null}
-							</div>
+							{!event.sourceUrl && event.source ? <p>{t("source")} : {event.source}</p> : null}
 						</div>
 					</div>
 				</div>
@@ -356,9 +387,9 @@ export default function Index() {
 	)
 }
 
-function DisplayNumber({ number, unit, scale }: { number: number | null; unit: string | null; scale: string | null }) {
+function DisplayNumber({ number, unit, scale, t }: { number: number | null; unit: string | null; scale: string | null, t: TFunction }) {
 	if (number === null) {
-		return <span>aucune donnée</span>
+		return <span>{t("noData")}</span>
 	}
 
 	return (
@@ -426,7 +457,7 @@ function DialogNewNotification({
 				<DialogHeader>
 					<DialogTitle>Nouvelle notification</DialogTitle>
 					<DialogDescription>
-						Ajouter une notification pour l'événement {event.title} ({countries[event.country]})
+						Ajouter une notification pour l'événement {event.title} ({countries["fr-FR"][event.country]})
 					</DialogDescription>
 				</DialogHeader>
 

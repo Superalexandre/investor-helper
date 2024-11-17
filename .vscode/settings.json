@@ -31,5 +31,9 @@
         "vitalets",
         "Watchlist",
         "webp"
+    ],
+    "i18n-ally.localesPaths": [
+        "lang",
+        "web/public/locales"
     ]
 }

@@ -1,5 +1,6 @@
 import {
 	MdAdd,
+	MdArrowDropUp,
 	MdCalendarMonth,
 	MdHome,
 	MdLogin,
@@ -13,15 +14,28 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from 
 import { Link } from "@remix-run/react"
 import { useState } from "react"
 import { Button } from "./ui/button"
+import type { User } from "../../../db/schema/users"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu"
+import { Separator } from "./ui/separator"
+import { cn } from "../lib/utils"
+import type { TFunction } from "i18next"
 // import { useSpring } from "@react-spring/web"
 // import { useDrag } from "@use-gesture/react"
 
+export const handle = {
+	i18n: "header"
+}
+
 export default function Header(
 	{
-		logged
+		logged,
+		user,
+		t
 	}: {
-		logged: boolean
-	} = { logged: false }
+		logged: boolean,
+		user: User | null,
+		t: TFunction
+	}
 ) {
 	const [open, setOpen] = useState(false)
 	const menuItems = [
@@ -29,28 +43,28 @@ export default function Header(
 			{
 				key: "home",
 				icon: MdHome,
-				label: "Accueil",
+				label: t("header.home"),
 				href: "/",
 				hidden: false
 			},
 			{
 				key: "news",
 				icon: MdNewspaper,
-				label: "News",
+				label: t("header.news"),
 				href: "/news",
 				hidden: false
 			},
 			{
 				key: "calendar",
 				icon: MdCalendarMonth,
-				label: "Calendrier",
+				label: t("header.calendar"),
 				href: "/calendar",
 				hidden: false
 			},
 			{
 				key: "search",
 				icon: MdSearch,
-				label: "Rechercher",
+				label: t("header.search"),
 				href: "/search",
 				hidden: false
 			}
@@ -59,28 +73,28 @@ export default function Header(
 			{
 				key: "profile",
 				icon: MdPerson,
-				label: "Profile",
+				label: t("header.profile"),
 				href: "/profile",
 				hidden: !logged
 			},
 			{
 				key: "logout",
 				icon: MdLogout,
-				label: "Déconnexion",
+				label: t("header.logout"),
 				href: "/logout",
 				hidden: !logged
 			},
 			{
 				key: "login",
 				icon: MdLogin,
-				label: "Connexion",
+				label: t("header.login"),
 				href: "/login",
 				hidden: logged
 			},
 			{
 				key: "register",
 				icon: MdAdd,
-				label: "Inscription",
+				label: t("header.register"),
 				href: "/register",
 				hidden: logged
 			}
@@ -149,7 +163,6 @@ export default function Header(
 			<Sheet
 				open={open}
 				onOpenChange={(openChange) => setOpen(openChange)}
-				// modal={true}
 			>
 				<SheetTrigger
 					className="block h-full xl:hidden"
@@ -158,41 +171,117 @@ export default function Header(
 				>
 					<MdMenu className="size-6" />
 				</SheetTrigger>
-				<SheetContent side="left" className="flex flex-col items-center justify-between pt-16">
-					<SheetTitle className="hidden">Menu</SheetTitle>
-					<SheetDescription className="hidden">Navigation principale</SheetDescription>
+				<SheetContent side="left" className="flex flex-col items-center justify-between p-0 pt-16 pb-2 xl:hidden">
+					<SheetTitle className="hidden">{t("header.sheetTitle")}</SheetTitle>
+					<SheetDescription className="hidden">{t("header.sheetDescription")}</SheetDescription>
 
-					{menuItems.map((menuGroup, index) => (
-						<div
-							// biome-ignore lint/suspicious/noArrayIndexKey: No other key available
-							key={index}
-							className="flex flex-col items-center gap-4"
-						>
-							{menuGroup.map((menuItem) =>
-								menuItem.hidden || menuItem.key === "search" ? null : (
-									<Link
-										to={menuItem.href}
-										key={menuItem.key}
-										className="flex flex-row items-center text-xl"
-										onClick={() => setOpen(false)}
-									>
-										{menuItem.icon ? <menuItem.icon className="mr-2 inline-block" /> : null}
-										{menuItem.label}
-									</Link>
-								)
-							)}
-						</div>
-					))}
+					<div className="flex w-full flex-col items-center gap-4 overflow-y-auto">
+						<Link to="/" className="flex flex-row items-center text-xl" onClick={() => setOpen(false)}>
+							<MdHome className="mr-2 inline-block" />
+							{t("header.home")}
+						</Link>
+
+						<Link to="/news" className="flex flex-row items-center text-xl" onClick={() => setOpen(false)}>
+							<MdNewspaper className="mr-2 inline-block" />
+							{t("header.news")}
+						</Link>
+
+						<Link to="/calendar" className="flex flex-row items-center text-xl" onClick={() => setOpen(false)}>
+							<MdCalendarMonth className="mr-2 inline-block" />
+							{t("header.calendar")}
+						</Link>
+					</div>
+
+					{user ? <FooterLogged user={user} setOpen={setOpen} t={t} /> : <FooterNotLogged setOpen={setOpen} t={t} />}
 				</SheetContent>
 			</Sheet>
 			<div className="block xl:hidden">
 				<Link to="/search" className="absolute inset-y-0 right-0 mr-3 flex flex-row items-center">
 					<Button className="px-8">
 						<MdSearch className="size-6" />
-						Rechercher
+						{t("header.search")}
 					</Button>
 				</Link>
 			</div>
 		</header>
+	)
+}
+
+
+function FooterLogged({
+	user,
+	setOpen,
+	t
+}: {
+	user: User,
+	setOpen: (open: boolean) => void,
+	t: TFunction
+}) {
+	const [dropdownOpen, setDropdownOpen] = useState(false)
+
+	return (
+		<div className="w-full px-2">
+			<DropdownMenu
+				open={dropdownOpen}
+				onOpenChange={setDropdownOpen}
+			>
+				<DropdownMenuTrigger asChild={true} className="py-6">
+					<Button variant="outline" className="flex w-full flex-row items-center justify-between">
+						<div className="flex flex-row items-center gap-2">
+							<img src={`https://api.dicebear.com/7.x/bottts/png?seed=${user.username}`} alt={user.username} className="size-8 rounded-full" />
+
+							{user.displayName || user.username}
+						</div>
+
+						<MdArrowDropUp className={cn(dropdownOpen ? "rotate-180" : "", "size-6 duration-100")} />
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent className="w-[--radix-popper-anchor-width]">
+					<DropdownMenuItem asChild={true} className="w-full p-0">
+						<Link to="/profile" className="w-full hover:cursor-pointer" onClick={() => setOpen(false)}>
+							<Button variant="ghost" className="flex w-full flex-row justify-start gap-2 px-2">
+								<MdPerson className="size-6" />
+
+								{t("header.profile")}
+							</Button>
+						</Link>
+					</DropdownMenuItem>
+
+					<DropdownMenuItem asChild={true} className="w-full p-0">
+						<Link to="/logout" className="w-full hover:cursor-pointer" onClick={() => setOpen(false)}>
+							<Button variant="ghost" className="flex w-full flex-row justify-start gap-2 px-2">
+								<MdLogout className="size-6" />
+
+								{t("header.logout")}
+							</Button>
+						</Link>
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
+
+		</div>
+	)
+}
+
+function FooterNotLogged({
+	setOpen,
+	t
+}: {
+	setOpen: (open: boolean) => void,
+	t: TFunction
+}) {
+	return (
+		<div className="flex w-full flex-col items-center gap-4 p-2">
+			<Separator />
+
+			<Link to="/login" className="flex flex-row items-center text-xl" onClick={() => setOpen(false)}>
+				<MdLogin className="mr-2 inline-block" />
+				{t("header.login")}
+			</Link>
+			<Link to="/register" className="flex flex-row items-center text-xl" onClick={() => setOpen(false)}>
+				<MdAdd className="mr-2 inline-block" />
+				{t("header.register")}
+			</Link>
+		</div>
 	)
 }

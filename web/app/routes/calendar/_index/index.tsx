@@ -1,22 +1,40 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import type { MetaFunction } from "@remix-run/node"
+import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 // import { Link, useLocation, useNavigate } from "@remix-run/react"
 import { Link, useLocation } from "@remix-run/react"
-import countries from "../../../../../lang/countries-fr"
 import { ScrollTop } from "@/components/scrollTop"
 import TimeCounter from "../../../components/timeCounter"
 import { useQuery } from "@tanstack/react-query"
 import type { Events } from "../../../../../db/schema/events"
 import { useEffect, useRef } from "react"
 import SkeletonCalendar from "../../../components/skeletons/skeletonCalendar"
+import { useTranslation } from "react-i18next"
+import i18next from "../../../i18next.server"
+import type { TFunction } from "i18next"
+import { countries } from "../../../i18n"
 // import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs"
 // import { useState } from "react"
 // import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
-export const meta: MetaFunction = () => {
-	const title = "Investor Helper - Calendrier"
-	const description =
-		"Consultez notre calendrier des événements économiques pour ne rien manquer des dates clés qui influencent les marchés financiers. Suivez les annonces économiques, les publications de rapports financiers et les décisions des banques centrales. Ce calendrier est un outil indispensable pour anticiper les mouvements de marché et ajuster vos stratégies d'investissement en fonction des événements mondiaux."
+export async function loader({ request }: LoaderFunctionArgs) {
+	const t = await i18next.getFixedT(request, "calendar")
+
+	const title = t("title")
+	const description = t("description")
+
+	return {
+		title: title,
+		description: description
+	}
+
+}
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+	if (!data) {
+		return []
+	}
+
+	const { title, description } = data
 
 	return [
 		{ title: title },
@@ -27,25 +45,19 @@ export const meta: MetaFunction = () => {
 	]
 }
 
+export const handle = {
+	i18n: "calendar"
+}
+
 export default function Index() {
-	// const navigate = useNavigate()
-	// const location = useLocation()
-
-	// const urlTab = location.hash !== "" ? location.hash.replace("#", "") : "economicCalendar"
-	// const [tab, setTab] = useState(urlTab)
-
-	// const redirect = (id: string) => {
-	// 	navigate(`/calendar#${id}`)
-
-	// 	setTab(id)
-	// }
+	const { t, i18n } = useTranslation("calendar")
 
 	return (
 		<div>
 			<ScrollTop showBelow={250} />
 
 			<div className="flex flex-col items-center justify-center space-y-4">
-				<p className="pt-4 text-center font-bold text-2xl">Les événements</p>
+				<p className="pt-4 text-center font-bold text-2xl">{t("events")}</p>
 			</div>
 
 			{/* <Accordion type="single" collapsible className="px-4 lg:px-10">
@@ -58,7 +70,10 @@ export default function Index() {
             </Accordion> */}
 
 			<div className="w-full px-4 pt-4 lg:px-10 lg:pt-10">
-				<EconomicCalendar />
+				<EconomicCalendar 
+					t={t}
+					language={i18n.language}
+				/>
 			</div>
 			{/* <Tabs
 				defaultValue={tab}
@@ -89,7 +104,13 @@ export default function Index() {
 	)
 }
 
-function EconomicCalendar() {
+function EconomicCalendar({
+	t,
+	language
+}: {
+	t: TFunction,
+	language: string
+}) {
 	const location = useLocation()
 	const calendarRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
@@ -122,15 +143,15 @@ function EconomicCalendar() {
 
 	const importance: Record<number, { name: string; color: string }> = {
 		[-1]: {
-			name: "faible",
+			name: t("low"),
 			color: "text-green-500"
 		},
 		0: {
-			name: "moyen",
+			name: t("medium"),
 			color: "text-orange-500"
 		},
 		1: {
-			name: "élevé",
+			name: t("high"),
 			color: "text-red-500"
 		}
 	}
@@ -174,7 +195,7 @@ function EconomicCalendar() {
 									<span>{event.title}</span>
 									<span> - </span>
 									<span className={importance[event.importance].color}>
-										Importance {importance[event.importance].name}
+										{t("importance")} {importance[event.importance].name}
 									</span>
 								</CardTitle>
 							</CardHeader>
@@ -183,10 +204,10 @@ function EconomicCalendar() {
 						<CardContent>{event.comment}</CardContent>
 
 						<CardFooter className="flex flex-col items-center justify-start gap-1 lg:flex-row lg:gap-2">
-							<span className="text-center">{countries[event.country]}</span>
+							<span className="text-center">{countries[language][event.country]}</span>
 							<span className="hidden lg:block">-</span>
 							<span className="text-center">
-								{new Date(event.date || "").toLocaleDateString("fr-FR", {
+								{new Date(event.date || "").toLocaleDateString(language, {
 									hour: "numeric",
 									minute: "numeric",
 									year: "numeric",

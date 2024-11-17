@@ -1,40 +1,57 @@
-import type { MetaFunction } from "@remix-run/node"
+import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { usePWAManager } from "@remix-pwa/client"
 import { MdDownload } from "react-icons/md"
-import type {  } from "@/utils/news"
+import type { } from "@/utils/news"
 import { Link, useNavigate } from "@remix-run/react"
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { formatDistanceToNow } from "date-fns"
-import { fr } from "date-fns/locale"
 import { useEffect, useState } from "react"
-import countries from "../../../lang/countries-fr"
 import { useQuery } from "@tanstack/react-query"
 import { Skeleton } from "../components/ui/skeleton"
 import type { Events } from "../../../db/schema/events"
 import type { NewsArticle } from "../../types/News"
+import { useTranslation } from "react-i18next"
+import { countries, dateFns } from "../i18n"
+import type { TFunction } from "i18next"
+import i18next from "../i18next.server"
 
-export const meta: MetaFunction = () => {
-	const title = "Investor Helper"
-	const description = "Bienvenue sur Investor Helper"
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+	if (!data) {
+		return []
+	}
+
+	const { title, description } = data
 
 	return [
 		{ title: title },
 		{ name: "og:title", content: title },
 		{ name: "description", content: description },
 		{ name: "og:description", content: description },
-		{ name: "canonical", content: "https://investor-helper.com" }
+		{ name: "canonical", content: "https://www.investor-helper.com" }
 	]
 }
 
-export function loader() {
+export async function loader({ request }: LoaderFunctionArgs) {	
+	const t = await i18next.getFixedT(request, "home")
+	
+	const title = t("title")
+	const description = t("description")
+
 	return {
+		title: title,
+		description: description,
 		publicKey: process.env.NOTIFICATION_PUBLIC_KEY
 	}
 }
 
+export const handle = {
+	i18n: "home"
+}
+
 export default function Index() {
+	const { t, i18n } = useTranslation("home")
 	const navigate = useNavigate()
 
 	const { promptInstall } = usePWAManager()
@@ -71,62 +88,75 @@ export default function Index() {
 				/>
 
 				<h1 className="font-bold text-xl">
-					Bienvenue sur <span>Investor Helper</span>
+					{t("welcome")}
 				</h1>
 			</div>
 
 			{isInstalled ? null : (
 				<div className="flex flex-col items-center justify-start gap-2">
-					<Label className="text-bold text-xl">Installer l'application</Label>
+					<Label className="text-bold text-xl">{t("downloadApp")}</Label>
 					<Button
 						type="button"
 						onClick={() => promptInstall()}
 						className="flex items-center justify-center gap-2"
 					>
-						Installer
+						{t("download")}
 						<MdDownload />
 					</Button>
 				</div>
 			)}
 
 			<div className="flex max-w-full flex-col items-center gap-2 p-4">
-				<h2 className="font-bold text-lg">Dernières actualités importantes</h2>
+				<h2 className="font-bold text-lg">{t("lastNews")}</h2>
 
 				<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
-					<DisplayLastNews />
+					<DisplayLastNews 
+						t={t}
+						language={i18n.language}
+					/>
 				</div>
 
 				<Link to="/news">
-					<Button variant="default">Voir plus</Button>
+					<Button variant="default">{t("seeMore")}</Button>
 				</Link>
 			</div>
 
 			<div className="flex max-w-full flex-col items-center gap-2 p-4">
-				<h2 className="font-bold text-lg">Prochains événements importantes</h2>
+				<h2 className="font-bold text-lg">{t("nextEvents")}</h2>
 
 				<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
-					<DisplayNextEvents />
+					<DisplayNextEvents 
+						t={t}
+						language={i18n.language}
+					/>
 				</div>
 
 				<Link to="/calendar">
-					<Button variant="default">Voir plus</Button>
+					<Button variant="default">{t("seeMore")}</Button>
 				</Link>
 			</div>
 		</div>
 	)
 }
 
-function DisplayDate({ date }: { date: number }) {
+function DisplayDate({ date, locale }: { date: number, locale: string }) {
 	const d = new Date(date * 1000)
 
 	const formattedDate = formatDistanceToNow(d, {
-		locale: fr
+		locale: dateFns[locale],
+		addSuffix: true
 	})
 
-	return <p>Il y a {formattedDate}</p>
+	return <p>{formattedDate}</p>
 }
 
-function DisplayLastNews() {
+function DisplayLastNews({
+	t,
+	language
+}: {
+	t: TFunction,
+	language: string
+}) {
 	const {
 		data: lastNews,
 		isPending,
@@ -143,7 +173,7 @@ function DisplayLastNews() {
 	})
 
 	if (error) {
-		return <p>Erreur lors du chargement des actualités</p>
+		return <p>{t("errors.loading")}</p>
 	}
 
 	if (isPending) {
@@ -166,7 +196,7 @@ function DisplayLastNews() {
 	}
 
 	if (!lastNews || lastNews?.length <= 0) {
-		return <p>Aucune actualité importante</p>
+		return <p>{t("errors.emptyNews")}</p>
 	}
 
 	return lastNews.map((news) => (
@@ -177,8 +207,8 @@ function DisplayLastNews() {
 					<p className="h-24 max-h-24 overflow-clip">{news.news_article.shortDescription}</p>
 
 					<div className="absolute bottom-0 left-0 p-4 text-muted-foreground">
-						<p>Par {news.news.source}</p>
-						<DisplayDate date={news.news.published} />
+						<p>{t("by")} {news.news.source}</p>
+						<DisplayDate date={news.news.published} locale={language} />
 					</div>
 				</CardContent>
 			</Card>
@@ -186,11 +216,17 @@ function DisplayLastNews() {
 	))
 }
 
-function DisplayNextEvents() {
+function DisplayNextEvents({
+	t,
+	language
+}: {
+	t: TFunction,
+	language: string
+}) {
 	const importance: Record<number, string> = {
-		[-1]: "faible",
-		0: "moyenne",
-		1: "élevée"
+		[-1]: t("low"),
+		0: t("medium"),
+		1: t("high")
 	}
 
 	const {
@@ -209,7 +245,7 @@ function DisplayNextEvents() {
 	})
 
 	if (error) {
-		return <p>Erreur lors du chargement des événements</p>
+		return <p>{t("errors.emptyEvents")}</p>
 	}
 
 	if (isPending) {
@@ -232,7 +268,7 @@ function DisplayNextEvents() {
 	}
 
 	if (!nextEvents || nextEvents.length <= 0) {
-		return <p>Aucun événement important</p>
+		return <p>{t("errors.emptyEvents")}</p>
 	}
 
 	return nextEvents.map((event) => (
@@ -243,13 +279,13 @@ function DisplayNextEvents() {
 					<p className="h-24 max-h-24 overflow-clip">{event.comment}</p>
 
 					<div className="absolute bottom-0 left-0 p-4 text-muted-foreground">
-						<p>Importance : {importance[event.importance]}</p>
-						<p>Pays : {countries[event.country]}</p>
+						<p>{t("importance")} : {importance[event.importance]}</p>
+						<p>{t("country")} : {countries[language][event.country]}</p>
 						<div className="flex flex-row items-center gap-1">
-							<p>Dans</p>
 							<p>
 								{formatDistanceToNow(new Date(event.date), {
-									locale: fr
+									locale: dateFns[language],
+									addSuffix: true
 								})}
 							</p>
 						</div>

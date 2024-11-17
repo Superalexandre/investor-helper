@@ -1,0 +1,17 @@
+{
+    "title": "Investor Helper - Les actualités",
+    "description": "Découvrez l'actualité économique du moment sur Investor Helper. Suivez en direct les nouvelles financières mondiales, les tendances des marchés boursiers, ainsi que les analyses approfondies sur l'économie. Que vous soyez investisseur ou passionné de finance, restez à jour avec les informations essentielles qui impactent les marchés et vos investissements.",
+
+    "lastNews": "Dernières actualités",
+    "page": "Page",
+    "previousPage": "Page précédente",
+    "nextPage": "Page suivante",
+    "firstPage": "Retour à la première page",
+    "errors": {
+        "empty": "Aucune actualité pour le moment" 
+    },
+
+    
+    "seeAll": "Voir tout",
+    "seeLess": "Voir moins"
+}

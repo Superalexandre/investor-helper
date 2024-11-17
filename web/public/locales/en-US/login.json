@@ -1,0 +1,13 @@
+{
+    "title": "Investor Helper - Login",
+    "description": "Log in to your Investor Helper account",
+
+    "connexion": "Login",
+    "notRegistered": "Not registered yet? Create an account!",
+    "connect": "Log in",
+
+    "placeholders": {
+        "emailOrUsername": "Username or email address",
+        "password": "Password"
+    }
+}

@@ -1,0 +1,30 @@
+{
+    "title": "Investor Helper - Calendrier",
+    "editNotification": "Modifier la notification",
+    "addNotification": "Ajouter une notification",
+    "importance": "Importance",
+    "description": "Description",
+    "noDescription": "Aucune description",
+    "date": "Date",
+    "period": "Période",
+    "numbers": "Chiffres",
+
+    "previous": "Précédent",
+    "actual": "Actuel",
+    "forecast": "Prévision",
+
+    "other": "Autres informations",
+    "indicator": "Indicateur",
+    "noIndicator": "Aucun indicateur",
+    "country": "Pays",
+    "currency": "Monnaie",
+    "source": "Source",
+
+    "noData": "Aucune donnée",
+
+    "back": "Retour",
+
+    "low": "faible",
+    "medium": "moyen",
+    "high": "élevée"
+}

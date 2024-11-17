@@ -12,5 +12,13 @@ export default function formatDate(
 		second: "numeric"
 	}
 ) {
-	return new Date(date).toLocaleDateString(options.locale, options)
+	return new Date(date).toLocaleDateString(options.locale, {
+		...options,
+		day: "numeric",
+		month: "long",
+		year: "numeric",
+		hour: "numeric",
+		minute: "numeric",
+		second: "numeric"
+	})
 }

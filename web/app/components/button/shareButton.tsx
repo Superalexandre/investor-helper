@@ -1,6 +1,7 @@
 import { MdShare } from "react-icons/md"
 import { Button } from "../ui/button"
 import { cn } from "../../lib/utils"
+import { useTranslation } from "react-i18next"
 
 export default function ShareButton({
 	title,
@@ -13,6 +14,10 @@ export default function ShareButton({
 	url: string,
 	className?: string
 }) {
+	const { t } = useTranslation("common", {
+		useSuspense: false
+	})
+
 	const shareCallback = async () => {
 		if (navigator) {
 			const shareData = {
@@ -41,7 +46,7 @@ export default function ShareButton({
 			}}
 			className={cn("flex w-full flex-row items-center justify-start gap-1.5", className)}
 		>
-			Partager
+			{t("shareLink.trigger")}
 			<MdShare className="size-5" />
 		</Button>
 	)

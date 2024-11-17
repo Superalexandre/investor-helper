@@ -1,0 +1,30 @@
+{
+    "title": "Investor Helper - Calendar",
+    "editNotification": "Edit Notification",
+    "addNotification": "Add Notification",
+    "importance": "Importance",
+    "description": "Description",
+    "noDescription": "No Description",
+    "date": "Date",
+    "period": "Period",
+    "numbers": "Figures",
+
+    "previous": "Previous",
+    "actual": "Actual",
+    "forecast": "Forecast",
+
+    "other": "Other Information",
+    "indicator": "Indicator",
+    "noIndicator": "No Indicator",
+    "country": "Country",
+    "currency": "Currency",
+    "source": "Source",
+
+    "noData": "No Data",
+
+    "back": "Back",
+
+    "low": "low",
+    "medium": "medium",
+    "high": "high"
+}

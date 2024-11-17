@@ -1,0 +1,13 @@
+{
+    "title": "Investor Helper - Connexion",
+    "description": "Connectez-vous à votre compte Investor Helper",
+
+    "connexion": "Connexion",
+    "notRegistered": "Pas encore inscrit ? Créez un compte !",
+    "connect": "Se connecter",
+
+    "placeholders": {
+        "emailOrUsername": "Nom d'utilisateur ou adresse mail",
+        "password": "Mot de passe"
+    }
+}

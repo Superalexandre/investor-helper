@@ -10,6 +10,7 @@ import { ShowButtonComponent } from "../button/showHideButton"
 import { Label } from "../ui/label"
 import { Checkbox } from "../ui/checkbox"
 import Loading from "../loading"
+import { useTranslation } from "react-i18next"
 
 const schema = zod.object({
 	name: zod.string().min(3).max(32).trim(),
@@ -35,6 +36,9 @@ interface RegisterProps {
 }
 
 export default function Register({ redirect, callback }: RegisterProps) {
+	const { t } = useTranslation("register", {
+		useSuspense: false
+	})
 	const [showPassword, setShowPassword] = useState(false)
 	const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false)
 	const [params] = useSearchParams()
@@ -56,7 +60,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 		mode: "onSubmit",
 		submitConfig: {
 			action: `/register?redirect=${preferredRedirect}`,
-			method: "post"
+			method: "POST"
 		},
 		resolver
 	})
@@ -70,7 +74,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 	return (
 		<Form
 			action="/register"
-			method="post"
+			method="POST"
 			onSubmit={handleSubmit}
 			className="flex size-full max-h-full flex-col items-center justify-center gap-4"
 		>
@@ -78,7 +82,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				type="text"
 				name="name"
 				id="name"
-				placeholder="Nom"
+				placeholder={t("placeholders.name")}
 				autoComplete="name"
 				errors={errors as FieldErrors}
 				register={register}
@@ -89,7 +93,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				type="text"
 				name="firstName"
 				id="firstName"
-				placeholder="Prénom"
+				placeholder={t("placeholders.firstName")}
 				autoComplete="given-name"
 				errors={errors as FieldErrors}
 				register={register}
@@ -100,7 +104,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				type="text"
 				name="username"
 				id="username"
-				placeholder="Nom d'utilisateur"
+				placeholder={t("placeholders.username")}
 				autoComplete="username"
 				errors={errors as FieldErrors}
 				register={register}
@@ -111,7 +115,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				type="email"
 				name="email"
 				id="email"
-				placeholder="Email"
+				placeholder={t("placeholders.email")}
 				autoComplete="email"
 				errors={errors as FieldErrors}
 				register={register}
@@ -122,7 +126,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				type={showPassword ? "text" : "password"}
 				name="password"
 				id="password"
-				placeholder="Mot de passe"
+				placeholder={t("placeholders.password")}
 				autoComplete="new-password"
 				errors={errors as FieldErrors}
 				register={register}
@@ -134,7 +138,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				type={showPasswordConfirmation ? "text" : "password"}
 				name="passwordConfirmation"
 				id="passwordConfirmation"
-				placeholder="Confirmer le mot de passe"
+				placeholder={t("placeholders.confirmPassword")}
 				autoComplete="new-password"
 				errors={errors as FieldErrors}
 				register={register}
@@ -156,13 +160,13 @@ export default function Register({ redirect, callback }: RegisterProps) {
 					/>
 
 					<Label htmlFor="terms" className="space-x-1 text-white">
-						<span>J'accepte les</span>
+						<span>{t("accept")}</span>
 						<Link to="/terms" className="text-white underline hover:text-slate-400">
-							conditions d'utilisation
+							{t("terms")}
 						</Link>
-						<span>et la</span>
+						<span>{t("and")}</span>
 						<Link to="/privacy" className="text-white underline hover:text-slate-400">
-							politique de confidentialité
+							{t("privacy")}
 						</Link>
 					</Label>
 				</div>
@@ -181,7 +185,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				}}
 				className="text-center text-white underline hover:text-slate-400"
 			>
-				Vous avez déjà un compte ? Connectez-vous
+				{t("haveAccount")}
 			</Link>
 
 			{/* <Link to="/forgot-password" className="text-white underline hover:text-slate-400 text-center">Mot de passe oublié ?</Link> */}
@@ -199,7 +203,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 					<MdAdd size={20} />
 				)}
 
-				Créer un compte
+				{t("createAccount")}
 			</Button>
 		</Form>
 	)

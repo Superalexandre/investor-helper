@@ -4,6 +4,7 @@ import { useBadgeApi, useBatteryManager } from "@remix-pwa/client"
 import { usePush } from "@remix-pwa/push/client"
 import { useLoaderData } from "@remix-run/react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 
 export function loader() {
 	return {
@@ -11,7 +12,12 @@ export function loader() {
 	}
 }
 
+export const handle = {
+	i18n: "home"
+}
+
 export default function Index() {
+	const { i18n } = useTranslation("home")
 	const { publicKey } = useLoaderData<typeof loader>()
 
 	const { badgeCount, setBadgeCount, showNotificationDot, clearBadge } = useBadgeApi()
@@ -104,6 +110,18 @@ export default function Index() {
 					{isSubscribed ? "Désactiver" : "Activer"}
 				</Button>
 				{notificationError ? <Label className="text-red-500 text-sm">{notificationError}</Label> : null}
+			</div>
+			
+			<div className="flex flex-col items-center justify-center">
+				<p>Language : {i18n.language}</p>
+				
+				<Button onClick={() => {
+					i18n.changeLanguage("en-US")
+				}}>English</Button>
+				<Button onClick={() => {
+					i18n.changeLanguage("fr-FR")
+				}}>Français</Button>
+
 			</div>
 		</div>
 	)

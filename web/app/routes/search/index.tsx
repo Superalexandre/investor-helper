@@ -7,9 +7,12 @@ import { normalizeSymbol, normalizeSymbolHtml } from "@/utils/normalizeSymbol"
 import type { News } from "@/schema/news"
 import { Link, useLocation, useNavigate } from "@remix-run/react"
 import { MdClose } from "react-icons/md"
-import type { MetaFunction } from "@remix-run/node"
+import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { useQuery } from "@tanstack/react-query"
 import { Skeleton } from "../../components/ui/skeleton"
+import { useTranslation } from "react-i18next"
+import type { TFunction } from "i18next"
+import i18next from "../../i18next.server"
 
 interface SelectSymbolType {
 	symbol: string
@@ -25,10 +28,24 @@ interface SelectSymbolType {
 
 type SearchType = "all" | "allSymbol" | "stocks" | "crypto" | "news"
 
-export const meta: MetaFunction = () => {
-	const title = "Investor Helper - Rechercher"
-	const description =
-		"Recherchez un symbole, une action, une crypto, une news sur Investor Helper. Trouvez rapidement les informations dont vous avez besoin pour vos investissements et vos analyses financières."
+export async function loader({ request }: LoaderFunctionArgs) {
+	const t = await i18next.getFixedT(request, "register")
+
+	const title = t("title")
+	const description = t("description")
+
+	return {
+		title: title,
+		description: description
+	}
+}
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+	if (!data) {
+		return []
+	}
+
+	const { title, description } = data
 
 	return [
 		{ title: title },
@@ -39,7 +56,12 @@ export const meta: MetaFunction = () => {
 	]
 }
 
+export const handle = {
+	i18n: "search",
+}
+
 export default function Index() {
+	const { t } = useTranslation("search")
 	const location = useLocation()
 	const pathname = location.pathname
 	const navigate = useNavigate()
@@ -68,13 +90,15 @@ export default function Index() {
 					searchParam={searchParam}
 					hidden={!!hidden}
 					setForceValue={setForceValue}
+					t={t}
 				/>
 
 				{hidden ? null : (
 					<div className="absolute top-full left-0 z-10 mt-2 flex w-full flex-col gap-1 overflow-x-hidden">
-						<Filter 
-							searchingIn={searchingIn} 
+						<Filter
+							searchingIn={searchingIn}
 							setSearchingIn={setSearchingIn}
+							t={t}
 						/>
 
 						<div className={cn(hidden ? "hidden" : "flex flex-col")}>
@@ -153,13 +177,15 @@ function SearchInput({
 	setDebouncedValue,
 	searchParam,
 	hidden,
-	setForceValue
+	setForceValue,
+	t
 }: {
 	inputRef: RefObject<HTMLInputElement>
 	setDebouncedValue: (value: string) => void
 	searchParam: string | null
 	hidden: boolean
 	setForceValue: (value: string) => void
+	t: TFunction
 }) {
 	return (
 		<div className="flex w-full flex-row items-center gap-2">
@@ -168,7 +194,7 @@ function SearchInput({
 					className="w-full"
 					name="symbol"
 					type="text"
-					placeholder="Rechercher un symbole, une action, une crypto, une news..."
+					placeholder={t("placeholder")}
 					onChange={(event) => setDebouncedValue(event.target.value)}
 					defaultValue={searchParam ?? ""}
 					ref={inputRef}
@@ -198,10 +224,12 @@ function SearchInput({
 
 function Filter({
 	searchingIn,
-	setSearchingIn
+	setSearchingIn,
+	t
 }: {
 	searchingIn: SearchType
-	setSearchingIn: (searchingIn: SearchType) => void
+	setSearchingIn: (searchingIn: SearchType) => void,
+	t: TFunction
 }) {
 	return (
 		<div className="flex flex-row items-center gap-1 overflow-x-auto">
@@ -212,26 +240,26 @@ function Filter({
 			</Button> */}
 
 			<Button variant={searchingIn === "all" ? "default" : "outline"} onClick={() => setSearchingIn("all")}>
-				Tout
+				{t("filters.all")}
 			</Button>
 
 			<Button variant={searchingIn === "news" ? "default" : "outline"} onClick={() => setSearchingIn("news")}>
-				News
+				{t("filters.news")}
 			</Button>
 
 			<Button
 				variant={searchingIn === "allSymbol" ? "default" : "outline"}
 				onClick={() => setSearchingIn("allSymbol")}
 			>
-				Tous les symboles
+				{t("filters.allSymbols")}
 			</Button>
 
 			<Button variant={searchingIn === "stocks" ? "default" : "outline"} onClick={() => setSearchingIn("stocks")}>
-				Actions
+				{t("filters.stocks")}
 			</Button>
 
 			<Button variant={searchingIn === "crypto" ? "default" : "outline"} onClick={() => setSearchingIn("crypto")}>
-				Crypto
+				{t("filters.cryptos")}
 			</Button>
 		</div>
 	)

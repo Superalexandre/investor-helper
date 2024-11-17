@@ -1,0 +1,14 @@
+{
+    "title": "Investor Helper - Search",
+    "description": "Search for a symbol, stock, crypto, or news on Investor Helper. Quickly find the information you need for your investments and financial analyses.",
+
+    "placeholder": "Search for a symbol, stock, crypto, or news...",
+
+    "filters": {
+        "all": "All",
+        "news": "News",
+        "allSymbols": "All Symbols",
+        "stocks": "Stocks",
+        "cryptos": "Cryptos"
+    }
+}

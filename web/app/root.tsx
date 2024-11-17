@@ -8,12 +8,10 @@ import {
 	Outlet,
 	Scripts,
 	ScrollRestoration,
-	useLoaderData,
 	useRouteError,
+	useRouteLoaderData,
 } from "@remix-run/react"
 import { ManifestLink, useSWEffect } from "@remix-pwa/sw"
-// import { useNetworkConnectivity } from "@remix-pwa/client"
-
 import stylesheet from "@/tailwind.css?url"
 import Header from "@/components/header"
 import { getUser } from "./session.server"
@@ -26,8 +24,13 @@ import { sourceTrackingSchema } from "@/schema/sourceTracking"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { Toaster as Sonner } from "@/components/ui/sonner"
 import { toast as sonner } from "sonner"
+import i18next from "./i18next.server"
+import { useTranslation } from "react-i18next"
+import { useChangeLanguage } from "remix-i18next/react"
 
 export async function loader({ request }: LoaderFunctionArgs) {
+	const locale = await i18next.getLocale(request)
+	
 	const user = await getUser(request)
 	const url = new URL(request.url)
 
@@ -46,24 +49,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		})
 	}
 
-	return { logged: user !== null, user }
+	return { logged: user !== null, user, locale }
 }
 
-// export async function workerLoader({ request }: WorkerLoaderArgs) {
-//     console.log("Worker loader", request.url)
-
-//     return null
-// }
-
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: stylesheet, as: "style", type: "text/css" }]
+export const handle = {
+	i18n: "common",
+}
 
 export function Layout({ children }: { children: ReactNode }) {
+	const data = useRouteLoaderData<typeof loader>("root")
+	const { i18n, t } = useTranslation("common")
+
 	useSWEffect()
 
-	const { logged, user } = useLoaderData<typeof loader>()
+	const locale = data?.locale ?? "fr-FR"
+
+	useChangeLanguage(locale)
 
 	return (
-		<html lang="fr" className="dark bg-background" translate="no">
+		<html lang={locale} dir={i18n.dir()} className="dark bg-background" translate="no">
 			<head>
 				<meta charSet="utf-8" />
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -79,9 +84,7 @@ export function Layout({ children }: { children: ReactNode }) {
 				/>
 				<meta name="robots" content="index, follow" />
 				<meta name="theme-color" content="#0f172a" />
-
-				{/* <meta property="og:title" content="Investor Helper - Stay Updated on Financial News" /> */}
-				{/* <meta property="og:description" content="Get the latest financial news and track investment opportunities with our comprehensive calendar." /> */}
+				
 				<meta property="og:url" content="https://www.investor-helper.com" />
 				<meta property="og:type" content="website" />
 				<meta property="og:image" content="https://www.investor-helper.com/logo-512-512.png" />
@@ -89,14 +92,9 @@ export function Layout({ children }: { children: ReactNode }) {
 
 				<meta name="mobile-web-app-capable" content="yes" />
 
-				{/* <meta name="apple-mobile-web-app-title" content="Investor Helper" />
-                <meta name="application-name" content="Investor Helper" />
-
-                <meta name="apple-mobile-web-app-capable" content="yes" />
-                <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" /> */}
 			</head>
 			<body className="flex min-h-screen flex-col">
-				<Header logged={logged ?? false} />
+				<Header logged={data?.logged ?? false} user={data?.user ?? null} t={t} />
 
 				{children}
 
@@ -112,28 +110,6 @@ export function Layout({ children }: { children: ReactNode }) {
 
 export default function App() {
 	const queryClient = new QueryClient()
-
-	// useNetworkConnectivity({
-	// 	onOnline: () => {
-	// 		const id = "network-connectivity"
-	// 		const title = "You are back online"
-	// 		const description = "Seemed your network went for a nap, glad to have you back!"
-	// 		const type = "message"
-
-	// 		console.log("You are back online")
-	// 		toast[type](title, {id, description})
-	// 	},
-
-	// 	onOffline: () => {
-	// 		const id = "network-connectivity"
-	// 		const title = "You are offline"
-	// 		const description = "Seems like you are offline, check your network connection"
-	// 		const type = "warning"
-
-	// 		toast[type](title, {id, description})
-	// 		console.log("You are offline")
-	// 	}
-	// })
 
 	useEffect(() => {
 		if ("serviceWorker" in navigator) {
@@ -179,17 +155,18 @@ export default function App() {
 }
 
 export function ErrorBoundary() {
+	const { t } = useTranslation("common")
 	const error = useRouteError()
 
 	if (isRouteErrorResponse(error)) {
 		if (error.status === 404) {
 			return (
 				<div className="flex flex-grow flex-col items-center justify-center gap-4">
-					<h1 className="font-bold text-3xl">Page introuvable</h1>
-					<p>Désolé la page que vous cherchez n'est pas trouvable.</p>
+					<h1 className="font-bold text-3xl">{t("error.notFoundTitle")}</h1>
+					<p>{t("error.notFoundMessage")}</p>
 					<Link to="/">
 						<Button type="button" variant="default">
-							Retour à l'accueil
+						{t("backHome")}
 						</Button>
 					</Link>
 				</div>
@@ -198,11 +175,11 @@ export function ErrorBoundary() {
 
 		return (
 			<div className="flex flex-grow flex-col items-center justify-center gap-4">
-				<h1 className="font-bold text-3xl">Une erreur est survenue ! ({error.status})</h1>
+				<h1 className="font-bold text-3xl">{t("error.errorTitle")} ({error.status})</h1>
 				<p>{error.statusText}</p>
 				<Link to="/">
 					<Button type="button" variant="default">
-						Retour à l'accueil
+						{t("backHome")}
 					</Button>
 				</Link>
 			</div>
@@ -212,11 +189,11 @@ export function ErrorBoundary() {
 	if (error instanceof Error) {
 		return (
 			<div className="flex flex-grow flex-col items-center justify-center gap-4">
-				<h1 className="font-bold text-3xl">Une erreur est survenue !</h1>
+				<h1 className="font-bold text-3xl">{t("error.errorTitle")}</h1>
 				<p>{error.message}</p>
 				<Link to="/">
 					<Button type="button" variant="default">
-						Retour à l'accueil
+						{t("backHome")}
 					</Button>
 				</Link>
 			</div>
@@ -225,11 +202,11 @@ export function ErrorBoundary() {
 
 	return (
 		<div className="flex flex-grow flex-col items-center justify-center gap-4">
-			<h1 className="font-bold text-3xl">Une erreur inconnue est survenue !</h1>
+			<h1 className="font-bold text-3xl">{t("error.errorTtile")}</h1>
 
 			<Link to="/">
 				<Button type="button" variant="default">
-					Retour à l'accueil
+					{t("backHome")}
 				</Button>
 			</Link>
 		</div>

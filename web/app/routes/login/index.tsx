@@ -3,25 +3,34 @@ import { redirect } from "@remix-run/react"
 import { MdLogin } from "react-icons/md"
 import { getValidatedFormData } from "remix-hook-form"
 import login from "./login"
-import { type ActionFunctionArgs, json, type LoaderFunctionArgs, type MetaFunction } from "@remix-run/node"
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { getUser } from "@/session.server"
 import Login, { type FormData, resolver } from "../../components/form/login"
+import i18next from "../../i18next.server"
+import { useTranslation } from "react-i18next"
 
 export async function loader({ request }: LoaderFunctionArgs) {
+	const t = await i18next.getFixedT(request, "login")
 	const user = await getUser(request)
+
+	const title = t("title")
+	const description = t("description")
 
 	if (user) {
 		return redirect("/profile")
 	}
 
-	return null
+	return {
+		title: title,
+		description: description
+	}
 }
 
 export async function action({ request }: ActionFunctionArgs) {
 	const { errors, data, receivedValues: defaultValues } = await getValidatedFormData<FormData>(request, resolver)
 
 	if (errors) {
-		return json({ errors, defaultValues })
+		return { errors, defaultValues }
 	}
 
 	const result = await login({ request, ...data })
@@ -29,9 +38,12 @@ export async function action({ request }: ActionFunctionArgs) {
 	return result
 }
 
-export const meta: MetaFunction = () => {
-	const title = "Investor Helper - Connexion"
-	const description = "Connectez-vous à votre compte Investor Helper"
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+	if (!data) {
+		return []
+	}
+
+	const { title, description } = data
 
 	return [
 		{ title: title },
@@ -42,13 +54,20 @@ export const meta: MetaFunction = () => {
 	]
 }
 
+export const handle = {
+	i18n: "login"
+}
+
 export default function Index() {
+	const { t } = useTranslation("login")
+	
 	return (
 		<div className="flex h-screen w-screen flex-1 flex-col items-center justify-center p-4">
 			<Card className="size-full lg:size-1/2">
 				<CardTitle className="flex flex-row items-center justify-center gap-2 pt-4 pb-8 text-center font-bold text-3xl text-white">
 					<MdLogin size={30} />
-					Connexion
+					
+					{t("connexion")}
 				</CardTitle>
 				<CardContent className="flex h-full w-full items-center justify-center">
 					<div className="w-11/12 lg:w-1/2">

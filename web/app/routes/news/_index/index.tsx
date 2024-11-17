@@ -1,4 +1,4 @@
-import type { MetaFunction } from "@remix-run/node"
+import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Link, useLocation } from "@remix-run/react"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -12,11 +12,27 @@ import type { NewsSymbols } from "../../../../types/News"
 import SkeletonNews from "../../../components/skeletons/skeletonNews"
 import DisplaySymbols from "../../../components/displaySymbols"
 import { useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
+import type { TFunction } from "i18next"
+import i18next from "../../../i18next.server"
 
-export const meta: MetaFunction = () => {
-	const title = "Investor Helper - Les actualités"
-	const description =
-		"Découvrez l'actualité économique du moment sur Investor Helper. Suivez en direct les nouvelles financières mondiales, les tendances des marchés boursiers, ainsi que les analyses approfondies sur l'économie. Que vous soyez investisseur ou passionné de finance, restez à jour avec les informations essentielles qui impactent les marchés et vos investissements."
+export async function loader({ request }: LoaderFunctionArgs) {
+	const t = await i18next.getFixedT(request, "news")
+	const title = t("title")
+	const description = t("description")
+
+	return {
+		title: title,
+		description: description
+	}
+}
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+	if (!data) {
+		return []
+	}
+
+	const { title, description } = data
 
 	return [
 		{ title: title },
@@ -27,7 +43,13 @@ export const meta: MetaFunction = () => {
 	]
 }
 
+export const handle = {
+	i18n: "news"
+}
+
 export default function Index() {
+	const { t, i18n } = useTranslation("news")
+
 	const location = useLocation()
 	const newsRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
@@ -73,7 +95,7 @@ export default function Index() {
 		return (
 			<div>
 				<div className="flex flex-col items-center justify-center space-y-4">
-					<p className="pt-4 text-center font-bold text-2xl">Dernières actualités</p>
+					<p className="pt-4 text-center font-bold text-2xl">{t("lastNews")}</p>
 				</div>
 				<div className="flex flex-col space-y-6 p-4 lg:p-10">
 					{skeletonArray.map((_, index) => (
@@ -90,7 +112,7 @@ export default function Index() {
 	}
 
 	if (!news || news.length <= 0) {
-		return <Empty />
+		return <Empty t={t} />
 	}
 
 	return (
@@ -98,8 +120,8 @@ export default function Index() {
 			<ScrollTop showBelow={250} />
 
 			<div className="flex flex-col items-center justify-center space-y-1 pt-4">
-				<p className="text-center font-bold text-2xl">Dernières actualités</p>
-				{actualPage > 1 ? <p className="text-muted-foreground text-sm">Page {actualPage}</p> : null}
+				<p className="text-center font-bold text-2xl">{t("lastNews")}</p>
+				{actualPage > 1 ? <p className="text-muted-foreground text-sm">{t("page")} {actualPage}</p> : null}
 
 				{/* <Button variant="default">
                     Rafraîchir
@@ -140,13 +162,15 @@ export default function Index() {
 							</Link>
 
 							<CardContent>
-								<DisplaySymbols symbolList={item.relatedSymbols} hash={item.news.id} />
+								<DisplaySymbols symbolList={item.relatedSymbols} hash={item.news.id} t={t} />
 							</CardContent>
 
 							<CardFooter>
 								<p className="flex flex-row flex-wrap items-center gap-1 text-muted-foreground">
-									{formatDate(item.news.published * 1000)} - {item.news.source}
-									<span>(via {item.news.mainSource})</span>
+									{formatDate(item.news.published * 1000, {
+										locale: i18n.language
+									})} - {item.news.source}
+									{/* <span>(via {item.news.mainSource})</span> */}
 								</p>
 							</CardFooter>
 						</Card>
@@ -167,7 +191,7 @@ export default function Index() {
 						}}
 					>
 						<MdArrowBack className="size-5" />
-						Page précédente
+						{t("previousPage")}
 					</Link>
 				</Button>
 
@@ -182,7 +206,7 @@ export default function Index() {
 							search: `?page=${nextPage}`
 						}}
 					>
-						Page suivante
+						{t("nextPage")}
 						<MdArrowForward className="size-5" />
 					</Link>
 				</Button>
@@ -191,15 +215,19 @@ export default function Index() {
 	)
 }
 
-function Empty() {
+function Empty({
+	t
+}: {
+	t: TFunction
+}) {
 	return (
 		<div className="flex flex-col items-center justify-center space-y-4">
-			<p className="pt-4 text-center font-bold text-2xl">Dernières actualités</p>
+			<p className="pt-4 text-center font-bold text-2xl">{t("lastNews")}</p>
 
-			<p className="text-center text-lg">Aucune actualité pour le moment</p>
+			<p className="text-center text-lg">{t("errors.empty")}</p>
 
 			<Link to="/news">
-				<Button variant="default">Retourner à la première page</Button>
+				<Button variant="default">{t("firstPage")}</Button>
 			</Link>
 		</div>
 	)

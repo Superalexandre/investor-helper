@@ -21,8 +21,11 @@ import {
 	DropdownMenuTrigger
 } from "../../../components/ui/dropdown-menu"
 import CopyButton from "../../../components/button/copyButton"
+import { useTranslation } from "react-i18next"
+import i18next from "../../../i18next.server"
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
+	const t = await i18next.getFixedT(request, "newsId")
 	const { id } = params
 
 	// Redirect to the news page if the id is not provided
@@ -36,14 +39,17 @@ export async function loader({ params }: LoaderFunctionArgs) {
 		return redirect("/news")
 	}
 
+	const title = t("title")
+
 	return {
 		news,
-		relatedSymbols
+		relatedSymbols,
+		title
 	}
 }
 
 export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
-	const title = "Investor Helper - Les actualités"
+	const title = data?.title ?? ""
 	const description = data?.news.news.title ?? ""
 
 	return [
@@ -59,7 +65,12 @@ export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
 	]
 }
 
+export const handle = {
+	i18n: "newsId"
+}
+
 export default function Index() {
+	const { t, i18n } = useTranslation("newsId")
 	const { news, relatedSymbols } = useLoaderData<typeof loader>()
 
 	return (
@@ -67,7 +78,7 @@ export default function Index() {
 			<ScrollTop showBelow={250} />
 
 			<div className="flex w-full flex-row items-center justify-evenly">
-				<BackButton fallbackRedirect="/news" />
+				<BackButton fallbackRedirect="/news" label={t("back")} />
 
 				<div className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute">
 					<DropdownMenu>
@@ -100,7 +111,7 @@ export default function Index() {
 				<div className="flex flex-col items-center justify-center pb-8">
 					<h1 className="pt-4 text-center font-bold text-2xl">{news.news.title}</h1>
 
-					<p className="text-center text-muted-foreground">{formatDateTime(news.news.published * 1000)}</p>
+					<p className="text-center text-muted-foreground">{formatDateTime(news.news.published * 1000, i18n.language)}</p>
 				</div>
 
 				<div className="flex flex-col">
@@ -114,7 +125,7 @@ export default function Index() {
 
 					<div className="my-10">
 						<p className="text-muted-foreground">
-							Source : {news.news_article.copyright || news.news.source}
+							{t("source")} : {news.news_article.copyright || news.news.source}
 						</p>
 					</div>
 				</div>
@@ -383,8 +394,8 @@ function GetDeepComponent(
 	return Component
 }
 
-function formatDateTime(date: string | number) {
-	return new Date(date).toLocaleDateString("fr-FR", {
+function formatDateTime(date: string | number, locale: string) {
+	return new Date(date).toLocaleDateString(locale, {
 		weekday: "long",
 		day: "numeric",
 		month: "long",
