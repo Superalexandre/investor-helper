@@ -19,11 +19,21 @@ function getLanguage(request: Request) {
         locale = languageCookie
     }
 
-    const languagesHeader = getLanguageFromHeaders(request.headers)
-    if (!hasChanged && languagesHeader && languagesHeader.length > 0 && languagesHeader) {
+    const { headersString, languagesHeader, closestLanguage } = getLanguageFromHeaders(request.headers)
+    if (!hasChanged && closestLanguage) {
         hasChanged = true
-        locale = languagesHeader
+        locale = closestLanguage
     }
+
+    console.log("languages", {
+        headersString,
+        languagesHeader,
+        closestLanguage,
+        languageUrl: language,
+        languageCookie,
+        locale,
+        hasChanged
+    })
 
     return locale
 }
@@ -49,13 +59,11 @@ function getLanguageFromHeaders(headers: Headers) {
     const languagesHeader = parseAcceptLanguage(headersString) || []
     const closestLanguage = getClosetLanguage(languagesHeader)
 
-    console.log("languages", {
+    return {
         headersString,
         languagesHeader,
         closestLanguage
-    })
-
-    return closestLanguage
+    }
 }
 
 function getClosetLanguage(languagesHeader: string[]) {
