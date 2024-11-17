@@ -25,7 +25,7 @@ function getLanguage(request: Request) {
         locale = languagesHeader
     }
 
-    return "en-US"
+    return locale
 }
 
 function getLanguageFromCookies(cookies: string | null, key = "language") {
