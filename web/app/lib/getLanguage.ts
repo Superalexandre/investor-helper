@@ -73,7 +73,7 @@ function getClosetLanguage(languagesHeader: string[]) {
 
     for (const languageHeader of languagesHeader) {
         for (const supportedLanguage of supportedLanguages) {
-            if (languageHeader.startsWith(supportedLanguage)) {
+            if (supportedLanguage.startsWith(languageHeader)) {
                 return supportedLanguage
             }
         }

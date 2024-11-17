@@ -19,7 +19,8 @@ app.use((c, next) => {
 	c.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 	c.header(
 		"Content-Security-Policy",
-		"default-src 'self'; script-src 'self'; object-src 'none'; style-src 'self'; img-src 'self';"
+		// biome-ignore lint/nursery/noSecrets: Only urls
+		"default-src 'self'; script-src 'self'; connect-src 'self' https://static.cloudflareinsights.com https://api.dicebear.com; object-src 'none'; style-src 'self'; img-src 'self';"
 	)
 	c.header("X-Frame-Options", "SAMEORIGIN")
 	c.header("X-Content-Type-Options", "nosniff")
