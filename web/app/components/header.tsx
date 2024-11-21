@@ -7,6 +7,7 @@ import {
 	MdLogout,
 	MdMenu,
 	MdNewspaper,
+	// MdNotifications,
 	MdPerson,
 	MdSearch
 } from "react-icons/md"
@@ -137,8 +138,8 @@ export default function Header(
 	//{...bind()}
 
 	return (
-		<header className="relative h-16 touch-none bg-slate-900 p-3">
-			<nav className="hidden h-full flex-row items-center justify-between gap-4 xl:flex">
+		<header className="relative h-16 touch-none bg-slate-900">
+			<nav className="hidden h-full flex-row items-center justify-between gap-4 p-3 xl:flex">
 				{menuItems.map((menuGroup, index) => (
 					<div
 						// biome-ignore lint/suspicious/noArrayIndexKey: No other key available
@@ -165,11 +166,15 @@ export default function Header(
 				onOpenChange={(openChange) => setOpen(openChange)}
 			>
 				<SheetTrigger
-					className="block h-full xl:hidden"
+					className="block h-full p-3 xl:hidden"
 					name="Open sidebar"
 					aria-label="Ouvrir le menu déroulant"
 				>
-					<MdMenu className="size-6" />
+					<div className="relative size-6">
+						{/* <PingIndicator className="-top-[0.5px]"/> */}
+
+						<MdMenu className="size-full" />
+					</div>
 				</SheetTrigger>
 				<SheetContent side="left" className="flex flex-col items-center justify-between p-0 pt-16 pb-2 xl:hidden">
 					<SheetTitle className="hidden">{t("header.sheetTitle")}</SheetTitle>
@@ -203,10 +208,21 @@ export default function Header(
 					</Button>
 				</Link>
 			</div>
+
+			{/* <Separator className="w-full h-[2px]" /> */}
 		</header>
 	)
 }
 
+// function PingIndicator({
+// 	className
+// }: {
+// 	className?: string
+// }) {
+// 	return (
+// 		<div className={cn("-top-0.5 -right-0.5 absolute size-2 rounded-full bg-red-500", className)} />
+// 	)
+// }
 
 function FooterLogged({
 	user,
@@ -225,8 +241,10 @@ function FooterLogged({
 				open={dropdownOpen}
 				onOpenChange={setDropdownOpen}
 			>
-				<DropdownMenuTrigger asChild={true} className="py-6">
-					<Button variant="outline" className="flex w-full flex-row items-center justify-between">
+				<DropdownMenuTrigger className="relative flex w-full flex-row items-center justify-between">
+					{/* <PingIndicator /> */}
+
+					<Button variant="outline" className="flex w-full flex-row items-center justify-between py-6">
 						<div className="flex flex-row items-center gap-2">
 							<img src={`https://api.dicebear.com/7.x/bottts/png?seed=${user.username}`} alt={user.username} className="size-8 rounded-full" />
 
@@ -237,6 +255,18 @@ function FooterLogged({
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent className="w-[--radix-popper-anchor-width]">
+					{/* <DropdownMenuItem asChild={true} className="w-full p-0">
+						<Link to="/" className="w-full hover:cursor-pointer" onClick={() => setOpen(false)}>
+							<Button variant="ghost" className="flex w-full flex-row justify-start gap-2 px-2">
+								<MdNotifications className="size-6" />
+
+								Notifications
+
+								<span className="ml-auto flex size-7 items-center justify-center rounded-full bg-red-500 text-white">10</span>
+							</Button>
+						</Link>
+					</DropdownMenuItem> */}
+
 					<DropdownMenuItem asChild={true} className="w-full p-0">
 						<Link to="/profile" className="w-full hover:cursor-pointer" onClick={() => setOpen(false)}>
 							<Button variant="ghost" className="flex w-full flex-row justify-start gap-2 px-2">
