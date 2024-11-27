@@ -44,7 +44,7 @@ export default function InputForm({
 }: InputFormProps) {
 	return (
 		<div className={cn("flex w-full flex-col items-start justify-center", parentClass)}>
-			<label htmlFor={name} className="flex flex-row items-center justify-center gap-2 text-white">
+			<label htmlFor={name} className="flex flex-row items-center justify-center gap-2 dark:text-white">
 				{Icon ? <Icon size={20} /> : null}
 
 				{placeholder}

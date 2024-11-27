@@ -7,7 +7,7 @@ import type { } from "@/utils/news"
 import { Link, useNavigate } from "@remix-run/react"
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { formatDistanceToNow } from "date-fns"
-import { useEffect, useState } from "react"
+import { useEffect, useState, memo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Skeleton } from "../components/ui/skeleton"
 import type { Events } from "../../../db/schema/events"
@@ -33,9 +33,9 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 	]
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {	
+export async function loader({ request }: LoaderFunctionArgs) {
 	const t = await i18next.getFixedT(request, "home")
-	
+
 	const title = t("title")
 	const description = t("description")
 
@@ -76,7 +76,7 @@ export default function Index() {
 		<div className="flex flex-col items-center justify-center gap-8">
 			<div className="mt-4 flex flex-col items-center justify-center">
 				<img
-					src="/logo-1024-1024.webp"
+					src="/logo-128-128.webp"
 					loading="eager"
 					alt="Investor Helper"
 					className="mx-auto size-32"
@@ -106,11 +106,21 @@ export default function Index() {
 				</div>
 			)}
 
+			{/* <div className="flex max-w-full flex-col items-center gap-2 p-4">
+				<h2 className="font-bold text-lg">{t("lastNews")}</h2>
+
+				<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
+					<DisplayBestGainers
+						t={t}
+					/>
+				</div>
+			</div> */}
+
 			<div className="flex max-w-full flex-col items-center gap-2 p-4">
 				<h2 className="font-bold text-lg">{t("lastNews")}</h2>
 
 				<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
-					<DisplayLastNews 
+					<DisplayLastNews
 						t={t}
 						language={i18n.language}
 					/>
@@ -125,7 +135,7 @@ export default function Index() {
 				<h2 className="font-bold text-lg">{t("nextEvents")}</h2>
 
 				<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
-					<DisplayNextEvents 
+					<DisplayNextEvents
 						t={t}
 						language={i18n.language}
 					/>
@@ -150,7 +160,73 @@ function DisplayDate({ date, locale }: { date: number, locale: string }) {
 	return <p>{formattedDate}</p>
 }
 
-function DisplayLastNews({
+/*
+function DisplayBestGainers({
+	t,
+
+}: {
+	t: TFunction
+}) {
+	const {
+		data: gainers,
+		isPending,
+		error
+	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+	} = useQuery<any[]>({
+		queryKey: ["bestGainers"],
+		queryFn: async () => {
+			const req = await fetch("/api/prices/bestGainers")
+			const json = await req.json()
+
+			return json
+		},
+		refetchOnWindowFocus: true
+	})
+
+	if (error) {
+		return <p>{t("errors.loading")}</p>
+	}
+
+	if (isPending) {
+		return new Array(10).fill(null).map((_, index) => (
+			// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal" key={index}>
+				<CardTitle className="p-4 text-center">
+					<Skeleton className="h-6 w-1/2" />
+				</CardTitle>
+				<CardContent className="flex flex-col gap-4 p-4">
+					<Skeleton className="h-24 w-full" />
+
+					<div className="absolute bottom-0 left-0 flex w-full flex-col gap-2 p-4 text-muted-foreground">
+						<Skeleton className="h-4 w-1/2" />
+						<Skeleton className="h-4 w-1/2" />
+					</div>
+				</CardContent>
+			</Card>
+		))
+	}
+
+	if (!gainers || gainers?.length <= 0) {
+		return <p>Vide</p>
+	}
+
+	console.log(gainers)
+
+	return gainers.result.map((gainer) => (
+		<Link to={`/data/${gainer.symbol}`} key={gainer.id}>
+			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal">
+				<CardTitle className="p-4 text-center">{gainer.description}</CardTitle>
+				<CardContent className="flex flex-col gap-4 p-4">
+					<p className="h-24 max-h-24 overflow-clip text-green-600">+{Number(gainer.change).toFixed(2)}%</p>
+					<p>{gainer.close}{gainer.currency}</p>
+				</CardContent>
+			</Card>
+		</Link>
+	))
+}
+*/
+
+const DisplayLastNews = memo(function DisplayLastNews({
 	t,
 	language
 }: {
@@ -214,9 +290,9 @@ function DisplayLastNews({
 			</Card>
 		</Link>
 	))
-}
+})
 
-function DisplayNextEvents({
+const DisplayNextEvents = memo(function DisplayNextEvents({
 	t,
 	language
 }: {
@@ -294,4 +370,4 @@ function DisplayNextEvents({
 			</Card>
 		</Link>
 	))
-}
+})

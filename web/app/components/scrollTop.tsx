@@ -1,6 +1,6 @@
 import { MdArrowUpward } from "react-icons/md"
 import { Button } from "./ui/button"
-import { useState } from "react"
+import { useState, memo } from "react"
 import { cn } from "@/lib/utils"
 import { useEventListener } from "usehooks-ts"
 
@@ -8,7 +8,7 @@ interface ScrollTopProps {
 	showBelow: number
 }
 
-export function ScrollTop({ showBelow = 250 }: ScrollTopProps) {
+export const ScrollTop = memo(function ScrollTop({ showBelow = 250 }: ScrollTopProps) {
 	const [visible, setVisible] = useState(false)
 
 	const scrollToTop = () => {
@@ -37,4 +37,4 @@ export function ScrollTop({ showBelow = 250 }: ScrollTopProps) {
 			<MdArrowUpward className="size-full" />
 		</Button>
 	)
-}
+})

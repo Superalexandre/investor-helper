@@ -474,7 +474,7 @@ function DialogNewNotification({
 						className={cn("flex flex-row items-center justify-center gap-1.5")}
 						disabled={loading}
 					>
-						{loading ? <Loading className="size-5 border-2 text-black" /> : <MdAdd className="size-5" />}
+						{loading ? <Loading className="size-5 border-2 dark:text-black" /> : <MdAdd className="size-5" />}
 						Ajouter
 					</Button>
 				</DialogFooter>
@@ -551,7 +551,7 @@ function DialogDeleteNotification({
 						className={cn("flex flex-row items-center justify-center gap-1.5")}
 						disabled={loading}
 					>
-						{loading ? <Loading className="size-5 border-2 text-black" /> : <MdDelete className="size-5" />}
+						{loading ? <Loading className="size-5 border-2 dark:text-black" /> : <MdDelete className="size-5" />}
 						Supprimer
 					</Button>
 				</DialogFooter>

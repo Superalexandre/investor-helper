@@ -9,19 +9,21 @@ import {
 	MdNewspaper,
 	// MdNotifications,
 	MdPerson,
-	MdSearch
+	MdSearch,
+	MdSettings,
+	MdWaterfallChart
 } from "react-icons/md"
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Link } from "@remix-run/react"
-import { useState } from "react"
+import { useState, memo } from "react"
 import { Button } from "./ui/button"
 import type { User } from "../../../db/schema/users"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu"
 import { Separator } from "./ui/separator"
 import { cn } from "../lib/utils"
 import type { TFunction } from "i18next"
-// import { useSpring } from "@react-spring/web"
-// import { useDrag } from "@use-gesture/react"
+import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuList, navigationMenuTriggerStyle } from "./ui/navigation-menu"
+import { Trigger as NavigationMenuPrimitiveTrigger } from "@radix-ui/react-navigation-menu"
 
 export const handle = {
 	i18n: "header"
@@ -29,78 +31,78 @@ export const handle = {
 
 export default function Header(
 	{
-		logged,
+		// logged,
 		user,
 		t
 	}: {
-		logged: boolean,
+		// logged: boolean,
 		user: User | null,
 		t: TFunction
 	}
 ) {
 	const [open, setOpen] = useState(false)
-	const menuItems = [
-		[
-			{
-				key: "home",
-				icon: MdHome,
-				label: t("header.home"),
-				href: "/",
-				hidden: false
-			},
-			{
-				key: "news",
-				icon: MdNewspaper,
-				label: t("header.news"),
-				href: "/news",
-				hidden: false
-			},
-			{
-				key: "calendar",
-				icon: MdCalendarMonth,
-				label: t("header.calendar"),
-				href: "/calendar",
-				hidden: false
-			},
-			{
-				key: "search",
-				icon: MdSearch,
-				label: t("header.search"),
-				href: "/search",
-				hidden: false
-			}
-		],
-		[
-			{
-				key: "profile",
-				icon: MdPerson,
-				label: t("header.profile"),
-				href: "/profile",
-				hidden: !logged
-			},
-			{
-				key: "logout",
-				icon: MdLogout,
-				label: t("header.logout"),
-				href: "/logout",
-				hidden: !logged
-			},
-			{
-				key: "login",
-				icon: MdLogin,
-				label: t("header.login"),
-				href: "/login",
-				hidden: logged
-			},
-			{
-				key: "register",
-				icon: MdAdd,
-				label: t("header.register"),
-				href: "/register",
-				hidden: logged
-			}
-		]
-	]
+	// const menuItems = [
+	// 	[
+	// 		{
+	// 			key: "home",
+	// 			icon: MdHome,
+	// 			label: t("header.home"),
+	// 			href: "/",
+	// 			hidden: false
+	// 		},
+	// 		{
+	// 			key: "news",
+	// 			icon: MdNewspaper,
+	// 			label: t("header.news"),
+	// 			href: "/news",
+	// 			hidden: false
+	// 		},
+	// 		{
+	// 			key: "calendar",
+	// 			icon: MdCalendarMonth,
+	// 			label: t("header.calendar"),
+	// 			href: "/calendar",
+	// 			hidden: false
+	// 		},
+	// 		{
+	// 			key: "search",
+	// 			icon: MdSearch,
+	// 			label: t("header.search"),
+	// 			href: "/search",
+	// 			hidden: false
+	// 		}
+	// 	],
+	// 	[
+	// 		{
+	// 			key: "profile",
+	// 			icon: MdPerson,
+	// 			label: t("header.profile"),
+	// 			href: "/profile",
+	// 			hidden: !logged
+	// 		},
+	// 		{
+	// 			key: "logout",
+	// 			icon: MdLogout,
+	// 			label: t("header.logout"),
+	// 			href: "/logout",
+	// 			hidden: !logged
+	// 		},
+	// 		{
+	// 			key: "login",
+	// 			icon: MdLogin,
+	// 			label: t("header.login"),
+	// 			href: "/login",
+	// 			hidden: logged
+	// 		},
+	// 		{
+	// 			key: "register",
+	// 			icon: MdAdd,
+	// 			label: t("header.register"),
+	// 			href: "/register",
+	// 			hidden: logged
+	// 		}
+	// 	]
+	// ]
 
 	// const [{ x }, api] = useSpring(() => ({ x: "-100%" }))
 
@@ -138,29 +140,91 @@ export default function Header(
 	//{...bind()}
 
 	return (
-		<header className="relative h-16 touch-none bg-slate-900">
+		<header className="relative h-16 touch-none bg-slate-300 dark:bg-slate-900">
 			<nav className="hidden h-full flex-row items-center justify-between gap-4 p-3 xl:flex">
-				{menuItems.map((menuGroup, index) => (
-					<div
-						// biome-ignore lint/suspicious/noArrayIndexKey: No other key available
-						key={index}
-						className="flex flex-row items-center gap-4"
-					>
-						{menuGroup.map((menuItem) =>
-							menuItem.hidden ? null : (
-								<Link
-									to={menuItem.href}
-									key={menuItem.key}
-									className="flex flex-row content-center items-center justify-center"
-								>
-									{menuItem.icon ? <menuItem.icon className="mr-2 inline-block" /> : null}
-									{menuItem.label}
+				<div className="flex flex-row items-center">
+					{/* <Link to="/" className="mr-4 flex flex-row items-center gap-2">
+						<img
+							src="/logo-32-32.webp"
+							loading="eager"
+							alt="Investor Helper"
+							className="mx-auto size-8"
+							height="32"
+							width="32"
+						/>
+
+						Investor helper
+					</Link> */}
+
+
+					<Button variant="ghost">
+						<Link to="/home" className="flex flex-row items-center">
+							<MdHome className="mr-2 inline-block" />
+							{t("header.home")}
+						</Link>
+					</Button>
+
+					<Button variant="ghost">
+						<Link to="/news" className="flex flex-row items-center">
+							<MdNewspaper className="mr-2 inline-block" />
+							{t("header.news")}
+						</Link>
+					</Button>
+
+					<Button variant="ghost">
+						<Link to="/calendar" className="flex flex-row items-center">
+							<MdCalendarMonth className="mr-2 inline-block" />
+							{t("header.calendar")}
+						</Link>
+					</Button>
+
+					<Button variant="ghost">
+						<Link to="/search" className="flex flex-row items-center">
+							<MdSearch className="mr-2 inline-block" />
+							{t("header.search")}
+						</Link>
+					</Button>
+
+					{/* <SeeMore t={t} /> */}
+				</div>
+
+				<div className="flex flex-row items-center">
+					{user ? (
+						<>
+							<Button variant="ghost">
+								<Link to="/profile" className="flex flex-row items-center gap-2">
+									<img src={`https://api.dicebear.com/7.x/bottts/png?seed=${user.username}`} alt={user.username} className="size-6 rounded-full" />
+
+									{t("header.profile")}
 								</Link>
-							)
-						)}
-					</div>
-				))}
-			</nav>
+							</Button>
+
+							<Button variant="ghost">
+								<Link to="/logout" className="flex flex-row items-center">
+									<MdLogout className="mr-2 inline-block" />
+									{t("header.logout")}
+								</Link>
+							</Button>
+						</>
+					) : (
+						<>
+							<Button variant="ghost">
+								<Link to="/login" className="flex flex-row items-center">
+									<MdLogin className="mr-2 inline-block" />
+									{t("header.login")}
+								</Link>
+							</Button>
+
+							<Button variant="ghost">
+								<Link to="/register" className="flex flex-row items-center">
+									<MdAdd className="mr-2 inline-block" />
+									{t("header.register")}
+								</Link>
+							</Button>
+						</>
+					)}
+				</div>
+			</nav >
 			<Sheet
 				open={open}
 				onOpenChange={(openChange) => setOpen(openChange)}
@@ -180,7 +244,7 @@ export default function Header(
 					<SheetTitle className="hidden">{t("header.sheetTitle")}</SheetTitle>
 					<SheetDescription className="hidden">{t("header.sheetDescription")}</SheetDescription>
 
-					<div className="flex w-full flex-col items-center gap-4 overflow-y-auto">
+					<div className="flex w-full flex-col items-center gap-4">
 						<Link to="/" className="flex flex-row items-center text-xl" onClick={() => setOpen(false)}>
 							<MdHome className="mr-2 inline-block" />
 							{t("header.home")}
@@ -210,9 +274,47 @@ export default function Header(
 			</div>
 
 			{/* <Separator className="w-full h-[2px]" /> */}
-		</header>
+		</header >
 	)
 }
+
+const SeeMore = memo(function SeeMore({
+	t
+}: {
+	t: TFunction
+}) {
+	return (
+		<NavigationMenu >
+			<NavigationMenuList>
+				<NavigationMenuItem>
+					<NavigationMenuPrimitiveTrigger asChild={true}>
+						<Button variant="ghost">
+							{t("header.seeMore")}
+						</Button>
+					</NavigationMenuPrimitiveTrigger>
+					<NavigationMenuContent>
+						<NavigationMenuList className="flex flex-col gap-2 p-2">
+							<NavigationMenuItem>
+								<Link to="/heatmap" className={navigationMenuTriggerStyle()}>
+									<MdWaterfallChart className="mr-2 inline-block" />
+
+									{t("header.heatmap")}
+								</Link>
+							</NavigationMenuItem>
+							<NavigationMenuItem className="w-full">
+								<Link to="/settings" className={navigationMenuTriggerStyle()}>
+									<MdSettings className="mr-2 inline-block" />
+
+									{t("header.settings")}
+								</Link>
+							</NavigationMenuItem>
+						</NavigationMenuList>
+					</NavigationMenuContent>
+				</NavigationMenuItem>
+			</NavigationMenuList>
+		</NavigationMenu>
+	)
+})
 
 // function PingIndicator({
 // 	className

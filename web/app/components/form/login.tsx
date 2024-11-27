@@ -100,7 +100,7 @@ export default function Login({ redirect, callback }: LoginProps) {
 					pathname: "/register",
 					search: preferredRedirect !== "" ? `?redirect=${preferredRedirect}` : ""
 				}}
-				className="text-center text-white underline hover:text-slate-400"
+				className="text-center underline hover:text-slate-400 dark:text-white"
 			>
 				{t("notRegistered")}
 			</Link>
@@ -113,7 +113,7 @@ export default function Login({ redirect, callback }: LoginProps) {
 				disabled={isSubmitting}
 			>
 				{isSubmitting ? (
-					<Loading className="size-5 border-2 text-black" />
+					<Loading className="size-5 border-2 dark:text-black" />
 				) : (
 					<MdLogin size={20} />
 				)}

@@ -53,9 +53,8 @@ function getLanguageFromUrl(url: string, key = "language") {
     return language
 }
 
-function getLanguageFromHeaders(headers: Headers) {
-    const headersObject = Object.fromEntries(headers.entries())
-    const headersString = headersObject["accept-language"]
+function getLanguageFromHeaders(headers: Headers, key = "Accept-Language") {
+    const headersString = headers.get(key)
     const languagesHeader = parseAcceptLanguage(headersString) || []
     const closestLanguage = getClosetLanguage(languagesHeader)
 

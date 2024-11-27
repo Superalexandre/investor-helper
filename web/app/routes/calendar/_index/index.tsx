@@ -6,7 +6,7 @@ import { ScrollTop } from "@/components/scrollTop"
 import TimeCounter from "../../../components/timeCounter"
 import { useQuery } from "@tanstack/react-query"
 import type { Events } from "../../../../../db/schema/events"
-import { useEffect, useRef } from "react"
+import { memo, useEffect, useRef } from "react"
 import SkeletonCalendar from "../../../components/skeletons/skeletonCalendar"
 import { useTranslation } from "react-i18next"
 import i18next from "../../../i18next.server"
@@ -104,7 +104,7 @@ export default function Index() {
 	)
 }
 
-function EconomicCalendar({
+const EconomicCalendar = memo(function EconomicCalendar({
 	t,
 	language
 }: {
@@ -224,4 +224,4 @@ function EconomicCalendar({
 			))}
 		</div>
 	)
-}
+})
