@@ -158,7 +158,7 @@ export default function Header(
 
 
 					<Button variant="ghost">
-						<Link to="/home" className="flex flex-row items-center">
+						<Link to="/" className="flex flex-row items-center">
 							<MdHome className="mr-2 inline-block" />
 							{t("header.home")}
 						</Link>
