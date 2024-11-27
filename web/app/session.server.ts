@@ -7,7 +7,8 @@ import { usersSchema, type User } from "../../db/schema/users"
 import "dotenv/config"
 
 const SESSION_KEY = "token"
-const MAX_AGE = 60 * 60 * 24 * 7 // 7 days
+// const MAX_AGE = 60 * 60 * 24 * 7 // 7 days
+const MAX_AGE = 60 * 60 * 24 * 30 // 30 days
 
 const sessionStorage = createCookieSessionStorage({
 	cookie: {

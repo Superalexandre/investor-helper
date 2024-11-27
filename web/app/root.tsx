@@ -27,8 +27,10 @@ import { toast as sonner } from "sonner"
 import i18next from "./i18next.server"
 import { useTranslation } from "react-i18next"
 import { useChangeLanguage } from "remix-i18next/react"
+import { getTheme } from "./lib/getTheme"
 
 export async function loader({ request }: LoaderFunctionArgs) {
+	const theme = getTheme(request)
 	const locale = await i18next.getLocale(request)
 
 	const user = await getUser(request)
@@ -49,7 +51,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		})
 	}
 
-	return { logged: user !== null, user, locale }
+	return { logged: user !== null, user, locale, theme: theme }
 }
 
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: stylesheet, as: "style", type: "text/css" }]
@@ -64,11 +66,12 @@ export function Layout({ children }: { children: ReactNode }) {
 	useSWEffect()
 
 	const locale = data?.locale ?? "fr-FR"
+	const theme = data?.theme ?? "light"
 
 	useChangeLanguage(locale)
 
 	return (
-		<html lang={locale} dir={i18n.dir()} className="dark bg-background" translate="no">
+		<html lang={locale} dir={i18n.dir()} className={`${theme === "dark" ? "dark" : ""} bg-background`} translate="no">
 			<head>
 				<meta charSet="utf-8" />
 				<meta name="viewport" content="width=device-width, initial-scale=1" />

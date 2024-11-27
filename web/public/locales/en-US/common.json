@@ -8,7 +8,10 @@
         "logout": "Logout",
         "login": "Login",
         "register": "Register",
-    
+        "heatmap": "Heatmap",
+        "settings": "Settings",
+        "seeMore": "More",
+
         "sheetTitle": "Menu",
         "sheetDescription": "Main site navigation"
     },
