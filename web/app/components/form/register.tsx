@@ -159,13 +159,13 @@ export default function Register({ redirect, callback }: RegisterProps) {
 						})}
 					/>
 
-					<Label htmlFor="terms" className="space-x-1 text-white">
+					<Label htmlFor="terms" className="space-x-1 dark:text-white">
 						<span>{t("accept")}</span>
-						<Link to="/terms" className="text-white underline hover:text-slate-400">
+						<Link to="/terms" className="underline hover:text-slate-400 dark:text-white">
 							{t("terms")}
 						</Link>
 						<span>{t("and")}</span>
-						<Link to="/privacy" className="text-white underline hover:text-slate-400">
+						<Link to="/privacy" className="underline hover:text-slate-400 dark:text-white">
 							{t("privacy")}
 						</Link>
 					</Label>
@@ -183,7 +183,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 					pathname: "/login",
 					search: preferredRedirect !== "" ? `?redirect=${preferredRedirect}` : ""
 				}}
-				className="text-center text-white underline hover:text-slate-400"
+				className="text-center underline hover:text-slate-400 dark:text-white"
 			>
 				{t("haveAccount")}
 			</Link>
@@ -198,7 +198,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				disabled={isSubmitting}
 			>
 				{isSubmitting ? (
-					<Loading className="size-5 border-2 text-black" />
+					<Loading className="size-5 border-2 dark:text-black" />
 				) : (
 					<MdAdd size={20} />
 				)}
