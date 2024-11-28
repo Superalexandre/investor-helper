@@ -1,8 +1,10 @@
 import { parseAcceptLanguage } from "intl-parse-accept-language"
+import { parse as cookieParser } from "cookie"
 
 import i18next from "../i18n"
+import { getSession } from "../session.server"
 
-function getLanguage(request: Request) {
+async function getLanguage(request: Request) {
     let hasChanged = false
     let locale = i18next.fallbackLng
     
@@ -10,6 +12,12 @@ function getLanguage(request: Request) {
     if (!hasChanged && language) {
         hasChanged = true
         locale = language
+    }
+
+    const sessionLanguage = await getLanguageFromSession(request)
+    if (!hasChanged && sessionLanguage) {
+        hasChanged = true
+        locale = sessionLanguage
     }
 
     const cookies = request.headers.get("Cookie")
@@ -26,6 +34,7 @@ function getLanguage(request: Request) {
     }
 
     console.log("languages", {
+        sessionLanguage,
         headersString,
         languagesHeader,
         closestLanguage,
@@ -41,9 +50,15 @@ function getLanguage(request: Request) {
 function getLanguageFromCookies(cookies: string | null, key = "language") {
     if (!cookies) { return null }
 
-    const splitCookies = cookies.split(";").map(cookie => cookie.split("="))
-    const parsedCookies = Object.fromEntries(splitCookies)
+    const parsedCookies = cookieParser(cookies)
     const language = parsedCookies[key]
+
+    return language
+}
+
+async function getLanguageFromSession(request: Request, key = "language") {
+    const session = await getSession(request)
+    const language = session.get(key)
     return language
 }
 

@@ -150,7 +150,9 @@ function ConvertHtmlToReact({
 	const Component: (string | JSX.Element)[] = []
 
 	if (convertedJson.children) {
-		Component.push(...GetDeepComponent(convertedJson.children, relatedSymbols, newsId))
+		const result = GetDeepComponent(convertedJson.children, relatedSymbols, newsId)
+
+		Component.push(...result)
 	}
 
 	return Component

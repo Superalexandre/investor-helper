@@ -30,7 +30,7 @@ import { useChangeLanguage } from "remix-i18next/react"
 import { getTheme } from "./lib/getTheme"
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const theme = getTheme(request)
+	const theme = await getTheme(request)
 	const locale = await i18next.getLocale(request)
 
 	const user = await getUser(request)
@@ -97,7 +97,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
 			</head>
 			<body className="flex min-h-screen flex-col">
-				<Header logged={data?.logged ?? false} user={data?.user ?? null} t={t} />
+				<Header user={data?.user ?? null} t={t} />
 
 				{children}
 

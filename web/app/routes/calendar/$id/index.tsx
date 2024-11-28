@@ -15,7 +15,7 @@ import BackButton from "@/components/button/backButton"
 import { Button } from "@/components/ui/button"
 import { getUser } from "../../../session.server"
 import DialogAccount from "@/components/dialog/dialogAccount"
-import { useState } from "react"
+import { useState, memo } from "react"
 import {
 	Dialog,
 	DialogClose,
@@ -265,7 +265,7 @@ export default function Index() {
 	)
 }
 
-function EventDetails({ event, t, language }: {
+const EventDetails = memo(function EventDetails({ event, t, language }: {
 	event: Events
 	t: TFunction
 	language: string
@@ -385,7 +385,7 @@ function EventDetails({ event, t, language }: {
 			</div>
 		</div>
 	)
-}
+})
 
 function DisplayNumber({ number, unit, scale, t }: { number: number | null; unit: string | null; scale: string | null, t: TFunction }) {
 	if (number === null) {

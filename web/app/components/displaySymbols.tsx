@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { memo, useState } from "react"
 import type { NewsRelatedSymbol } from "../../../db/schema/news"
 import { normalizeSymbol } from "../../utils/normalizeSymbol"
 import { Link } from "@remix-run/react"
@@ -13,7 +13,7 @@ interface FullSymbol {
 	news_related_symbol: NewsRelatedSymbol
 }
 
-export default function DisplaySymbols({
+export default memo(function DisplaySymbols({
 	symbolList,
 	redirect,
 	hash,
@@ -79,4 +79,4 @@ export default function DisplaySymbols({
 			) : null}
 		</div>
 	)
-}
+})

@@ -2,7 +2,6 @@ import type { ReactNode } from "react"
 import { Avatar as ImageContainer, AvatarFallback as ImageFallback, AvatarImage as ImageContent } from "@/components/ui/avatar"
 import { Skeleton } from "./ui/skeleton"
 import { cn } from "../lib/utils"
-import Loading from "./loading"
 
 export default function SymbolLogo({
 	symbol,

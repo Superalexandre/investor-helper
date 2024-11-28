@@ -1,7 +1,8 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card"
+import { memo } from "react"
 import { Skeleton } from "../ui/skeleton"
 
-export default function SkeletonNews() {
+export default memo(function SkeletonNews() {
 	const random = 10
 	const badgeArray = Array.from({ length: random })
 
@@ -27,4 +28,4 @@ export default function SkeletonNews() {
 			</CardFooter>
 		</Card>
 	)
-}
+})

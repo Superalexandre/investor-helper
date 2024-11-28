@@ -58,6 +58,48 @@ export async function createUserSession({
 	})
 }
 
+export async function changeLanguage({
+	request,
+	language,
+	redirectUrl = "/"
+}: {
+	request: Request
+	language: string
+	redirectUrl?: string
+}) {
+	const session = await getSession(request)
+	session.set("language", language)
+
+	return redirect(redirectUrl, {
+		headers: {
+			"Set-Cookie": await sessionStorage.commitSession(session, {
+				maxAge: MAX_AGE
+			})
+		}
+	})
+}
+
+export async function changeTheme({
+	request,
+	theme,
+	redirectUrl = "/"
+}: {
+	request: Request
+	theme: string
+	redirectUrl?: string
+}) {
+	const session = await getSession(request)
+	session.set("theme", theme)
+
+	return redirect(redirectUrl, {
+		headers: {
+			"Set-Cookie": await sessionStorage.commitSession(session, {
+				maxAge: MAX_AGE
+			})
+		}
+	})
+}
+
 export async function getUserToken(request: Request) {
 	const session = await getSession(request)
 	const token: string = session.get(SESSION_KEY)
@@ -99,3 +141,5 @@ export async function getUserByToken(token: string) {
 
 	return user as User
 }
+
+export { sessionStorage }

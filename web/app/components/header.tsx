@@ -41,109 +41,12 @@ export default function Header(
 	}
 ) {
 	const [open, setOpen] = useState(false)
-	// const menuItems = [
-	// 	[
-	// 		{
-	// 			key: "home",
-	// 			icon: MdHome,
-	// 			label: t("header.home"),
-	// 			href: "/",
-	// 			hidden: false
-	// 		},
-	// 		{
-	// 			key: "news",
-	// 			icon: MdNewspaper,
-	// 			label: t("header.news"),
-	// 			href: "/news",
-	// 			hidden: false
-	// 		},
-	// 		{
-	// 			key: "calendar",
-	// 			icon: MdCalendarMonth,
-	// 			label: t("header.calendar"),
-	// 			href: "/calendar",
-	// 			hidden: false
-	// 		},
-	// 		{
-	// 			key: "search",
-	// 			icon: MdSearch,
-	// 			label: t("header.search"),
-	// 			href: "/search",
-	// 			hidden: false
-	// 		}
-	// 	],
-	// 	[
-	// 		{
-	// 			key: "profile",
-	// 			icon: MdPerson,
-	// 			label: t("header.profile"),
-	// 			href: "/profile",
-	// 			hidden: !logged
-	// 		},
-	// 		{
-	// 			key: "logout",
-	// 			icon: MdLogout,
-	// 			label: t("header.logout"),
-	// 			href: "/logout",
-	// 			hidden: !logged
-	// 		},
-	// 		{
-	// 			key: "login",
-	// 			icon: MdLogin,
-	// 			label: t("header.login"),
-	// 			href: "/login",
-	// 			hidden: logged
-	// 		},
-	// 		{
-	// 			key: "register",
-	// 			icon: MdAdd,
-	// 			label: t("header.register"),
-	// 			href: "/register",
-	// 			hidden: logged
-	// 		}
-	// 	]
-	// ]
-
-	// const [{ x }, api] = useSpring(() => ({ x: "-100%" }))
-
-	// Function to open/close the sidebar
-	// const toggleSidebar = (isOpen: boolean) => {
-	// 	setOpen(isOpen)
-	// 	api.start({ x: isOpen ? "0" : "-100%" })
-	// }
-
-	// Gesture handling
-	// const bind = useDrag(
-	// 	({ down, movement: [mx], memo = x.get() }) => {
-	// 		console.log(mx)
-
-	// 		if (mx > 0 || (mx < 0 && memo + mx > -300)) {
-	// 			setOpen(true)
-	// 			api.start({ x: down ? mx + memo : open ? 0 : -300 })
-	// 		}
-	// 		if (!down && mx < -150) {
-	// 			setOpen(false)
-	// 			api.start({ x: "-100%" })
-	// 		} else if (!down && mx > 150) {
-	// 			setOpen(true)
-	// 			api.start({ x: "0" })
-	// 		}
-	// 		return memo
-	// 	},
-	// 	{
-	// 		axis: "x",
-	// 		bounds: { left: -300, right: 0 },
-	// 		rubberband: true
-	// 	}
-	// )
-
-	//{...bind()}
 
 	return (
 		<header className="relative h-16 touch-none bg-slate-300 dark:bg-slate-900">
 			<nav className="hidden h-full flex-row items-center justify-between gap-4 p-3 xl:flex">
 				<div className="flex flex-row items-center">
-					{/* <Link to="/" className="mr-4 flex flex-row items-center gap-2">
+					<Link to="/" className="mr-4 flex flex-row items-center gap-2">
 						<img
 							src="/logo-32-32.webp"
 							loading="eager"
@@ -154,15 +57,15 @@ export default function Header(
 						/>
 
 						Investor helper
-					</Link> */}
+					</Link>
 
 
-					<Button variant="ghost">
-						<Link to="/home" className="flex flex-row items-center">
+					{/* <Button variant="ghost">
+						<Link to="/" className="flex flex-row items-center">
 							<MdHome className="mr-2 inline-block" />
 							{t("header.home")}
 						</Link>
-					</Button>
+					</Button> */}
 
 					<Button variant="ghost">
 						<Link to="/news" className="flex flex-row items-center">
@@ -185,7 +88,7 @@ export default function Header(
 						</Link>
 					</Button>
 
-					{/* <SeeMore t={t} /> */}
+					<SeeMore t={t} />
 				</div>
 
 				<div className="flex flex-row items-center">

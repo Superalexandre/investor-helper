@@ -30,14 +30,11 @@ const _plugins = [
 	tsconfigPaths()
 ]
 
-if (!isProduction) {
-	_plugins.push(
-		MillionLint.vite({
-			react: "18",
-			rsc: true,
-		})
-	)
-}
+// if (!isProduction) {
+// 	_plugins.push(
+// 		MillionLint.vite()
+// 	)
+// }
 
 export default defineConfig({
 	server: {

@@ -8,8 +8,8 @@ const i18next = new RemixI18Next({
 	detection: {
 		supportedLanguages: i18n.supportedLngs,
 		fallbackLanguage: i18n.fallbackLng,
-		findLocale: (request) => {
-			const language = getLanguage(request)
+		findLocale: async(request) => {
+			const language = await getLanguage(request)
 
 			return language as unknown as Promise<string>
 		},

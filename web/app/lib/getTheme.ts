@@ -1,10 +1,18 @@
-function getTheme(request: Request) {
+import { getSession } from "../session.server"
+
+async function getTheme(request: Request) {
 	let hasChanged = false
 	let theme = "dark"
 
 	const themeUrl = getThemeFromUrl(request.url)
 	if (!hasChanged && themeUrl) {
 		theme = themeUrl
+		hasChanged = true
+	}
+
+	const sessionTheme = await getThemeFromSession(request)
+	if (!hasChanged && sessionTheme) {
+		theme = sessionTheme
 		hasChanged = true
 	}
 
@@ -38,6 +46,15 @@ function getThemeFromCookies(cookies: string | null, key = "theme") {
 	const splitCookies = cookies.split(";").map((cookie) => cookie.split("="))
 	const parsedCookies = Object.fromEntries(splitCookies)
 	const theme = parsedCookies[key]
+	return theme
+}
+
+async function getThemeFromSession(request: Request, key = "theme") {
+	const session = await getSession(request)
+
+	console.log("session", session.data)
+
+	const theme = session.get(key)
 	return theme
 }
 

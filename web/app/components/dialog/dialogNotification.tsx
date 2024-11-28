@@ -1,4 +1,4 @@
-import { useState, type Dispatch, type SetStateAction } from "react"
+import { useState, memo, type Dispatch, type SetStateAction } from "react"
 import {
 	Dialog,
 	DialogClose,
@@ -18,7 +18,7 @@ interface DialogNotificationProps {
 	setOpen: Dispatch<SetStateAction<boolean>>
 }
 
-export default function DialogNotification({ open, setOpen }: DialogNotificationProps) {
+export default memo(function DialogNotification({ open, setOpen }: DialogNotificationProps) {
 	const { subscribeToPush, isSubscribed } = usePush()
 	// biome-ignore lint/suspicious/noExplicitAny: The error is an any type
 	const [error, setError] = useState<string | any>(null)
@@ -97,4 +97,4 @@ export default function DialogNotification({ open, setOpen }: DialogNotification
 			</DialogContent>
 		</Dialog>
 	)
-}
+})

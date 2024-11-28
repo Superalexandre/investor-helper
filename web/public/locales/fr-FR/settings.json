@@ -1,0 +1,16 @@
+{
+    "title": "Investor Helper - Paramètres",
+    "description": "Paramètres de l'application",
+
+    "settings": "Paramètres",
+
+    "language": "Langue",
+    "chooseLanguage": "Choisissez une langue",
+
+    "theme": "Thème",
+    "dark": "Sombre",
+    "light": "Clair",
+
+    "success": "Paramètres enregistrés avec succès",
+    "error": "Erreur lors de l'enregistrement des paramètres"
+}

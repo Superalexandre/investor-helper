@@ -7,7 +7,7 @@ import type { } from "@/utils/news"
 import { Link, useNavigate } from "@remix-run/react"
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { formatDistanceToNow } from "date-fns"
-import { useEffect, useState, memo } from "react"
+import { useEffect, useState, memo, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Skeleton } from "../components/ui/skeleton"
 import type { Events } from "../../../db/schema/events"
@@ -58,6 +58,8 @@ export default function Index() {
 
 	const [isInstalled, setIsInstalled] = useState(true)
 
+	const memoizedDownloadIcon = useMemo(() => <MdDownload />, [])
+
 	useEffect(() => {
 		const isTwa = document.referrer.startsWith("android-app://")
 		const isStandalone = window.matchMedia("(display-mode: standalone)").matches
@@ -101,7 +103,7 @@ export default function Index() {
 						className="flex items-center justify-center gap-2"
 					>
 						{t("download")}
-						<MdDownload />
+						{memoizedDownloadIcon}
 					</Button>
 				</div>
 			)}
@@ -149,7 +151,7 @@ export default function Index() {
 	)
 }
 
-function DisplayDate({ date, locale }: { date: number, locale: string }) {
+const DisplayDate = memo(function DisplayDate({ date, locale }: { date: number, locale: string }) {
 	const d = new Date(date * 1000)
 
 	const formattedDate = formatDistanceToNow(d, {
@@ -158,7 +160,7 @@ function DisplayDate({ date, locale }: { date: number, locale: string }) {
 	})
 
 	return <p>{formattedDate}</p>
-}
+})
 
 /*
 function DisplayBestGainers({
