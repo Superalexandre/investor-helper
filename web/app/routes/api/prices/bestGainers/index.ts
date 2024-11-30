@@ -1,3 +1,6 @@
+import type { BestGainer } from "../../../../../types/Prices"
+import getPrices, { closeClient } from "../../../../../utils/getPrices"
+
 const columns = [
 	"name",
 	"description",
@@ -117,35 +120,6 @@ const filter = {
 	]
 }
 
-interface Stock {
-	name: string
-	description: string
-	logoid: string
-	update_mode: string
-	type: string
-	typespecs: string
-	close: number
-	pricescale: number
-	minmov: number
-	fractional: boolean
-	minmove2: number
-	currency: string
-	change: number
-	volume: number
-	relative_volume_10d_calc: number
-	market_cap_basic: number
-	fundamental_currency_code: string
-	price_earnings_ttm: number
-	earnings_per_share_diluted_ttm: number
-	earnings_per_share_diluted_yoy_growth_ttm: number
-	dividends_yield_current: number
-	sector_tr: string
-	market: string
-	sector: string
-	recommendation_mark: string
-	exchange: string
-}
-
 export async function loader() {
 	const country = "france"
 
@@ -155,11 +129,12 @@ export async function loader() {
 		body: JSON.stringify({
 			columns,
 			filter2: filter,
+			// biome-ignore lint/style/useNamingConvention: <explanation>
 			ignore_unknown_fields: false,
 			options: {
 				lang: "fr"
 			},
-			range: [0, 100],
+			range: [0, 20],
 			sort: {
 				sortBy: "change",
 				sortOrder: "desc"
@@ -175,21 +150,35 @@ export async function loader() {
 
 	const result = await request.json()
 
-	const parsedResult = result.data.map((item: any) => {
-		const reducedItem = columns.reduce(
-			(acc, key, index) => {
-				acc[key] = item.d[index]
-				return acc
-			},
-			{} as Record<string, string | number | string[]>
-		)
+	const parsedResult: BestGainer[] = []
 
-        reducedItem.symbol = item.s
+	for (const item of result.data) {
+		const reducedItem = columns.reduce((acc, key, index) => {
+			acc[key] = item.d[index]
+			return acc
+		}, {} as BestGainer)
 
-        return reducedItem
-	})
+		reducedItem.symbol = item.s
 
-    console.log(parsedResult[0])
+		parsedResult.push(reducedItem)
+	}
+
+	console.log("items : ", parsedResult.length)
+
+	await Promise.all(
+		parsedResult.map(async (item) => {
+			const prices = await getPrices(item.symbol, {
+				timeframe: "1",
+				range: 360,
+			})
+
+			const reversedPrices = prices.period.reverse()
+
+			item.prices = reversedPrices
+		})
+	)
+
+	closeClient()
 
 	return {
 		result: parsedResult

@@ -7,13 +7,15 @@
     "lastNews": "Latest important news",
     "seeMore": "See more",
     "nextEvents": "Upcoming important events",
+    "bestGainers": "Best gainers",
     "by": "By",
     "country": "Country",
     "importance": "Importance",
     "errors": {
         "loading": "Error while loading data",
         "emptyNews": "No important news",
-        "emptyEvents": "No important events"
+        "emptyEvents": "No important events",
+        "emptyGainers": "No best gainers"
     },
     "low": "low",
     "medium": "medium",

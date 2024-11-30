@@ -2,9 +2,9 @@ import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { usePWAManager } from "@remix-pwa/client"
-import { MdDownload } from "react-icons/md"
+import { MdCalendarToday, MdDownload, MdNewspaper, MdShowChart } from "react-icons/md"
 import type { } from "@/utils/news"
-import { Link, useNavigate } from "@remix-run/react"
+import { Link, useLoaderData, useNavigate } from "@remix-run/react"
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { formatDistanceToNow } from "date-fns"
 import { useEffect, useState, memo, useMemo } from "react"
@@ -16,6 +16,12 @@ import { useTranslation } from "react-i18next"
 import { countries, dateFns } from "../i18n"
 import type { TFunction } from "i18next"
 import i18next from "../i18next.server"
+import SymbolLogo from "../components/symbolLogo"
+import type { BestGainer } from "../../types/Prices"
+import { Period } from "../../utils/getPrices"
+import { SmallChart } from "../components/charts/smallChart"
+import { ClientOnly } from "remix-utils/client-only"
+import getHomePreferences from "../lib/getHomePreferences"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
 	if (!data) {
@@ -34,7 +40,10 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const t = await i18next.getFixedT(request, "home")
+	const [t, homePreferences] = await Promise.all([
+		i18next.getFixedT(request, "home"),
+		getHomePreferences(request)
+	])
 
 	const title = t("title")
 	const description = t("description")
@@ -42,7 +51,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	return {
 		title: title,
 		description: description,
-		publicKey: process.env.NOTIFICATION_PUBLIC_KEY
+		publicKey: process.env.NOTIFICATION_PUBLIC_KEY,
+		homePreferences: homePreferences
 	}
 }
 
@@ -51,6 +61,7 @@ export const handle = {
 }
 
 export default function Index() {
+	const { homePreferences } = useLoaderData<typeof loader>()
 	const { t, i18n } = useTranslation("home")
 	const navigate = useNavigate()
 
@@ -73,6 +84,74 @@ export default function Index() {
 			setIsInstalled(false)
 		}
 	}, [])
+
+	const menus = [{
+		name: "bestGainers",
+		component: () => (
+			<>
+				<h2 className="flex flex-row items-center gap-2 font-bold text-lg">
+					<MdShowChart />
+
+					{t("bestGainers")}
+				</h2>
+
+				<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
+					<DisplayBestGainers
+						t={t}
+					/>
+				</div>
+			</>
+		)
+	}, {
+		name: "news",
+		component: () => (
+			<>
+				<h2 className="flex flex-row items-center gap-2 font-bold text-lg">
+					<MdNewspaper />
+
+					{t("lastNews")}
+				</h2>
+
+				<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
+					<DisplayLastNews
+						t={t}
+						language={i18n.language}
+					/>
+				</div>
+
+				<Link to="/news">
+					<Button variant="default">{t("seeMore")}</Button>
+				</Link>
+			</>
+		)
+	}, {
+		name: "events",
+		component: () => (
+			<>
+				<h2 className="flex flex-row items-center gap-2 font-bold text-lg">
+					<MdCalendarToday />
+
+					{t("nextEvents")}
+				</h2>
+
+				<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
+					<DisplayNextEvents
+						t={t}
+						language={i18n.language}
+					/>
+				</div>
+
+				<Link to="/calendar">
+					<Button variant="default">{t("seeMore")}</Button>
+				</Link>
+			</>
+		)
+	}]
+
+	console.log(homePreferences)
+
+	const sortedPreferences = homePreferences.filter((pref) => pref.visible).sort((a, b) => a.position - b.position)
+	const displayedMenu = sortedPreferences.map((pref) => menus.find((menu) => menu.name === pref.id)).filter((menu) => menu !== undefined)
 
 	return (
 		<div className="flex flex-col items-center justify-center gap-8">
@@ -108,45 +187,11 @@ export default function Index() {
 				</div>
 			)}
 
-			{/* <div className="flex max-w-full flex-col items-center gap-2 p-4">
-				<h2 className="font-bold text-lg">{t("lastNews")}</h2>
-
-				<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
-					<DisplayBestGainers
-						t={t}
-					/>
+			{displayedMenu.map((menu) => (
+				<div className="flex max-w-full flex-col items-center gap-2 p-4" key={menu.name}>
+					{menu.component()}
 				</div>
-			</div> */}
-
-			<div className="flex max-w-full flex-col items-center gap-2 p-4">
-				<h2 className="font-bold text-lg">{t("lastNews")}</h2>
-
-				<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
-					<DisplayLastNews
-						t={t}
-						language={i18n.language}
-					/>
-				</div>
-
-				<Link to="/news">
-					<Button variant="default">{t("seeMore")}</Button>
-				</Link>
-			</div>
-
-			<div className="flex max-w-full flex-col items-center gap-2 p-4">
-				<h2 className="font-bold text-lg">{t("nextEvents")}</h2>
-
-				<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
-					<DisplayNextEvents
-						t={t}
-						language={i18n.language}
-					/>
-				</div>
-
-				<Link to="/calendar">
-					<Button variant="default">{t("seeMore")}</Button>
-				</Link>
-			</div>
+			))}
 		</div>
 	)
 }
@@ -162,8 +207,7 @@ const DisplayDate = memo(function DisplayDate({ date, locale }: { date: number, 
 	return <p>{formattedDate}</p>
 })
 
-/*
-function DisplayBestGainers({
+const DisplayBestGainers = memo(function DisplayBestGainers({
 	t,
 
 }: {
@@ -173,8 +217,9 @@ function DisplayBestGainers({
 		data: gainers,
 		isPending,
 		error
-	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-	} = useQuery<any[]>({
+	} = useQuery<{
+		result: BestGainer[]
+	}>({
 		queryKey: ["bestGainers"],
 		queryFn: async () => {
 			const req = await fetch("/api/prices/bestGainers")
@@ -208,25 +253,30 @@ function DisplayBestGainers({
 		))
 	}
 
-	if (!gainers || gainers?.length <= 0) {
-		return <p>Vide</p>
+	if (!gainers || gainers.result.length <= 0) {
+		return <p>{t("errors.emptyGainers")}</p>
 	}
 
-	console.log(gainers)
-
 	return gainers.result.map((gainer) => (
-		<Link to={`/data/${gainer.symbol}`} key={gainer.id}>
-			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal">
-				<CardTitle className="p-4 text-center">{gainer.description}</CardTitle>
-				<CardContent className="flex flex-col gap-4 p-4">
-					<p className="h-24 max-h-24 overflow-clip text-green-600">+{Number(gainer.change).toFixed(2)}%</p>
-					<p>{gainer.close}{gainer.currency}</p>
+		<Link to={`/data/${gainer.symbol}`} key={gainer.name}>
+			<Card className="relative size-80 whitespace-normal">
+				<CardTitle className="flex flex-row items-center justify-center gap-2 p-4 text-center">
+					<SymbolLogo symbol={gainer} className="size-6 rounded-full" alt={gainer.description} />
+
+					{gainer.description}
+				</CardTitle>
+				<CardContent className="flex flex-col items-center justify-center gap-4 p-4">
+					<p className="flex flex-row items-center gap-2">
+						{gainer.close}{gainer.currency}
+						<span className="text-green-600">+{Number(gainer.change).toFixed(2)}%</span>
+					</p>
+
+					<SmallChart prices={gainer.prices} />
 				</CardContent>
 			</Card>
 		</Link>
 	))
-}
-*/
+})
 
 const DisplayLastNews = memo(function DisplayLastNews({
 	t,

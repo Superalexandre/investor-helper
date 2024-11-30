@@ -1,6 +1,5 @@
 import crypto from "node:crypto"
 
-import { json } from "@remix-run/node"
 import bcrypt from "bcryptjs"
 import Database from "better-sqlite3"
 import { eq, sql } from "drizzle-orm"
@@ -100,19 +99,16 @@ export default async function createAccount({
 	}
 
 	if (!terms) {
-		return json(
-			{
-				success: false,
-				error: true,
-				errors: {
-					terms: {
-						message: "Vous devez accepter les conditions d'utilisation"
-					}
-				},
-				message: "Une erreur est survenue lors de la création du compte !"
+		return {
+			success: false,
+			error: true,
+			errors: {
+				terms: {
+					message: "Vous devez accepter les conditions d'utilisation"
+				}
 			},
-			{ status: 500 }
-		)
+			message: "Une erreur est survenue lors de la création du compte !"
+		}
 	}
 
 	try {
@@ -143,19 +139,16 @@ export default async function createAccount({
 			redirectUrl: redirectUrlString
 		})
 	} catch (error) {
-		const defaultError = json(
-			{
-				success: false,
-				error: true,
-				errors: {
-					root: {
-						message: "Une erreur est survenue lors de la création du compte !"
-					}
-				},
-				message: "Une erreur est survenue lors de la création du compte !"
+		const defaultError = {
+			success: false,
+			error: true,
+			errors: {
+				root: {
+					message: "Une erreur est survenue lors de la création du compte !"
+				}
 			},
-			{ status: 500 }
-		)
+			message: "Une erreur est survenue lors de la création du compte !"
+		}
 
 		if (!(error instanceof Error)) {
 			return defaultError
@@ -166,19 +159,16 @@ export default async function createAccount({
 			return defaultError
 		}
 
-		return json(
-			{
-				success: false,
-				error: true,
-				errors: {
-					// mail: { message: "Une erreur est survenue lors de la création du compte !" },
-					[match[1]]: {
-						message: `Un utilisateur possède deja ce ${match[1]}`
-					}
-				},
-				message: "Une erreur est survenue lors de la création du compte !"
+		return {
+			success: false,
+			error: true,
+			errors: {
+				// mail: { message: "Une erreur est survenue lors de la création du compte !" },
+				[match[1]]: {
+					message: `Un utilisateur possède deja ce ${match[1]}`
+				}
 			},
-			{ status: 500 }
-		)
+			message: "Une erreur est survenue lors de la création du compte !"
+		}
 	}
 }

@@ -7,13 +7,15 @@
     "lastNews": "Dernières actualités importantes",
     "seeMore": "Voir plus",
     "nextEvents": "Prochains événements importants",
+    "bestGainers": "Meilleurs hausses",
     "by": "Par",
     "country": "Pays",
     "importance": "Importance",
     "errors": {
         "loading": "Erreur lors du chargement des données",
         "emptyNews": "Aucune actualité importante",
-        "emptyEvents": "Aucun événement important"
+        "emptyEvents": "Aucun événement important",
+        "emptyGainers": "Aucune meilleure hausse"
     },
     "low": "faible",
     "medium": "moyenne",

@@ -4,16 +4,37 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { changeLanguage, type TFunction } from "i18next";
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import i18next from "../../i18next.server";
-import { redirect, useFetcher, useLoaderData } from "@remix-run/react";
-import { getSession, sessionStorage, changeLanguage as changeLanguageSession, changeTheme } from "../../session.server";
+import { Form, useLoaderData, useSubmit } from "@remix-run/react";
+import { changeHomePreferences, changeLanguage as changeLanguageSession, changeTheme, getUser } from "../../session.server";
 import i18n from "../../i18n";
 import { getTheme } from "../../lib/getTheme";
+import {
+    DndContext,
+    closestCenter,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    useSortable,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from "@dnd-kit/utilities";
+import getHomePreferences from "../../lib/getHomePreferences";
+import type HomePreferences from "../../../types/Preferences";
+import { memo, useState } from "react";
+import { changeUserLanguage, changeUserTheme } from "../../lib/userPreferences";
 
 export async function action({ request }: ActionFunctionArgs) {
-    // Get the action data (change language, change theme, etc.)
-    // from the request body
-    const data = await request.json()
+    const [data, user] = await Promise.all([
+        request.json(),
+        getUser(request)
+    ])
 
+    // biome-ignore lint/complexity/useSimplifiedLogicExpression: <explanation>
     if (!data || !data.type || !data.value) {
         return {
             success: false,
@@ -22,15 +43,21 @@ export async function action({ request }: ActionFunctionArgs) {
         }
     }
 
-    console.log(data)
-
     if (data.type === "language") {
+        // biome-ignore lint/complexity/useSimplifiedLogicExpression: <explanation>
         if (!data.value || !i18n.supportedLngs.includes(data.value)) {
             return {
                 success: false,
                 error: true,
                 message: "Invalid language"
             }
+        }
+
+        if (user) {
+            await changeUserLanguage({
+                user: user,
+                language: data.value
+            })
         }
 
         return changeLanguageSession({
@@ -41,6 +68,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     if (data.type === "theme") {
+        // biome-ignore lint/complexity/useSimplifiedLogicExpression: <explanation>
         if (!data.value || !["dark", "light"].includes(data.value)) {
             return {
                 success: false,
@@ -49,8 +77,32 @@ export async function action({ request }: ActionFunctionArgs) {
             }
         }
 
+        if (user) {
+            await changeUserTheme({
+                user: user,
+                theme: data.value
+            })
+        }
+
         return changeTheme({
             theme: data.value,
+            request: request,
+            redirectUrl: "/settings"
+        })
+    }
+
+    if (data.type === "homePreferences") {
+        // biome-ignore lint/complexity/useSimplifiedLogicExpression: <explanation>
+        if (!data.value || !Array.isArray(data.value)) {
+            return {
+                success: false,
+                error: true,
+                message: "Invalid preferences"
+            }
+        }
+
+        return changeHomePreferences({
+            preferences: data.value,
             request: request,
             redirectUrl: "/settings"
         })
@@ -64,8 +116,11 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-    const t = await i18next.getFixedT(request, "settings")
-    const theme = await getTheme(request)
+    const [t, theme, homePreferences] = await Promise.all([
+        i18next.getFixedT(request, "settings"),
+        getTheme(request),
+        getHomePreferences(request)
+    ])
 
     const title = t("title")
     const description = t("description")
@@ -73,7 +128,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return {
         theme: theme,
         title: title,
-        description: description
+        description: description,
+        homePreferences: homePreferences
     }
 }
 
@@ -89,7 +145,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
         { name: "og:title", content: title },
         { name: "description", content: description },
         { name: "og:description", content: description },
-        { name: "canonical", content: "https://www.investor-helper.com/register" }
+        { name: "canonical", content: "https://www.investor-helper.com/settings" }
     ]
 }
 
@@ -98,8 +154,8 @@ export const handle = {
 }
 
 export default function Index() {
+    const { theme, homePreferences } = useLoaderData<typeof loader>()
     const { t, i18n } = useTranslation("settings")
-    const { theme } = useLoaderData<typeof loader>()
 
     return (
         <div>
@@ -116,24 +172,29 @@ export default function Index() {
                     theme={theme}
                     t={t}
                 />
+
+                <ChangeHomePreferences
+                    t={t}
+                    homePreferences={homePreferences}
+                />
             </div>
         </div>
     )
 }
 
-function ChangeLanguage({
+const ChangeLanguage = memo(function ChangeLanguage({
     language,
     t
 }: {
     language: string,
     t: TFunction
 }) {
-    const fetcher = useFetcher()
+    const submit = useSubmit()
 
     const handleChange = (value: string) => {
         changeLanguage(value)
 
-        fetcher.submit({
+        submit({
             type: "language",
             value: value
         }, {
@@ -144,7 +205,7 @@ function ChangeLanguage({
     }
 
     return (
-        <fetcher.Form method="POST" action="/settings" className="flex w-1/2 flex-col items-center justify-center gap-2">
+        <Form method="POST" action="/settings" className="flex w-2/3 flex-col items-center justify-center gap-2 lg:w-1/2">
             <Label htmlFor="language">{t("language")}</Label>
             <Select name="language" defaultValue={language} onValueChange={handleChange}>
                 <SelectTrigger>
@@ -155,21 +216,21 @@ function ChangeLanguage({
                     <SelectItem value="en-US">English (US)</SelectItem>
                 </SelectContent>
             </Select>
-        </fetcher.Form>
+        </Form>
     )
-}
+})
 
-function ChangeTheme({
+const ChangeTheme = memo(function ChangeTheme({
     theme,
     t
 }: {
     theme: string,
     t: TFunction
 }) {
-    const fetcher = useFetcher()
+    const submit = useSubmit()
 
     const handleChange = (value: string) => {
-        fetcher.submit({
+        submit({
             type: "theme",
             value: value
         }, {
@@ -180,7 +241,7 @@ function ChangeTheme({
     }
 
     return (
-        <fetcher.Form className="flex w-1/2 flex-col items-center justify-center gap-2">
+        <Form className="flex w-2/3 flex-col items-center justify-center gap-2 lg:w-1/2">
             <Label htmlFor="theme">{t("theme")}</Label>
             <Select name="theme" defaultValue={theme} onValueChange={(value) => handleChange(value)}>
                 <SelectTrigger>
@@ -191,6 +252,96 @@ function ChangeTheme({
                     <SelectItem value="light">{t("light")}</SelectItem>
                 </SelectContent>
             </Select>
-        </fetcher.Form>
+        </Form>
+    )
+})
+
+const ChangeHomePreferences = memo(function ChangeHomePreferences({
+    t,
+    homePreferences
+}: {
+    t: TFunction,
+    homePreferences: HomePreferences[]
+}) {
+    const [homePreferencesState, setHomePreferencesState] = useState<HomePreferences[]>(homePreferences)
+    const submit = useSubmit()
+
+    const handleChangePosition = (event: DragEndEvent) => {
+        const { active, over } = event
+
+        if (!over || active.id === over.id) {
+            return
+        }
+
+        console.log("Handle change position", active, over)
+
+        const oldIndex = homePreferences.findIndex((item) => item.id === active.id)
+        const newIndex = homePreferences.findIndex((item) => item.id === over.id)
+
+        homePreferences[oldIndex].position = newIndex
+        homePreferences[newIndex].position = oldIndex
+
+        const newPreferences = arrayMove(homePreferences, oldIndex, newIndex)
+
+        setHomePreferencesState(newPreferences)
+
+        submit({
+            type: "homePreferences",
+            value: newPreferences as unknown[] as string[]
+        }, {
+            method: "POST",
+            action: "/settings",
+            encType: "application/json",
+        })
+    }
+
+    const sensors = useSensors(
+        useSensor(PointerSensor)
+    )
+
+    return (
+        <Form className="flex w-2/3 flex-col items-center justify-center gap-2 lg:w-1/2">
+            <Label className="text-center">Préférences de la page d'accueil</Label>
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleChangePosition}
+            >
+                <SortableContext
+                    items={homePreferencesState.map((item) => item.id)}
+                    strategy={verticalListSortingStrategy}
+                >
+                    {homePreferencesState.map(item => <SortableItem key={item.id} item={item} />)}
+                </SortableContext>
+            </DndContext>
+        </Form>
+    )
+})
+
+function SortableItem({ item }: { item: HomePreferences, /*changeVisibility: (id: string) => void*/ }) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+    } = useSortable({ id: item.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
+
+    return (
+        <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="flex w-full flex-row items-center justify-center gap-2">
+            <p>{item.title}</p>
+            {/* <Button variant="ghost">
+                {item.visible ? (
+                    <MdVisibility />
+                ) : (
+                    <MdVisibilityOff />
+                )}
+            </Button> */}
+        </div>
     )
 }

@@ -5,6 +5,9 @@ import { drizzle } from "drizzle-orm/better-sqlite3"
 import { usersSchema } from "../../../../db/schema/users"
 import crypto from "node:crypto"
 import { createUserSession } from "@/session.server"
+import { updateUserPreferences } from "../../lib/userPreferences"
+import { getTheme } from "../../lib/getTheme"
+import getLanguage from "../../lib/getLanguage"
 
 export default async function login({
 	request,
@@ -67,6 +70,19 @@ export default async function login({
 	const url = new URL(request.url)
 	const redirectUrl = url.searchParams.get("redirect")
 	const redirectUrlString = redirectUrl ? redirectUrl : "/"
+
+	const [theme, language] = await Promise.all([
+		getTheme(request),
+		getLanguage(request)
+	])
+
+	await updateUserPreferences({
+		user,
+		preferences: {
+			theme: theme,
+			language: language
+		}
+	})
 
 	return createUserSession({
 		request,

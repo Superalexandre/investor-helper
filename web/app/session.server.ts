@@ -5,10 +5,9 @@ import { eq } from "drizzle-orm"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import { usersSchema, type User } from "../../db/schema/users"
 import "dotenv/config"
+import type HomePreferences from "../types/Preferences"
 
 const SESSION_KEY = "token"
-// const MAX_AGE = 60 * 60 * 24 * 7 // 7 days
-const MAX_AGE = 60 * 60 * 24 * 30 // 30 days
 
 const sessionStorage = createCookieSessionStorage({
 	cookie: {
@@ -17,8 +16,7 @@ const sessionStorage = createCookieSessionStorage({
 		path: "/",
 		sameSite: "lax",
 		secrets: [process.env.SESSION_SECRET as string],
-		// secure: process.env.NODE_ENV === "production",
-		secure: false
+		secure: process.env.NODE_ENV === "production",
 	}
 })
 
@@ -30,9 +28,11 @@ export async function getSession(request: Request) {
 
 export async function logout(request: Request, redirectUrl = "/") {
 	const session = await getSession(request)
+	session.set(SESSION_KEY, "")
+
 	return redirect(redirectUrl, {
 		headers: {
-			"Set-Cookie": await sessionStorage.destroySession(session)
+			"Set-Cookie": await sessionStorage.commitSession(session)
 		}
 	})
 }
@@ -51,9 +51,7 @@ export async function createUserSession({
 
 	return redirect(redirectUrl, {
 		headers: {
-			"Set-Cookie": await sessionStorage.commitSession(session, {
-				maxAge: MAX_AGE
-			})
+			"Set-Cookie": await sessionStorage.commitSession(session)
 		}
 	})
 }
@@ -72,9 +70,7 @@ export async function changeLanguage({
 
 	return redirect(redirectUrl, {
 		headers: {
-			"Set-Cookie": await sessionStorage.commitSession(session, {
-				maxAge: MAX_AGE
-			})
+			"Set-Cookie": await sessionStorage.commitSession(session)
 		}
 	})
 }
@@ -93,9 +89,26 @@ export async function changeTheme({
 
 	return redirect(redirectUrl, {
 		headers: {
-			"Set-Cookie": await sessionStorage.commitSession(session, {
-				maxAge: MAX_AGE
-			})
+			"Set-Cookie": await sessionStorage.commitSession(session)
+		}
+	})
+}
+
+export async function changeHomePreferences({
+	request,
+	preferences,
+	redirectUrl = "/"
+}: {
+	request: Request
+	preferences: HomePreferences[]
+	redirectUrl?: string
+}) {
+	const session = await getSession(request)
+	session.set("homePreferences", preferences)
+
+	return redirect(redirectUrl, {
+		headers: {
+			"Set-Cookie": await sessionStorage.commitSession(session)
 		}
 	})
 }

@@ -162,6 +162,8 @@ export default function Header(
 							<MdCalendarMonth className="mr-2 inline-block" />
 							{t("header.calendar")}
 						</Link>
+
+						<SeeMore t={t} onClick={() => setOpen(false)} />
 					</div>
 
 					{user ? <FooterLogged user={user} setOpen={setOpen} t={t} /> : <FooterNotLogged setOpen={setOpen} t={t} />}
@@ -182,12 +184,14 @@ export default function Header(
 }
 
 const SeeMore = memo(function SeeMore({
-	t
+	t,
+	onClick
 }: {
 	t: TFunction
+	onClick?: () => void
 }) {
 	return (
-		<NavigationMenu >
+		<NavigationMenu>
 			<NavigationMenuList>
 				<NavigationMenuItem>
 					<NavigationMenuPrimitiveTrigger asChild={true}>
@@ -196,16 +200,16 @@ const SeeMore = memo(function SeeMore({
 						</Button>
 					</NavigationMenuPrimitiveTrigger>
 					<NavigationMenuContent>
-						<NavigationMenuList className="flex flex-col gap-2 p-2">
-							<NavigationMenuItem>
-								<Link to="/heatmap" className={navigationMenuTriggerStyle()}>
+						<NavigationMenuList className="flex flex-col justify-center gap-2 p-2">
+							<NavigationMenuItem className="w-full">
+								<Link to="/heatmap" className={cn(navigationMenuTriggerStyle(), "w-full")} onClick={onClick}>
 									<MdWaterfallChart className="mr-2 inline-block" />
 
 									{t("header.heatmap")}
 								</Link>
 							</NavigationMenuItem>
 							<NavigationMenuItem className="w-full">
-								<Link to="/settings" className={navigationMenuTriggerStyle()}>
+								<Link to="/settings" className={cn(navigationMenuTriggerStyle(), "w-full")} onClick={onClick}>
 									<MdSettings className="mr-2 inline-block" />
 
 									{t("header.settings")}
