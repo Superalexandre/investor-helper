@@ -271,7 +271,7 @@ const DisplayBestGainers = memo(function DisplayBestGainers({
 						<span className="text-green-600">+{Number(gainer.change).toFixed(2)}%</span>
 					</p>
 
-					<SmallChart prices={gainer.prices} />
+					{/* <SmallChart prices={gainer.prices} /> */}
 				</CardContent>
 			</Card>
 		</Link>

@@ -163,22 +163,22 @@ export async function loader() {
 		parsedResult.push(reducedItem)
 	}
 
-	console.log("items : ", parsedResult.length)
+	// console.log("items : ", parsedResult.length)
 
-	await Promise.all(
-		parsedResult.map(async (item) => {
-			const prices = await getPrices(item.symbol, {
-				timeframe: "1",
-				range: 360,
-			})
+	// await Promise.all(
+	// 	parsedResult.map(async (item) => {
+	// 		const prices = await getPrices(item.symbol, {
+	// 			timeframe: "1",
+	// 			range: 360,
+	// 		})
 
-			const reversedPrices = prices.period.reverse()
+	// 		const reversedPrices = prices.period.reverse()
 
-			item.prices = reversedPrices
-		})
-	)
+	// 		item.prices = reversedPrices
+	// 	})
+	// )
 
-	closeClient()
+	// closeClient()
 
 	return {
 		result: parsedResult
