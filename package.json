@@ -7,7 +7,7 @@
 		"lint": "eslint .",
 		"start": "node --loader ts-node/esm web/worker.ts",
 		"deploy": "NODE_OPTIONS=--max-old-space-size=1024 && NODE_ENV=production && npm i && tsc && cd web && npm i --force && tsc -p tsconfigServer.json && npm run build && cd .. && npm run db:migration:full",
-		"depcheck": "depcheck --ignores=eslint,ts-node",
+		"depcheck": "depcheck --ignores=@biomejs/biome,ts-node",
 		"build:ext": "cd extension && tailwindcss -i ./styles/index.css -o ./styles/tailwind.css --minify && tsc",
 		"css:ext": "cd extension && tailwindcss -i ./styles/index.css -o ./styles/tailwind.css --watch",
 		"duplicate": "npx jscpd ./web -i '**/*.json' -l 20",
@@ -27,7 +27,6 @@
 		"depcheck": "^1.4.7",
 		"drizzle-kit": "^0.28.0",
 		"drizzle-orm": "^0.36.0",
-		"eslint": "^9.10.0",
 		"ts-node": "^10.9.2",
 		"uuid": "^11.0.0",
 		"yargs": "^17.7.2"
