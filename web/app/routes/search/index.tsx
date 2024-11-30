@@ -13,6 +13,7 @@ import { Skeleton } from "../../components/ui/skeleton"
 import { useTranslation } from "react-i18next"
 import type { TFunction } from "i18next"
 import i18next from "../../i18next.server"
+import type { Events } from "../../../../db/schema/events"
 
 interface SelectSymbolType {
 	symbol: string
@@ -26,10 +27,10 @@ interface SelectSymbolType {
 	prefix?: string
 }
 
-type SearchType = "all" | "allSymbol" | "stocks" | "crypto" | "news"
+type SearchType = "all" | "allSymbol" | "stocks" | "crypto" | "news" | "events"
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const t = await i18next.getFixedT(request, "register")
+	const t = await i18next.getFixedT(request, "search")
 
 	const title = t("title")
 	const description = t("description")
@@ -105,6 +106,8 @@ export default function Index() {
 							{!isPending && data.news.length > 0 ? <DisplayNews news={data.news} /> : null}
 
 							{!isPending && data.symbols.length > 0 ? <DisplaySymbols symbols={data.symbols} /> : null}
+
+							{!isPending && data.events.length > 0 ? <DisplayEvents events={data.events} /> : null}
 						</div>
 					</div>
 				)}
@@ -132,7 +135,7 @@ function getSearchParams(location: ReturnType<typeof useLocation>) {
 }
 
 function useInvalidSearchParamRedirect(searchInParam: string | null, searchParam: string | null, pathname: string, navigate: ReturnType<typeof useNavigate>) {
-	const validParams = ["all", "allSymbol", "stocks", "crypto", "news"]
+	const validParams = ["all", "allSymbol", "stocks", "crypto", "news", "events"]
 	if (searchInParam && !validParams.includes(searchInParam)) {
 		let url = pathname
 
@@ -147,7 +150,7 @@ function useInvalidSearchParamRedirect(searchInParam: string | null, searchParam
 }
 
 function useSearchQuery(debouncedValue: string, searchingIn: SearchType, pathname: string, navigate: ReturnType<typeof useNavigate>) {
-	return useQuery<{ symbols: SelectSymbolType[]; news: News[] }>({
+	return useQuery<{ symbols: SelectSymbolType[]; news: News[], events: Events[] }>({
 		queryKey: ["search", debouncedValue, searchingIn],
 		queryFn: async () => {
 			console.log("searching", debouncedValue, searchingIn)
@@ -247,6 +250,10 @@ function Filter({
 				{t("filters.news")}
 			</Button>
 
+			<Button variant={searchingIn === "events" ? "default" : "outline"} onClick={() => setSearchingIn("events")}>
+				Event
+			</Button>
+
 			<Button
 				variant={searchingIn === "allSymbol" ? "default" : "outline"}
 				onClick={() => setSearchingIn("allSymbol")}
@@ -313,6 +320,25 @@ function DisplayNews({ news }: { news: News[] }) {
 					>
 						<p className="overflow-hidden">{news.title}</p>
 						<p className="pl-10">{news.source}</p>
+					</Button>
+				</Link>
+			))}
+		</div>
+	)
+}
+
+function DisplayEvents({ events }: { events: Events[] }) {
+	return (
+		<div className="flex flex-col gap-1">
+			{events.map((event) => (
+				<Link to={`/events/${event.id}`} key={event.id}>
+					<Button
+						variant="outline"
+						key={event.id}
+						className="flex w-full flex-row items-center justify-between border-none p-2 "
+					>
+						<p className="overflow-hidden">{event.title}</p>
+						<p className="pl-10">{event.source}</p>
 					</Button>
 				</Link>
 			))}

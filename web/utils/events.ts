@@ -3,7 +3,7 @@ import Database from "better-sqlite3"
 import config from "../../config.js"
 import { startOfWeek, formatISO, addDays } from "date-fns"
 import { type Events, eventsSchema } from "../../db/schema/events.js"
-import { and, asc, desc, eq, gte, isNotNull, lte } from "drizzle-orm"
+import { and, asc, desc, eq, gte, isNotNull, like, lte, or } from "drizzle-orm"
 import type { EventRaw } from "../types/Events.js"
 
 // interface EconomicEvent {
@@ -344,4 +344,28 @@ async function getNextImportantEvent(from: Date, to: Date, importance: number, l
 	return events
 }
 
-export { getEvents, getEventById, fetchEvents, saveFetchEvents, saveEvents, getEventsNow, getNextImportantEvent }
+async function searchEvents(search: string, limit = 10) {
+	const sqlite = new Database("../db/sqlite.db")
+	const db = drizzle(sqlite)
+
+	const events = await db
+		.select()
+		.from(eventsSchema)
+		.where(
+			or(
+				like(eventsSchema.title, `%${search}%`),
+				like(eventsSchema.country, `%${search}%`),
+				like(eventsSchema.indicator, `%${search}%`),
+				like(eventsSchema.comment, `%${search}%`),
+				like(eventsSchema.period, `%${search}%`),
+				like(eventsSchema.referenceDate, `%${search}%`),
+				like(eventsSchema.source, `%${search}%`),
+				like(eventsSchema.sourceUrl, `%${search}%`)
+			)
+		)
+		.limit(limit)
+
+	return events
+}
+
+export { getEvents, getEventById, fetchEvents, saveFetchEvents, saveEvents, getEventsNow, getNextImportantEvent, searchEvents }
