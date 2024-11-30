@@ -42,7 +42,7 @@ export default async function login({
 			success: false,
 			error: true,
 			errors: {
-				mailOrUsername: {
+				emailOrUsername: {
 					message: "Nom d'utilisateur ou email introuvable"
 				}
 			},
