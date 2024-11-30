@@ -300,7 +300,7 @@ const ChangeHomePreferences = memo(function ChangeHomePreferences({
     )
 
     return (
-        <Form className="flex w-2/3 flex-col items-center justify-center gap-2 lg:w-1/2">
+        <Form className="flex w-2/3 flex-col items-center justify-center gap-2 lg:w-1/2 touch-pan-x">
             <Label className="text-center">Préférences de la page d'accueil</Label>
             <DndContext
                 sensors={sensors}
