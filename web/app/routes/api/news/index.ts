@@ -1,6 +1,5 @@
 import { getNews } from "@/utils/news"
-import { type LoaderFunction, type LoaderFunctionArgs } from "@remix-run/node"
-import getLanguage from "../../../lib/getLanguage"
+import type { LoaderFunction, LoaderFunctionArgs } from "@remix-run/node"
 
 export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) => {
 	// const language = await getLanguage(request)
@@ -13,12 +12,12 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 	const limitReq = limit ? Number.parseInt(limit) : 10
 	const pageReq = page ? Number.parseInt(page) : 1
 
-	// Transform the importances to the correct score 
+	// Transform the importances to the correct score
 	const scoreMap: Record<string, number[]> = {
-		"none": [0, 50],
-		"low": [50, 100],
-		"medium": [100, 150],
-		"high": [150, 200],
+		none: [0, 50],
+		low: [50, 100],
+		medium: [100, 150],
+		high: [150, 200],
 		"very-high": [200, 1000]
 	}
 

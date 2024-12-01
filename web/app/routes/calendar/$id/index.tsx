@@ -265,12 +265,15 @@ export default function Index() {
 	)
 }
 
-const EventDetails = memo(function EventDetails({ event, t, language }: {
+const EventDetails = memo(function EventDetails({
+	event,
+	t,
+	language
+}: {
 	event: Events
 	t: TFunction
 	language: string
 }) {
-
 	const importance: Record<number, { name: string; color: string }> = {
 		[-1]: {
 			name: t("low"),
@@ -294,7 +297,6 @@ const EventDetails = memo(function EventDetails({ event, t, language }: {
 				<h2 className={cn(importance[event.importance].color, "text-center text-xl")}>
 					{t("importance")} {importance[event.importance].name}
 				</h2>
-				
 			</div>
 
 			<div className="flex w-full flex-col items-center gap-8">
@@ -325,7 +327,11 @@ const EventDetails = memo(function EventDetails({ event, t, language }: {
 						</div>
 					</div>
 
-					{event.period ? <p>{t("period")} : {event.period}</p> : null}
+					{event.period ? (
+						<p>
+							{t("period")} : {event.period}
+						</p>
+					) : null}
 				</div>
 
 				{event.forecast || event.previous || event.actual ? (
@@ -354,12 +360,18 @@ const EventDetails = memo(function EventDetails({ event, t, language }: {
 
 					<div className="flex flex-col items-center gap-4">
 						<div className="flex flex-col items-center">
-							<p>{t("indicator")} : {event.indicator ?? t("noIndicator")}</p>
+							<p>
+								{t("indicator")} : {event.indicator ?? t("noIndicator")}
+							</p>
 						</div>
 
 						<div className="flex flex-col items-center">
-							<p>{t("country")} : {countries[language][event.country]}</p>
-							<p>{t("currency")} : {event.currency}</p>
+							<p>
+								{t("country")} : {countries[language][event.country]}
+							</p>
+							<p>
+								{t("currency")} : {event.currency}
+							</p>
 						</div>
 
 						<div className="flex flex-col items-center">
@@ -378,7 +390,11 @@ const EventDetails = memo(function EventDetails({ event, t, language }: {
 								</p>
 							) : null}
 
-							{!event.sourceUrl && event.source ? <p>{t("source")} : {event.source}</p> : null}
+							{!event.sourceUrl && event.source ? (
+								<p>
+									{t("source")} : {event.source}
+								</p>
+							) : null}
 						</div>
 					</div>
 				</div>
@@ -387,7 +403,12 @@ const EventDetails = memo(function EventDetails({ event, t, language }: {
 	)
 })
 
-function DisplayNumber({ number, unit, scale, t }: { number: number | null; unit: string | null; scale: string | null, t: TFunction }) {
+function DisplayNumber({
+	number,
+	unit,
+	scale,
+	t
+}: { number: number | null; unit: string | null; scale: string | null; t: TFunction }) {
 	if (number === null) {
 		return <span>{t("noData")}</span>
 	}
@@ -474,7 +495,11 @@ function DialogNewNotification({
 						className={cn("flex flex-row items-center justify-center gap-1.5")}
 						disabled={loading}
 					>
-						{loading ? <Loading className="size-5 border-2 dark:text-black" /> : <MdAdd className="size-5" />}
+						{loading ? (
+							<Loading className="size-5 border-2 dark:text-black" />
+						) : (
+							<MdAdd className="size-5" />
+						)}
 						Ajouter
 					</Button>
 				</DialogFooter>
@@ -551,7 +576,11 @@ function DialogDeleteNotification({
 						className={cn("flex flex-row items-center justify-center gap-1.5")}
 						disabled={loading}
 					>
-						{loading ? <Loading className="size-5 border-2 dark:text-black" /> : <MdDelete className="size-5" />}
+						{loading ? (
+							<Loading className="size-5 border-2 dark:text-black" />
+						) : (
+							<MdDelete className="size-5" />
+						)}
 						Supprimer
 					</Button>
 				</DialogFooter>

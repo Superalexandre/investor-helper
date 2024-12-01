@@ -24,7 +24,7 @@ const schema = zod.object({
 	email: zod.string().email().trim().toLowerCase(),
 	password: zod.string().min(8).max(255),
 	passwordConfirmation: zod.string().min(8).max(255),
-	terms: zod.boolean().refine(value => value === true, "You must agree to the terms and conditions")
+	terms: zod.boolean().refine((value) => value === true, "You must agree to the terms and conditions")
 })
 
 type FormData = zod.infer<typeof schema>
@@ -197,11 +197,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				// className={`${isSubmitting ? "opacity-50" : "hover:bg-green-700"} flex flex-row items-center justify-center gap-2 rounded bg-green-500 p-4 text-white`}
 				disabled={isSubmitting}
 			>
-				{isSubmitting ? (
-					<Loading className="size-5 border-2 dark:text-black" />
-				) : (
-					<MdAdd size={20} />
-				)}
+				{isSubmitting ? <Loading className="size-5 border-2 dark:text-black" /> : <MdAdd size={20} />}
 
 				{t("createAccount")}
 			</Button>

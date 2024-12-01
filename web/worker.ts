@@ -30,7 +30,7 @@ function main() {
 		start: true,
 		timeZone: "Europe/Paris"
 	})
-	
+
 	CronJob.from({
 		cronTime: "* * * * *",
 		onTick: () => {

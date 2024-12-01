@@ -55,7 +55,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 }
 
 export const handle = {
-	i18n: "register",
+	i18n: "register"
 }
 
 export default function Index() {

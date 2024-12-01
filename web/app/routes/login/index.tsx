@@ -63,13 +63,13 @@ export const handle = {
 
 export default function Index() {
 	const { t } = useTranslation("login")
-	
+
 	return (
 		<div className="flex h-screen w-screen flex-1 flex-col items-center justify-center p-4">
 			<Card className="size-full lg:size-1/2">
 				<CardTitle className="flex flex-row items-center justify-center gap-2 pt-4 pb-8 text-center font-bold text-3xl dark:text-white">
 					<MdLogin size={30} />
-					
+
 					{t("connexion")}
 				</CardTitle>
 				<CardContent className="flex h-full w-full items-center justify-center">

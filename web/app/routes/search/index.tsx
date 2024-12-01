@@ -58,7 +58,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 }
 
 export const handle = {
-	i18n: "search",
+	i18n: "search"
 }
 
 export default function Index() {
@@ -96,11 +96,7 @@ export default function Index() {
 
 				{hidden ? null : (
 					<div className="absolute top-full left-0 z-10 mt-2 flex w-full flex-col gap-1 overflow-x-hidden">
-						<Filter
-							searchingIn={searchingIn}
-							setSearchingIn={setSearchingIn}
-							t={t}
-						/>
+						<Filter searchingIn={searchingIn} setSearchingIn={setSearchingIn} t={t} />
 
 						<div className={cn(hidden ? "hidden" : "flex flex-col")}>
 							{!isPending && data.news.length > 0 ? <DisplayNews news={data.news} /> : null}
@@ -134,7 +130,12 @@ function getSearchParams(location: ReturnType<typeof useLocation>) {
 	return { searchParam, searchInParam }
 }
 
-function useInvalidSearchParamRedirect(searchInParam: string | null, searchParam: string | null, pathname: string, navigate: ReturnType<typeof useNavigate>) {
+function useInvalidSearchParamRedirect(
+	searchInParam: string | null,
+	searchParam: string | null,
+	pathname: string,
+	navigate: ReturnType<typeof useNavigate>
+) {
 	const validParams = ["all", "allSymbol", "stocks", "crypto", "news", "events"]
 	if (searchInParam && !validParams.includes(searchInParam)) {
 		let url = pathname
@@ -149,8 +150,13 @@ function useInvalidSearchParamRedirect(searchInParam: string | null, searchParam
 	}
 }
 
-function useSearchQuery(debouncedValue: string, searchingIn: SearchType, pathname: string, navigate: ReturnType<typeof useNavigate>) {
-	return useQuery<{ symbols: SelectSymbolType[]; news: News[], events: Events[] }>({
+function useSearchQuery(
+	debouncedValue: string,
+	searchingIn: SearchType,
+	pathname: string,
+	navigate: ReturnType<typeof useNavigate>
+) {
+	return useQuery<{ symbols: SelectSymbolType[]; news: News[]; events: Events[] }>({
 		queryKey: ["search", debouncedValue, searchingIn],
 		queryFn: async () => {
 			console.log("searching", debouncedValue, searchingIn)
@@ -231,7 +237,7 @@ function Filter({
 	t
 }: {
 	searchingIn: SearchType
-	setSearchingIn: (searchingIn: SearchType) => void,
+	setSearchingIn: (searchingIn: SearchType) => void
 	t: TFunction
 }) {
 	return (

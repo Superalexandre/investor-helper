@@ -124,6 +124,8 @@ export default function getPrices(
 ) {
 	return new Promise<{ period: Period[]; periodInfo: PeriodInfo }>((resolve, reject) => {
 		if (!client) {
+			console.log("Creating new client")
+
 			client = new TradingView.Client()
 		}
 		// if (!chart) chart = new client.Session.Chart()
@@ -158,6 +160,8 @@ export default function getPrices(
 
 export function closeClient() {
 	if (client) {
+		console.log("Closing client")
+
 		client.end()
 
 		client = null

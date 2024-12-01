@@ -47,15 +47,14 @@ export default function Login({ redirect, callback }: LoginProps) {
 	const {
 		handleSubmit,
 		formState: { errors, isSubmitting, isSubmitSuccessful },
-		register,
-
+		register
 	} = useRemixForm<FormData>({
 		mode: "onSubmit",
 		submitConfig: {
 			action: `/login?redirect=${preferredRedirect}`,
 			method: "POST"
 		},
-		resolver,
+		resolver
 	})
 
 	useEffect(() => {
@@ -63,7 +62,6 @@ export default function Login({ redirect, callback }: LoginProps) {
 			callback()
 		}
 	}, [callback, isSubmitSuccessful])
-
 
 	return (
 		<Form
@@ -112,11 +110,7 @@ export default function Login({ redirect, callback }: LoginProps) {
 				className="flex flex-row items-center justify-center gap-2"
 				disabled={isSubmitting}
 			>
-				{isSubmitting ? (
-					<Loading className="size-5 border-2 dark:text-black" />
-				) : (
-					<MdLogin size={20} />
-				)}
+				{isSubmitting ? <Loading className="size-5 border-2 dark:text-black" /> : <MdLogin size={20} />}
 
 				{t("connect")}
 			</Button>

@@ -33,10 +33,10 @@ interface NewsSymbols {
 }
 
 interface NewsFull {
-    news: News
-    news_article: NewsArticleSchema
-    // biome-ignore lint/suspicious/noExplicitAny: TODO: Type
-    relatedSymbols: any
+	news: News
+	news_article: NewsArticleSchema
+	// biome-ignore lint/suspicious/noExplicitAny: TODO: Type
+	relatedSymbols: any
 }
 
 interface NewsSymbolsChildArticle {
@@ -44,14 +44,8 @@ interface NewsSymbolsChildArticle {
 		news: News
 		news_article: NewsArticleSchema
 	}
-    // biome-ignore lint/suspicious/noExplicitAny: TODO: Type
+	// biome-ignore lint/suspicious/noExplicitAny: TODO: Type
 	relatedSymbols: any
 }
 
-export type {
-    NewsSymbolsArticle,
-    NewsArticle,
-    NewsSymbols,
-    NewsFull,
-	NewsSymbolsChildArticle
-}
+export type { NewsSymbolsArticle, NewsArticle, NewsSymbols, NewsFull, NewsSymbolsChildArticle }

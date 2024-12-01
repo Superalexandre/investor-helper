@@ -42,7 +42,9 @@ export default function TimeCounter({
 		return (
 			<>
 				{separator ? <span className="hidden lg:block">-</span> : null}
-				<span className="text-center" suppressHydrationWarning={true}>Terminé depuis {prettyTime}</span>
+				<span className="text-center" suppressHydrationWarning={true}>
+					Terminé depuis {prettyTime}
+				</span>
 			</>
 		)
 	}
@@ -57,7 +59,9 @@ export default function TimeCounter({
 	return (
 		<>
 			{separator ? <span className="hidden lg:block">-</span> : null}
-			<span className="text-center" suppressHydrationWarning={true}>Dans {prettyTime}</span>
+			<span className="text-center" suppressHydrationWarning={true}>
+				Dans {prettyTime}
+			</span>
 		</>
 	)
 }

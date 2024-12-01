@@ -2,601 +2,572 @@ import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remi
 import { Form, useActionData, useLoaderData, useNavigate, useSearchParams, useSubmit } from "@remix-run/react"
 import { ClientOnly } from "remix-utils/client-only"
 import { Stage, Layer, Rect, Text, Image, Group } from "react-konva"
-import { type RefObject, useRef, useState } from "react";
-import type { KonvaEventObject } from "konva/lib/Node";
-import Konva from "konva";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
+import { type RefObject, useRef, useState } from "react"
+import type { KonvaEventObject } from "konva/lib/Node"
+import Konva from "konva"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
 
 interface SymbolData {
-    name: string
-    symbol: string
-    color: {
-        background: string
-    }
-    price: number
-    currency: string
-    exchange: string
-    change: number
-    logo: string
+	name: string
+	symbol: string
+	color: {
+		background: string
+	}
+	price: number
+	currency: string
+	exchange: string
+	change: number
+	logo: string
 }
 
 interface ItemData extends SymbolData {
-    columnIndex: number
-    rowIndex: number
+	columnIndex: number
+	rowIndex: number
 }
 
 type ColumnData = ItemData[]
 
 interface AllItemsData extends ItemData {
-    x: number
-    y: number
-    rectHeight: number
-    rectWidth: number
+	x: number
+	y: number
+	rectHeight: number
+	rectWidth: number
 }
 
 interface Markets {
-    [key: string]: {
-        url: string
-        symbolset: string[]
-        markets: string[]
-    }
+	[key: string]: {
+		url: string
+		symbolset: string[]
+		markets: string[]
+	}
 }
 
 const colors = {
-    "darkGreen": {
-        background: "#16a34a", // text-green-600
-    },
-    "green": {
-        background: "#22c55e", // text-green-500
-    },
-    "lightGreen": {
-        background: "#4ade80", // text-green-400
-    },
-    "gray": {
-        background: "#9ca3af", //text-gray-500
-    },
+	darkGreen: {
+		background: "#16a34a" // text-green-600
+	},
+	green: {
+		background: "#22c55e" // text-green-500
+	},
+	lightGreen: {
+		background: "#4ade80" // text-green-400
+	},
+	gray: {
+		background: "#9ca3af" //text-gray-500
+	},
 
-    "darkRed": {
-        background: "#dc2626", // red-600
-    },
-    "red": {
-        background: "#ef4444", // red-500
-    },
-    "lightRed": {
-        background: "#f87171" // red-400
-    }
+	darkRed: {
+		background: "#dc2626" // red-600
+	},
+	red: {
+		background: "#ef4444" // red-500
+	},
+	lightRed: {
+		background: "#f87171" // red-400
+	}
 }
 
 const textConfig = {
-    fontFamily: "Arial",
-    fontStyle: "bold",
-    fill: "#333",
+	fontFamily: "Arial",
+	fontStyle: "bold",
+	fill: "#333"
 }
 
 async function getData(market = "SP500") {
+	const markets: Markets = {
+		SP500: {
+			url: "https://scanner.tradingview.com/america/scan?label-product=heatmap-stock",
+			symbolset: ["SYML:SP;SPX"],
+			markets: ["america"]
+		},
+		CAC40: {
+			url: "https://scanner.tradingview.com/france/scan?label-product=heatmap-stock",
+			symbolset: ["SYML:EURONEXT;PX1"],
+			markets: ["france"]
+		}
+	}
 
-    const markets: Markets = {
-        "SP500": {
-            "url": "https://scanner.tradingview.com/america/scan?label-product=heatmap-stock",
-            "symbolset": [
-                "SYML:SP;SPX"
-            ],
-            "markets": [
-                "america"
-            ]
-        },
-        "CAC40": {
-            "url": "https://scanner.tradingview.com/france/scan?label-product=heatmap-stock",
-            "symbolset": [
-                "SYML:EURONEXT;PX1"
-            ],
-            "markets": [
-                "france"
-            ]
-        }
-    }
+	const body = {
+		columns: [
+			"close",
+			"currency",
+			"exchange",
+			"change",
+			"logoid",
 
-    const body = {
-        "columns": [
-            "close",
-            "currency",
-            "exchange",
-            "change",
-            "logoid",
+			"description"
+		],
+		// biome-ignore lint/style/useNamingConvention: <explanation>
+		ignore_unknown_fields: false,
+		options: {
+			lang: "fr"
+		},
+		range: [0, 100],
+		sort: {
+			sortBy: "market_cap_basic",
+			sortOrder: "desc"
+		},
+		symbols: {
+			symbolset: markets[market].symbolset
+		},
+		markets: markets[market].markets,
+		filter: [
+			{
+				left: "market_cap_basic",
+				operation: "nempty"
+			},
+			{
+				left: "is_blacklisted",
+				operation: "equal",
+				right: false
+			},
+			{
+				left: "name",
+				operation: "not_in_range",
+				right: ["GOOG"]
+			}
+		]
+	}
 
-            "description"
-        ],
-        // biome-ignore lint/style/useNamingConvention: <explanation>
-        "ignore_unknown_fields": false,
-        "options": {
-            "lang": "fr"
-        },
-        "range": [
-            0,
-            100
-        ],
-        "sort": {
-            "sortBy": "market_cap_basic",
-            "sortOrder": "desc"
-        },
-        "symbols": {
-            "symbolset": markets[market].symbolset
-        },
-        "markets": markets[market].markets,
-        "filter": [
-            {
-                "left": "market_cap_basic",
-                "operation": "nempty"
-            },
-            {
-                "left": "is_blacklisted",
-                "operation": "equal",
-                "right": false
-            },
-            {
-                "left": "name",
-                "operation": "not_in_range",
-                "right": [
-                    "GOOG"
-                ]
-            }
-        ]
-    }
+	const res = await fetch(markets[market].url, {
+		method: "POST",
+		body: JSON.stringify(body)
+	})
 
-    const res = await fetch(markets[market].url, {
-        method: "POST",
-        body: JSON.stringify(body)
-    })
+	const json = await res.json()
+	const data: SymbolData[] = []
 
-    const json = await res.json()
-    const data: SymbolData[] = []
+	for (const item of json.data) {
+		const change = item.d[3]
 
-    for (const item of json.data) {
-        const change = item.d[3]
+		let color = colors.gray
+		if (change >= 3) {
+			color = colors.darkGreen
+		} else if (change >= 1.5) {
+			color = colors.green
+		} else if (change >= 0.5) {
+			color = colors.lightGreen
+		} else if (change <= -3) {
+			color = colors.darkRed
+		} else if (change <= -1.5) {
+			color = colors.red
+		} else if (change < -0.5) {
+			color = colors.lightRed
+		}
 
-        let color = colors.gray
-        if (change >= 3) {
-            color = colors.darkGreen
-        } else if (change >= 1.5) {
-            color = colors.green
-        } else if (change >= 0.5) {
-            color = colors.lightGreen
-        } else if (change <= -3) {
-            color = colors.darkRed
-        } else if (change <= -1.5) {
-            color = colors.red
-        } else if (change < -0.5) {
-            color = colors.lightRed
-        }
+		data.push({
+			name: item.d[5],
+			symbol: item.s,
+			color: color,
+			price: item.d[0],
+			currency: item.d[1],
+			exchange: item.d[2],
+			change: item.d[3] ? item.d[3].toFixed(2) : 0,
+			logo: item.d[4]
+		})
+	}
 
-        data.push({
-            name: item.d[5],
-            symbol: item.s,
-            color: color,
-            price: item.d[0],
-            currency: item.d[1],
-            exchange: item.d[2],
-            change: item.d[3] ? item.d[3].toFixed(2) : 0,
-            logo: item.d[4]
-        })
-    }
-
-
-    return data
+	return data
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-    const url = new URL(request.url)
+	const url = new URL(request.url)
 
-    const data = await getData(url.searchParams.get("market") ?? undefined)
+	const data = await getData(url.searchParams.get("market") ?? undefined)
 
-    return {
-        data
-    }
+	return {
+		data
+	}
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-    let market = "SP500"
-    const body = await request.formData()
-    if (body.get("market")) {
-        market = body.get("market") as string
-    }
+	let market = "SP500"
+	const body = await request.formData()
+	if (body.get("market")) {
+		market = body.get("market") as string
+	}
 
-    const data = await getData(market)
+	const data = await getData(market)
 
-    return {
-        data
-    }
+	return {
+		data
+	}
 }
 
 export const meta: MetaFunction = () => {
-    const title = "Investor Helper - Heatmap"
-    const description = ""
+	const title = "Investor Helper - Heatmap"
+	const description = ""
 
-    return [
-        { title: title },
-        { name: "og:title", content: title },
-        { name: "description", content: description },
-        { name: "og:description", content: description },
-        { name: "canonical", content: "https://www.investor-helper.com/heatmap" }
-    ]
+	return [
+		{ title: title },
+		{ name: "og:title", content: title },
+		{ name: "description", content: description },
+		{ name: "og:description", content: description },
+		{ name: "canonical", content: "https://www.investor-helper.com/heatmap" }
+	]
 }
 
 export default function Index() {
-    const { data } = useLoaderData<typeof loader>()
-    const lastData = useActionData<typeof action>()
-    
-    const submit = useSubmit()
-    const navigate = useNavigate()
-    const [searchParams] = useSearchParams()
+	const { data } = useLoaderData<typeof loader>()
+	const lastData = useActionData<typeof action>()
 
-    const containerRef = useRef<HTMLDivElement>(null)
+	const submit = useSubmit()
+	const navigate = useNavigate()
+	const [searchParams] = useSearchParams()
 
-    const handleSubmit = (value: string) => {
-        const formData = new FormData()
+	const containerRef = useRef<HTMLDivElement>(null)
 
-        formData.append("market", value)
+	const handleSubmit = (value: string) => {
+		const formData = new FormData()
 
-        submit(formData, { method: "post" })
+		formData.append("market", value)
 
-        navigate(`/heatmap?market=${value}`)
-    }
+		submit(formData, { method: "post" })
 
-    // Get the search market from the URL
-    const market = searchParams.get("market") || "SP500"
+		navigate(`/heatmap?market=${value}`)
+	}
 
-    return (
-        <div className="h-full flex-1" ref={containerRef}>
-            <ClientOnly fallback={<p>Chargement</p>}>
-                {() => (
-                    <Form className="relative" method="POST">
-                        <div className="absolute top-0 left-0 z-10 m-4">
+	// Get the search market from the URL
+	const market = searchParams.get("market") || "SP500"
 
-                            <Select name="market" defaultValue={market} onValueChange={(value) => handleSubmit(value)}>
-                                <SelectTrigger className="bg-background">
-                                    <SelectValue placeholder="Choisir un marché" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="SP500">S&P 500</SelectItem>
-                                    <SelectItem value="CAC40">CAC 40</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
+	return (
+		<div className="h-full flex-1" ref={containerRef}>
+			<ClientOnly fallback={<p>Chargement</p>}>
+				{() => (
+					<Form className="relative" method="POST">
+						<div className="absolute top-0 left-0 z-10 m-4">
+							<Select name="market" defaultValue={market} onValueChange={(value) => handleSubmit(value)}>
+								<SelectTrigger className="bg-background">
+									<SelectValue placeholder="Choisir un marché" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="SP500">S&P 500</SelectItem>
+									<SelectItem value="CAC40">CAC 40</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
 
-                        <Heatmap data={lastData ? lastData.data : data} containerRef={containerRef} />
+						<Heatmap data={lastData ? lastData.data : data} containerRef={containerRef} />
 
-                        <div className="absolute bottom-0 left-0 m-4 flex flex-row items-center gap-4">
-                            <img src="/logo-1024-1024.webp" alt="Investor Helper" className="h-16 w-16" />
+						<div className="absolute bottom-0 left-0 m-4 flex flex-row items-center gap-4">
+							<img src="/logo-1024-1024.webp" alt="Investor Helper" className="h-16 w-16" />
 
-                            <p className="font-bold text-lg">Investor Helper</p>
-                        </div>
-                    </Form>
-                )}
-            </ClientOnly>
-        </div>
-    );
+							<p className="font-bold text-lg">Investor Helper</p>
+						</div>
+					</Form>
+				)}
+			</ClientOnly>
+		</div>
+	)
 }
 
 const wheelHandler = (e: KonvaEventObject<WheelEvent>, height: number, width: number) => {
-    const scaleBy = 1.1
-    const stage = e.target.getStage()
+	const scaleBy = 1.1
+	const stage = e.target.getStage()
 
-    if (!stage) {
-        return
-    }
+	if (!stage) {
+		return
+	}
 
-    const oldScale = stage.scaleX()
-    const pointer = stage.getPointerPosition()
+	const oldScale = stage.scaleX()
+	const pointer = stage.getPointerPosition()
 
-    if (!pointer) {
-        return
-    }
+	if (!pointer) {
+		return
+	}
 
-    const mousePointTo = {
-        x: pointer.x / oldScale - stage.x() / oldScale,
-        y: pointer.y / oldScale - stage.y() / oldScale
-    }
+	const mousePointTo = {
+		x: pointer.x / oldScale - stage.x() / oldScale,
+		y: pointer.y / oldScale - stage.y() / oldScale
+	}
 
-    const newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy
+	const newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy
 
-    if (newScale > 3 || newScale < 0.5) {
-        return
-    }
+	if (newScale > 3 || newScale < 0.5) {
+		return
+	}
 
-    stage.scale({ x: newScale, y: newScale })
+	stage.scale({ x: newScale, y: newScale })
 
-    let newX = -(mousePointTo.x - pointer.x / newScale) * newScale
-    let newY = -(mousePointTo.y - pointer.y / newScale) * newScale
+	let newX = -(mousePointTo.x - pointer.x / newScale) * newScale
+	let newY = -(mousePointTo.y - pointer.y / newScale) * newScale
 
-    if (newX > 0) {
-        newX = 0
-    }
+	if (newX > 0) {
+		newX = 0
+	}
 
-    if (newY > 0) {
-        newY = 0
-    }
+	if (newY > 0) {
+		newY = 0
+	}
 
-    if (newX < -width) {
-        newX = -width
-    }
+	if (newX < -width) {
+		newX = -width
+	}
 
-    if (newY < -height) {
-        newY = -height
-    }
+	if (newY < -height) {
+		newY = -height
+	}
 
-    return {
-        scale: newScale,
-        x: newX,
-        y: newY
-    }
+	return {
+		scale: newScale,
+		x: newX,
+		y: newY
+	}
 }
 
 const dragHandler = (e: KonvaEventObject<DragEvent>, height: number, width: number) => {
+	if (e.target.x() > 0) {
+		e.target.x(0)
+	}
 
-    if (e.target.x() > 0) {
-        e.target.x(0)
-    }
+	if (e.target.y() > 0) {
+		e.target.y(0)
+	}
 
-    if (e.target.y() > 0) {
-        e.target.y(0)
-    }
+	if (e.target.x() < -width) {
+		e.target.x(-width)
+	}
 
-    if (e.target.x() < -width) {
-        e.target.x(-width)
-    }
+	if (e.target.y() < -height) {
+		e.target.y(-height)
+	}
 
-    if (e.target.y() < -height) {
-        e.target.y(-height)
-    }
-
-    return {
-        x: e.target.x(),
-        y: e.target.y()
-    }
-
+	return {
+		x: e.target.x(),
+		y: e.target.y()
+	}
 }
 
-const calculateTextHeight = (
-    text: string,
-    fontSize: number,
-    fontFamily = "Arial",
-    fontStyle = "normal"
-) => {
-    // Crée un objet Text temporaire pour mesurer la hauteur
-    const tempText = new Konva.Text({
-        text,
-        fontSize,
-        fontFamily,
-        fontStyle,
-    });
+const calculateTextHeight = (text: string, fontSize: number, fontFamily = "Arial", fontStyle = "normal") => {
+	// Crée un objet Text temporaire pour mesurer la hauteur
+	const tempText = new Konva.Text({
+		text,
+		fontSize,
+		fontFamily,
+		fontStyle
+	})
 
-    // Récupère la hauteur du texte
-    const textHeight = tempText.height();
+	// Récupère la hauteur du texte
+	const textHeight = tempText.height()
 
-    // Libère l'objet temporaire en le supprimant (si nécessaire)
-    tempText.destroy();
+	// Libère l'objet temporaire en le supprimant (si nécessaire)
+	tempText.destroy()
 
-    return textHeight;
-};
+	return textHeight
+}
 
 function Heatmap({
-    data,
-    containerRef
+	data,
+	containerRef
 }: {
-    data: SymbolData[],
-    containerRef: RefObject<HTMLDivElement>
+	data: SymbolData[]
+	containerRef: RefObject<HTMLDivElement>
 }) {
-    const fillWidth = false
+	const fillWidth = false
 
-    const navigate = useNavigate()
+	const navigate = useNavigate()
 
-    const [scale, setScale] = useState(1)
-    const [position, setPosition] = useState({ x: 0, y: 0 })
+	const [scale, setScale] = useState(1)
+	const [position, setPosition] = useState({ x: 0, y: 0 })
 
-    const containerSize = containerRef.current?.getBoundingClientRect()
+	const containerSize = containerRef.current?.getBoundingClientRect()
 
-    const width = containerSize?.width || 0;
-    const height = containerSize?.height || 0;
+	const width = containerSize?.width || 0
+	const height = containerSize?.height || 0
 
-    // Calculer le nombre optimal de colonnes et de lignes pour que les rectangles couvrent bien l'espace
-    const totalItems = data.length;
-    const rectSize = Math.sqrt((width * height) / totalItems) * 1
+	// Calculer le nombre optimal de colonnes et de lignes pour que les rectangles couvrent bien l'espace
+	const totalItems = data.length
+	const rectSize = Math.sqrt((width * height) / totalItems) * 1
 
-    let columnsCount = Math.floor(width / rectSize) - 1;
-    columnsCount = Math.max(columnsCount, 1);
+	let columnsCount = Math.floor(width / rectSize) - 1
+	columnsCount = Math.max(columnsCount, 1)
 
-    const rectWidth = fillWidth ? width / columnsCount : rectSize * 1.5;
+	const rectWidth = fillWidth ? width / columnsCount : rectSize * 1.5
 
-    const items: ItemData[] = []
+	const items: ItemData[] = []
 
-    // let lastX = 0
-    let lastY = 0
-    let columnIndex = 0
-    let rowIndex = 0
+	// let lastX = 0
+	let lastY = 0
+	let columnIndex = 0
+	let rowIndex = 0
 
-    for (let i = 0; i < data.length; i++) {
-        const scaleFactor = Math.max(0.2, 3 * Math.exp(-i / (totalItems / 4)))
+	for (let i = 0; i < data.length; i++) {
+		const scaleFactor = Math.max(0.2, 3 * Math.exp(-i / (totalItems / 4)))
 
-        lastY += rectSize * scaleFactor
+		lastY += rectSize * scaleFactor
 
-        if (lastY >= height) {
-            lastY = 0
+		if (lastY >= height) {
+			lastY = 0
 
-            columnIndex++
-            rowIndex = 0
-        }
+			columnIndex++
+			rowIndex = 0
+		}
 
-        items.push({
-            ...data[i],
-            columnIndex,
-            rowIndex
-        })
+		items.push({
+			...data[i],
+			columnIndex,
+			rowIndex
+		})
 
-        rowIndex++
-    }
+		rowIndex++
+	}
 
-    // Group items by column
-    // [
-    //      Column 0: [item1, item2, item3],
-    //      Column 1: [item4, item5, item6],
-    //    ...
-    // ]
-    const columns = items.reduce((acc, item) => {
-        if (!acc[item.columnIndex]) {
-            acc[item.columnIndex] = []
-        }
+	// Group items by column
+	// [
+	//      Column 0: [item1, item2, item3],
+	//      Column 1: [item4, item5, item6],
+	//    ...
+	// ]
+	const columns = items.reduce((acc, item) => {
+		if (!acc[item.columnIndex]) {
+			acc[item.columnIndex] = []
+		}
 
-        acc[item.columnIndex].push(item)
+		acc[item.columnIndex].push(item)
 
-        return acc
-    }, [] as ColumnData[])
+		return acc
+	}, [] as ColumnData[])
 
-    // Map the columns and calculate the position of each item and the height and width, based on the number of items in the column
-    const allItems: AllItemsData[] = []
-    for (const column of columns) {
-        const totalColItems = column.length
-        const rectHeight = height / totalColItems
+	// Map the columns and calculate the position of each item and the height and width, based on the number of items in the column
+	const allItems: AllItemsData[] = []
+	for (const column of columns) {
+		const totalColItems = column.length
+		const rectHeight = height / totalColItems
 
-        let lastY = 0
-        // let rowIndex = 0
+		let lastY = 0
+		// let rowIndex = 0
 
-        for (const item of column) {
-            const x = item.columnIndex * rectWidth
-            const y = lastY
+		for (const item of column) {
+			const x = item.columnIndex * rectWidth
+			const y = lastY
 
-            allItems.push({
-                ...item,
-                x,
-                y,
-                rectHeight,
-                rectWidth
-            })
+			allItems.push({
+				...item,
+				x,
+				y,
+				rectHeight,
+				rectWidth
+			})
 
-            lastY += rectHeight
-        }
+			lastY += rectHeight
+		}
+	}
 
-    }
+	return (
+		<Stage width={width} height={height}>
+			<Layer
+				draggable={true}
+				scaleX={scale}
+				scaleY={scale}
+				x={position.x}
+				y={position.y}
+				onDragMove={(e) => {
+					const newPos = dragHandler(e, height, width)
 
-    return (
-        <Stage width={width} height={height}>
-            <Layer
-                draggable={true}
-                scaleX={scale}
-                scaleY={scale}
-                x={position.x}
-                y={position.y}
+					if (newPos) {
+						setPosition(newPos)
+					}
+				}}
+				onWheel={(e) => {
+					const newPos = wheelHandler(e, height, width)
 
-                onDragMove={(e) => {
-                    const newPos = dragHandler(e, height, width)
+					if (newPos) {
+						setPosition({
+							x: newPos.x,
+							y: newPos.y
+						})
 
-                    if (newPos) {
-                        setPosition(newPos)
-                    }
-                }}
+						setScale(newPos.scale)
+					}
+				}}
+			>
+				{allItems.map((item) => {
+					const text = `${item.name}\n${item.price}€\n${item.change}%`
+					const smallText = `${item.name}`
+					const fontSize = 20
 
-                onWheel={(e) => {
-                    const newPos = wheelHandler(e, height, width)
+					const textHeight = calculateTextHeight(text, fontSize, textConfig.fontFamily, textConfig.fontStyle)
+					const smallTextHeight = calculateTextHeight(
+						smallText,
+						fontSize,
+						textConfig.fontFamily,
+						textConfig.fontStyle
+					)
 
-                    if (newPos) {
-                        setPosition({
-                            x: newPos.x,
-                            y: newPos.y
-                        })
+					const image = new window.Image()
+					image.src = `/api/image/symbol?name=${item.logo}`
 
-                        setScale(newPos.scale)
-                    }
-                }}
-            >
-                {allItems.map((item) => {
-                    const text = `${item.name}\n${item.price}€\n${item.change}%`
-                    const smallText = `${item.name}`
-                    const fontSize = 20
+					// const imageSize = 40
+					const imageSize = fontSize * 2
+					const imageX = item.rectWidth / 2 - imageSize / 2
+					const imageY = item.rectHeight / 2 - imageSize * 1.5
 
-                    const textHeight = calculateTextHeight(text, fontSize, textConfig.fontFamily, textConfig.fontStyle)
-                    const smallTextHeight = calculateTextHeight(smallText, fontSize, textConfig.fontFamily, textConfig.fontStyle)
+					const width = item.rectWidth
+					const height = item.rectHeight
 
-                    const image = new window.Image()
-                    image.src = `/api/image/symbol?name=${item.logo}`
+					return (
+						<Group
+							key={item.symbol}
+							x={item.x}
+							y={item.y}
+							clip={{
+								x: 0,
+								y: 0,
+								width: width,
+								height: height
+							}}
+							onClick={() => {
+								navigate(`/data/${item.symbol}`)
+							}}
 
-                    // const imageSize = 40
-                    const imageSize = fontSize * 2
-                    const imageX = item.rectWidth / 2 - imageSize / 2
-                    const imageY = item.rectHeight / 2 - imageSize * 1.5
+							// onMouseOver={(e) => {
+							//     hoverHandler(e, item)
+							// }}
+						>
+							<Rect height={height} width={width} fill={item.color.background} />
 
-                    const width = item.rectWidth;
-                    const height = item.rectHeight;
+							{item.rectHeight > textHeight + (imageSize + 10) ? (
+								<Image
+									x={imageX}
+									y={imageY - 10}
+									width={imageSize}
+									height={imageSize}
+									cornerRadius={99999}
+									image={image}
+								/>
+							) : null}
 
-                    return (
-                        <Group
-                            key={item.symbol}
+							{item.rectHeight > textHeight ? (
+								<Text
+									x={0}
+									y={height / 2 - textHeight / 2}
+									width={width}
+									align="center"
+									text={text}
+									fontSize={fontSize}
+									fill={textConfig.fill}
+									padding={5}
+									fontStyle={textConfig.fontStyle}
+								/>
+							) : null}
 
-                            x={item.x}
-                            y={item.y}
-                            clip={{
-                                x: 0,
-                                y: 0,
-                                width: width,
-                                height: height,
-                            }}
-
-                            onClick={() => {
-                                navigate(`/data/${item.symbol}`)
-                            }}
-
-
-                        // onMouseOver={(e) => {
-                        //     hoverHandler(e, item)
-                        // }}
-                        >
-                            <Rect
-                                height={height}
-                                width={width}
-                                fill={item.color.background}
-                            />
-
-                            {item.rectHeight > textHeight + (imageSize + 10) ? (
-                                <Image
-                                    x={imageX}
-                                    y={imageY - 10}
-                                    width={imageSize}
-                                    height={imageSize}
-                                    cornerRadius={99999}
-                                    image={image}
-                                />
-                            ) : null}
-
-                            {item.rectHeight > textHeight ? (
-                                <Text
-                                    x={0}
-                                    y={height / 2 - textHeight / 2}
-                                    width={width}
-                                    align="center"
-                                    text={text}
-                                    fontSize={fontSize}
-                                    fill={textConfig.fill}
-                                    padding={5}
-                                    fontStyle={textConfig.fontStyle}
-                                />
-                            ) : null}
-
-                            {item.rectHeight < textHeight &&
-                                item.rectHeight > smallTextHeight ? (
-                                <Text
-                                    x={0}
-                                    y={height / 2 - smallTextHeight / 2}
-                                    width={width}
-                                    align="center"
-                                    text={smallText}
-                                    fontSize={fontSize}
-                                    fill={textConfig.fill}
-                                    padding={5}
-                                    fontStyle={textConfig.fontStyle}
-                                />
-                            ) : null}
-                        </Group>
-                    )
-                })}
-            </Layer>
-        </Stage>
-    )
+							{item.rectHeight < textHeight && item.rectHeight > smallTextHeight ? (
+								<Text
+									x={0}
+									y={height / 2 - smallTextHeight / 2}
+									width={width}
+									align="center"
+									text={smallText}
+									fontSize={fontSize}
+									fill={textConfig.fill}
+									padding={5}
+									fontStyle={textConfig.fontStyle}
+								/>
+							) : null}
+						</Group>
+					)
+				})}
+			</Layer>
+		</Stage>
+	)
 }

@@ -11,7 +11,7 @@ export default function ShareButton({
 }: {
 	title: string
 	text: string
-	url: string,
+	url: string
 	className?: string
 }) {
 	const { t } = useTranslation("common", {

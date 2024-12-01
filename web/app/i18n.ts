@@ -8,9 +8,9 @@ export default {
 	fallbackLng: "fr-FR",
 	// biome-ignore lint/style/useNamingConvention: <explanation>
 	defaultNS: "common",
-    interpolation: {
-        escapeValue: false,
-    },
+	interpolation: {
+		escapeValue: false
+	}
 }
 
 export const dateFns: Record<string, Locale> = {
@@ -23,7 +23,7 @@ export const countries: Record<string, Record<string, string>> = {
 	"en-US": countriesEn
 }
 
-export const newsUrl: Record<string, { news: string, originLocale: string}> = {	
+export const newsUrl: Record<string, { news: string; originLocale: string }> = {
 	"fr-FR": {
 		news: "https://fr.tradingview.com/news/markets",
 		originLocale: "https://fr.tradingview.com"

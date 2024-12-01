@@ -15,11 +15,11 @@ async function getLanguage(request: Request) {
 		locale = language
 	}
 
-    const userLanguage = await getLanguageFromUser(request)
-    if (!hasChanged && userLanguage) {
-        hasChanged = true
-        locale = userLanguage
-    }
+	const userLanguage = await getLanguageFromUser(request)
+	if (!hasChanged && userLanguage) {
+		hasChanged = true
+		locale = userLanguage
+	}
 
 	const sessionLanguage = await getLanguageFromSession(request)
 	if (!hasChanged && sessionLanguage) {
@@ -67,15 +67,15 @@ async function getLanguageFromUser(request: Request) {
 		return null
 	}
 
-    const preferences = await getUserPreferences({ user })
+	const preferences = await getUserPreferences({ user })
 
-    if (!preferences) {
-        return null
-    }
+	if (!preferences) {
+		return null
+	}
 
-    const language = preferences.language
+	const language = preferences.language
 
-    return language
+	return language
 }
 
 function getLanguageFromUrl(url: string, key = "language") {

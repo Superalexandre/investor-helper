@@ -111,17 +111,24 @@ export default function Index() {
 				</Button>
 				{notificationError ? <Label className="text-red-500 text-sm">{notificationError}</Label> : null}
 			</div>
-			
+
 			<div className="flex flex-col items-center justify-center">
 				<p>Language : {i18n.language}</p>
-				
-				<Button onClick={() => {
-					i18n.changeLanguage("en-US")
-				}}>English</Button>
-				<Button onClick={() => {
-					i18n.changeLanguage("fr-FR")
-				}}>Français</Button>
 
+				<Button
+					onClick={() => {
+						i18n.changeLanguage("en-US")
+					}}
+				>
+					English
+				</Button>
+				<Button
+					onClick={() => {
+						i18n.changeLanguage("fr-FR")
+					}}
+				>
+					Français
+				</Button>
 			</div>
 		</div>
 	)

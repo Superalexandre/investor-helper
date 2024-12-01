@@ -35,7 +35,6 @@ export default function Contact() {
 		resolver
 	})
 
-
 	useEffect(() => {
 		if (isSubmitSuccessful) {
 			reset()
@@ -88,12 +87,7 @@ export default function Contact() {
 					className={`${isSubmitting ? "opacity-50" : "hover:bg-green-700"} flex flex-row items-center justify-center gap-2 rounded bg-green-500 p-4 text-white`}
 					disabled={isSubmitting}
 				>
-					{isSubmitting ? (
-						<Loading className="size-5 border-2" />
-					) : (
-						<MdSend size={20} />
-					)}
-					
+					{isSubmitting ? <Loading className="size-5 border-2" /> : <MdSend size={20} />}
 					Envoyer
 				</Button>
 			</div>

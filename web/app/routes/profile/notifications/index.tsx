@@ -68,16 +68,14 @@ export default function Index() {
 					setNotificationOpen={setNotificationOpen}
 				/>
 
-				<CalendarNotifications
-					calendarNotifications={calendarNotifications}
-				/>
+				<CalendarNotifications calendarNotifications={calendarNotifications} />
 			</div>
 		</div>
 	)
 }
 
 function CalendarNotifications({
-	calendarNotifications,
+	calendarNotifications
 }: {
 	calendarNotifications: { events: { id: string; title: string } }[]
 }) {
@@ -102,10 +100,7 @@ function CalendarNotifications({
 								{events.title}
 							</Link>
 
-							<fetcher.Form
-								method="post"
-								action={`/api/notifications/unsubscribe/calendar/${events.id}`}
-							>
+							<fetcher.Form method="post" action={`/api/notifications/unsubscribe/calendar/${events.id}`}>
 								<Button
 									type="submit"
 									variant="destructive"
@@ -117,7 +112,7 @@ function CalendarNotifications({
 								>
 									Supprimer
 									{fetchId === events.id &&
-										(fetchState === "loading" || fetchState === "submitting") ? (
+									(fetchState === "loading" || fetchState === "submitting") ? (
 										<Loading className="size-4 border-2" />
 									) : (
 										<MdDelete className="size-4" />
@@ -137,12 +132,11 @@ function CalendarNotifications({
 function NewsNotifications({
 	news,
 	setNotificationNewsOpen,
-	setNotificationOpen,
-
+	setNotificationOpen
 }: {
-	news: NotificationSubscribedFullNews[],
-	setNotificationNewsOpen: Dispatch<SetStateAction<boolean>>,
-	setNotificationOpen: Dispatch<SetStateAction<boolean>>,
+	news: NotificationSubscribedFullNews[]
+	setNotificationNewsOpen: Dispatch<SetStateAction<boolean>>
+	setNotificationOpen: Dispatch<SetStateAction<boolean>>
 }) {
 	const { isSubscribed } = usePush()
 	const [notificationUpdateOpen, setNotificationUpdateOpen] = useState<string | null>(null)
@@ -183,7 +177,6 @@ function NewsNotifications({
 									}}
 								>
 									Modifier
-
 									<MdEdit />
 								</Button>
 							</div>

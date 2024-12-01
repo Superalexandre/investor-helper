@@ -13,7 +13,6 @@ import { useTranslation } from "react-i18next"
 import i18next from "../../../../i18next.server"
 
 export async function loader({ request }: LoaderFunctionArgs) {
-
 	const t = await i18next.getFixedT(request, "newsFocus")
 
 	const title = t("title")
@@ -22,7 +21,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	return {
 		title: title,
 		description: description
-    }
+	}
 }
 
 export const meta: MetaFunction<typeof loader> = ({ data, params }) => {
@@ -145,7 +144,8 @@ export default function Index() {
 									<p className="text-muted-foreground">
 										{formatDate(news.news.published * 1000, {
 											locale: i18n.language
-										})} - {news.news.source}
+										})}{" "}
+										- {news.news.source}
 									</p>
 								</CardFooter>
 							</Card>

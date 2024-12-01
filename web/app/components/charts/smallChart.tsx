@@ -3,9 +3,9 @@ import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } f
 import { CartesianGrid, ComposedChart, Line, XAxis, YAxis } from "recharts"
 
 export const SmallChart = function SmallChart({
-    prices
+	prices
 }: {
-    prices: Period[]
+	prices: Period[]
 }) {
 	const chartConfig: ChartConfig = {
 		close: {
@@ -52,7 +52,7 @@ export const SmallChart = function SmallChart({
 					strokeWidth={2}
 					dot={false}
 					className="z-10"
-                    isAnimationActive={false}
+					isAnimationActive={false}
 				/>
 
 				<ChartTooltip

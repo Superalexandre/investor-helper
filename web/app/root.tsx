@@ -9,7 +9,7 @@ import {
 	Scripts,
 	ScrollRestoration,
 	useRouteError,
-	useRouteLoaderData,
+	useRouteLoaderData
 } from "@remix-run/react"
 import { ManifestLink, useSWEffect } from "@remix-pwa/sw"
 import stylesheet from "@/tailwind.css?url"
@@ -30,10 +30,8 @@ import { useChangeLanguage } from "remix-i18next/react"
 import { getTheme } from "./lib/getTheme"
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const theme = await getTheme(request)
-	const locale = await i18next.getLocale(request)
+	const [user, theme, locale] = await Promise.all([getUser(request), getTheme(request), i18next.getLocale(request)])
 
-	const user = await getUser(request)
 	const url = new URL(request.url)
 
 	const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
@@ -56,7 +54,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: stylesheet, as: "style", type: "text/css" }]
 export const handle = {
-	i18n: "common",
+	i18n: "common"
 }
 
 export function Layout({ children }: { children: ReactNode }) {
@@ -71,7 +69,12 @@ export function Layout({ children }: { children: ReactNode }) {
 	useChangeLanguage(locale)
 
 	return (
-		<html lang={locale} dir={i18n.dir()} className={`${theme === "dark" ? "dark" : ""} bg-background`} translate="no">
+		<html
+			lang={locale}
+			dir={i18n.dir()}
+			className={`${theme === "dark" ? "dark" : ""} bg-background`}
+			translate="no"
+		>
 			<head>
 				<meta charSet="utf-8" />
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -94,7 +97,6 @@ export function Layout({ children }: { children: ReactNode }) {
 				<meta property="og:locale" content="fr_FR" />
 
 				<meta name="mobile-web-app-capable" content="yes" />
-
 			</head>
 			<body className="flex min-h-screen flex-col">
 				<Header user={data?.user ?? null} t={t} />
@@ -178,7 +180,9 @@ export function ErrorBoundary() {
 
 		return (
 			<div className="flex flex-grow flex-col items-center justify-center gap-4">
-				<h1 className="font-bold text-3xl">{t("error.errorTitle")} ({error.status})</h1>
+				<h1 className="font-bold text-3xl">
+					{t("error.errorTitle")} ({error.status})
+				</h1>
 				<p>{error.statusText}</p>
 				<Link to="/">
 					<Button type="button" variant="default">

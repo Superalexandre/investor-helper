@@ -111,7 +111,9 @@ export default function Index() {
 				<div className="flex flex-col items-center justify-center pb-8">
 					<h1 className="pt-4 text-center font-bold text-2xl">{news.news.title}</h1>
 
-					<p className="text-center text-muted-foreground">{formatDateTime(news.news.published * 1000, i18n.language)}</p>
+					<p className="text-center text-muted-foreground">
+						{formatDateTime(news.news.published * 1000, i18n.language)}
+					</p>
 				</div>
 
 				<div className="flex flex-col">

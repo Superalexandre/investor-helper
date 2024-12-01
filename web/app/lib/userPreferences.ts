@@ -1,144 +1,136 @@
-import { eq } from "drizzle-orm";
+import { eq } from "drizzle-orm"
 import type { User } from "../../../db/schema/users"
 import { usersPreferencesSchema } from "../../../db/schema/preferences"
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import Database from "better-sqlite3";
+import { drizzle } from "drizzle-orm/better-sqlite3"
+import Database from "better-sqlite3"
 
 async function getUserPreferences({
-    user
+	user
 }: {
-    user: User
-}) {
-    const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
-    const db = drizzle(sqlite)
-
-    const usersPreferences = await db
-        .select()
-        .from(usersPreferencesSchema)
-        .where(eq(usersPreferencesSchema.userId, user.id))
-
-    if (!usersPreferences || usersPreferences.length === 0 || !usersPreferences[0]) {
-        return null
-    }
-
-    const userPreference = usersPreferences[0]
-
-    return userPreference
-}
-
-async function createPreferences({
-    user
-}: {
-    user: User
+	user: User
 }) {
 	const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
 	const db = drizzle(sqlite)
 
-    const preferences = await getUserPreferences({ user })
+	const usersPreferences = await db
+		.select()
+		.from(usersPreferencesSchema)
+		.where(eq(usersPreferencesSchema.userId, user.id))
 
-    if (preferences) {
-        return preferences
-    }
+	if (!usersPreferences || usersPreferences.length === 0 || !usersPreferences[0]) {
+		return null
+	}
 
-    console.log("Creating preferences for user", user)
+	const userPreference = usersPreferences[0]
 
-    const newPreferences = await db
-        .insert(usersPreferencesSchema)
-        .values({
-            userId: user.id
-        })
+	return userPreference
+}
 
-    return newPreferences
+async function createPreferences({
+	user
+}: {
+	user: User
+}) {
+	const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
+	const db = drizzle(sqlite)
+
+	const preferences = await getUserPreferences({ user })
+
+	if (preferences) {
+		return preferences
+	}
+
+	console.log("Creating preferences for user", user)
+
+	const newPreferences = await db.insert(usersPreferencesSchema).values({
+		userId: user.id
+	})
+
+	return newPreferences
 }
 
 async function checkUserPreferences({
-    user
+	user
 }: {
-    user: User
+	user: User
 }) {
-    const preferences = await getUserPreferences({ user })
+	const preferences = await getUserPreferences({ user })
 
-    if (!preferences) {
-        return await createPreferences({ user })
-    }
+	if (!preferences) {
+		return await createPreferences({ user })
+	}
 
-    return preferences
+	return preferences
 }
 
 async function changeUserLanguage({
-    user,
-    language
+	user,
+	language
 }: {
-    user: User,
-    language: string
+	user: User
+	language: string
 }) {
-    const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
-    const db = drizzle(sqlite)
+	const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
+	const db = drizzle(sqlite)
 
-    await checkUserPreferences({ user })
+	await checkUserPreferences({ user })
 
-    const updatedUser = await db
-        .update(usersPreferencesSchema)
-        .set({
-            language
-        })
-        .where(eq(usersPreferencesSchema.userId, user.id))
+	const updatedUser = await db
+		.update(usersPreferencesSchema)
+		.set({
+			language
+		})
+		.where(eq(usersPreferencesSchema.userId, user.id))
 
-    return updatedUser
+	return updatedUser
 }
 
 async function changeUserTheme({
-    user,
-    theme
+	user,
+	theme
 }: {
-    user: User,
-    theme: string
+	user: User
+	theme: string
 }) {
-    const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
-    const db = drizzle(sqlite)
+	const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
+	const db = drizzle(sqlite)
 
-    await checkUserPreferences({ user })
+	await checkUserPreferences({ user })
 
-    const updatedUser = await db
-        .update(usersPreferencesSchema)
-        .set({
-            theme
-        })
-        .where(eq(usersPreferencesSchema.userId, user.id))
+	const updatedUser = await db
+		.update(usersPreferencesSchema)
+		.set({
+			theme
+		})
+		.where(eq(usersPreferencesSchema.userId, user.id))
 
-    return updatedUser
+	return updatedUser
 }
 
 async function updateUserPreferences({
-    user,
-    preferences
+	user,
+	preferences
 }: {
-    user: User,
-    preferences: {
-        theme: string,
-        language: string
-    }
+	user: User
+	preferences: {
+		theme: string
+		language: string
+	}
 }) {
-    const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
-    const db = drizzle(sqlite)
+	const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
+	const db = drizzle(sqlite)
 
-    await checkUserPreferences({ user })
+	await checkUserPreferences({ user })
 
-    const updatedUser = await db
-        .update(usersPreferencesSchema)
-        .set({
-            theme: preferences.theme,
-            language: preferences.language
-        })
-        .where(eq(usersPreferencesSchema.userId, user.id))
+	const updatedUser = await db
+		.update(usersPreferencesSchema)
+		.set({
+			theme: preferences.theme,
+			language: preferences.language
+		})
+		.where(eq(usersPreferencesSchema.userId, user.id))
 
-    return updatedUser
+	return updatedUser
 }
 
-export {
-    getUserPreferences,
-    createPreferences,
-    changeUserLanguage,
-    changeUserTheme,
-    updateUserPreferences
-}
+export { getUserPreferences, createPreferences, changeUserLanguage, changeUserTheme, updateUserPreferences }

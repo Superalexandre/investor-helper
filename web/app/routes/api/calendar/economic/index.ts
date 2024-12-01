@@ -16,8 +16,8 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 		order: "asc"
 	})
 
-    // Await fake delay
-    // await new Promise(resolve => setTimeout(resolve, 5000))
+	// Await fake delay
+	// await new Promise(resolve => setTimeout(resolve, 5000))
 
 	return json(events)
 }

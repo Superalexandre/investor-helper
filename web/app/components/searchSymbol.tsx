@@ -69,7 +69,7 @@ export function SearchSymbol({
 			.then((response) => response.json())
 			.then((data) => {
 				setResultSymbols(data.symbols as SelectSymbolType[])
-				
+
 				setLoading(false)
 				setHidden(false)
 			})

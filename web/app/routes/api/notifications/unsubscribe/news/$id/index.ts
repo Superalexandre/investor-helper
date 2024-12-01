@@ -32,24 +32,20 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		})
 	}
 
-    await db
-        .delete(notificationSubscribedNewsKeywordsSchema)
-        .where(
-            and(
-                eq(notificationSubscribedNewsKeywordsSchema.notificationId, id)
-            )
-        )
+	await db
+		.delete(notificationSubscribedNewsKeywordsSchema)
+		.where(and(eq(notificationSubscribedNewsKeywordsSchema.notificationId, id)))
 
-    await db
-        .delete(notificationSubscribedNewsSchema)
-        .where(
-            and(
-                eq(notificationSubscribedNewsSchema.userId, user.id),
-                eq(notificationSubscribedNewsSchema.notificationId, id)
-            )
-        )
+	await db
+		.delete(notificationSubscribedNewsSchema)
+		.where(
+			and(
+				eq(notificationSubscribedNewsSchema.userId, user.id),
+				eq(notificationSubscribedNewsSchema.notificationId, id)
+			)
+		)
 
-    return json({
+	return json({
 		success: true,
 		error: false,
 		message: "Notification push unsubscribed"

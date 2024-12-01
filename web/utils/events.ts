@@ -274,7 +274,7 @@ async function saveEvents(events: EventRaw[]) {
 		}
 
 		const frenchComment: string | null = null
-		
+
 		eventsValues.push({
 			...event,
 			frenchComment: frenchComment,
@@ -368,4 +368,13 @@ async function searchEvents(search: string, limit = 10) {
 	return events
 }
 
-export { getEvents, getEventById, fetchEvents, saveFetchEvents, saveEvents, getEventsNow, getNextImportantEvent, searchEvents }
+export {
+	getEvents,
+	getEventById,
+	fetchEvents,
+	saveFetchEvents,
+	saveEvents,
+	getEventsNow,
+	getNextImportantEvent,
+	searchEvents
+}

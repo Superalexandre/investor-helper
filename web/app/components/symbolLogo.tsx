@@ -1,5 +1,9 @@
 import type { ReactNode } from "react"
-import { Avatar as ImageContainer, AvatarFallback as ImageFallback, AvatarImage as ImageContent } from "@/components/ui/avatar"
+import {
+	Avatar as ImageContainer,
+	AvatarFallback as ImageFallback,
+	AvatarImage as ImageContent
+} from "@/components/ui/avatar"
 import { Skeleton } from "./ui/skeleton"
 import { cn } from "../lib/utils"
 
@@ -10,11 +14,11 @@ export default function SymbolLogo({
 	fallback
 }: {
 	symbol:
-	| {
-		// biome-ignore lint/suspicious/noExplicitAny: This is a valid type.
-		[key: string]: any
-	}
-	| undefined
+		| {
+				// biome-ignore lint/suspicious/noExplicitAny: This is a valid type.
+				[key: string]: any
+		  }
+		| undefined
 	className?: string
 	alt?: string
 	// React.ReactNode
@@ -37,6 +41,5 @@ export default function SymbolLogo({
 				<Skeleton className="size-full rounded-full bg-muted" />
 			</ImageFallback>
 		</ImageContainer>
-
 	)
 }

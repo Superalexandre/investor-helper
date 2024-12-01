@@ -76,9 +76,7 @@ export default function Index() {
 				<h2 className="font-bold text-xl">Vos notifications</h2>
 
 				<Link to="/profile/notifications">
-					<Button>
-						Voir mes notifications
-					</Button>
+					<Button>Voir mes notifications</Button>
 				</Link>
 			</div>
 		</div>

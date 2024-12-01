@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
-import { Link, useLocation } from "@remix-run/react"
+import { Link, useFetcher, useLoaderData, useLocation } from "@remix-run/react"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
 import formatDate from "@/utils/formatDate"
@@ -11,7 +11,7 @@ import { useQuery } from "@tanstack/react-query"
 import type { NewsSymbols } from "../../../../types/News"
 import SkeletonNews from "../../../components/skeletons/skeletonNews"
 import DisplaySymbols from "../../../components/displaySymbols"
-import { memo, ReactNode, useEffect, useRef, useState } from "react"
+import { memo, type ReactNode, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { TFunction } from "i18next"
 import i18next from "../../../i18next.server"
@@ -19,16 +19,22 @@ import { flags } from "../../../i18n"
 import { Checkbox } from "../../../components/ui/checkbox"
 import { Label } from "../../../components/ui/label"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../../../components/ui/dialog"
-import { CheckedState } from "@radix-ui/react-checkbox"
+import type { CheckedState } from "@radix-ui/react-checkbox"
+import getNewsPreferences from "../../../lib/getNewsPreferences"
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const t = await i18next.getFixedT(request, "news")
+	const newsPreferences = await getNewsPreferences(request)
+
+	console.log(newsPreferences)
+
 	const title = t("title")
 	const description = t("description")
 
 	return {
 		title: title,
-		description: description
+		description: description,
+		newsPreferences: newsPreferences
 	}
 }
 
@@ -53,6 +59,7 @@ export const handle = {
 }
 
 export default function Index() {
+	const { newsPreferences } = useLoaderData<typeof loader>()
 	const { t, i18n } = useTranslation("news")
 
 	const location = useLocation()
@@ -62,8 +69,8 @@ export default function Index() {
 	const previousPage = location.search && actualPage - 1 >= 1 ? actualPage - 1 : 1
 	const nextPage = location.search ? actualPage + 1 : 2
 
-	const [selectedLanguage, setSelectedLanguage] = useState<string[]>(["fr-FR"])
-	const [selectedImportance, setSelectedImportance] = useState<string[]>(["none", "low", "medium", "high", "very-high"])
+	const [selectedLanguage, setSelectedLanguage] = useState<string[]>(newsPreferences.languages)
+	const [selectedImportance, setSelectedImportance] = useState<string[]>(newsPreferences.importances)
 
 	return (
 		<div>
@@ -71,7 +78,11 @@ export default function Index() {
 
 			<div className="flex flex-col items-center justify-center space-y-1 pt-4">
 				<p className="text-center font-bold text-2xl">{t("lastNews")}</p>
-				{actualPage > 1 ? <p className="text-muted-foreground text-sm">{t("page")} {actualPage}</p> : null}
+				{actualPage > 1 ? (
+					<p className="text-muted-foreground text-sm">
+						{t("page")} {actualPage}
+					</p>
+				) : null}
 
 				{/* <Button variant="default">
                     Rafraîchir
@@ -81,10 +92,8 @@ export default function Index() {
 			<div className="flex flex-col space-y-6 p-4 lg:p-10">
 				<DisplayFilter
 					t={t}
-
 					selectedLanguage={selectedLanguage}
 					setSelectedLanguage={setSelectedLanguage}
-
 					selectedImportance={selectedImportance}
 					setSelectedImportance={setSelectedImportance}
 				/>
@@ -92,9 +101,7 @@ export default function Index() {
 				<News
 					t={t}
 					language={i18n.language}
-
 					actualPage={actualPage}
-
 					selectedLanguage={selectedLanguage}
 					selectedImportance={selectedImportance}
 				/>
@@ -137,49 +144,40 @@ export default function Index() {
 	)
 }
 
-function DisplayFilter({ t, selectedLanguage, setSelectedLanguage, selectedImportance, setSelectedImportance }: {
-	t: TFunction,
-	selectedLanguage: string[],
-	setSelectedLanguage: (value: string[]) => void,
+function DisplayFilter({
+	t,
+	selectedLanguage,
+	setSelectedLanguage,
+	selectedImportance,
+	setSelectedImportance
+}: {
+	t: TFunction
+	selectedLanguage: string[]
+	setSelectedLanguage: (value: string[]) => void
 
-	selectedImportance: string[],
+	selectedImportance: string[]
 	setSelectedImportance: (value: string[]) => void
 }) {
-	const [opened, setOpened] = useState<string | null>(null);
+	const [opened, setOpened] = useState<string | null>(null)
 
 	return (
 		<>
-			<PopupFilter
-				open={opened === "language"}
-				onClose={() => setOpened(null)}
-			>
-				<FilterLanguage
-					selectedLanguage={selectedLanguage}
-					setSelectedLanguage={setSelectedLanguage}
-				/>
+			<PopupFilter open={opened === "language"} onClose={() => setOpened(null)}>
+				<FilterLanguage selectedLanguage={selectedLanguage} setSelectedLanguage={setSelectedLanguage} />
 			</PopupFilter>
 
-			<PopupFilter
-				open={opened === "importance"}
-				onClose={() => setOpened(null)}
-			>
+			<PopupFilter open={opened === "importance"} onClose={() => setOpened(null)}>
 				<FilterImportance
 					selectedImportance={selectedImportance}
 					setSelectedImportance={setSelectedImportance}
 				/>
 			</PopupFilter>
 
-			<PopupFilter
-				open={opened === "all"}
-				onClose={() => setOpened(null)}
-			>
+			<PopupFilter open={opened === "all"} onClose={() => setOpened(null)}>
 				<div className="flex flex-col items-center justify-center gap-4">
 					<div className="flex flex-col items-center justify-center gap-2">
 						<p className="text-muted-foreground text-sm">Langue</p>
-						<FilterLanguage
-							selectedLanguage={selectedLanguage}
-							setSelectedLanguage={setSelectedLanguage}
-						/>
+						<FilterLanguage selectedLanguage={selectedLanguage} setSelectedLanguage={setSelectedLanguage} />
 					</div>
 					<div className="flex flex-col items-center justify-center gap-2">
 						<p className="text-muted-foreground text-sm">Importance</p>
@@ -196,63 +194,100 @@ function DisplayFilter({ t, selectedLanguage, setSelectedLanguage, selectedImpor
 					Langue ({selectedLanguage.length})
 				</Button>
 
-				<Button variant={opened === "importance" ? "default" : "outline"} onClick={() => setOpened("importance")}>
+				<Button
+					variant={opened === "importance" ? "default" : "outline"}
+					onClick={() => setOpened("importance")}
+				>
 					Importance ({selectedImportance.length})
 				</Button>
 
-				<Button variant={opened === "all" ? "default" : "outline"} onClick={() => setOpened("all")}>Tout les filtres</Button>
+				<Button variant={opened === "all" ? "default" : "outline"} onClick={() => setOpened("all")}>
+					Tout les filtres
+				</Button>
 			</div>
 		</>
-	);
+	)
 }
 
 function PopupFilter({
 	open,
 	onClose,
-	children,
+	children
 }: {
-	open: boolean;
-	onClose: () => void;
-	children: ReactNode;
+	open: boolean
+	onClose: () => void
+	children: ReactNode
 }) {
 	return (
-		<Dialog
-			open={open}
-			onOpenChange={(newOpen) => newOpen ? null : onClose()}
-		>
+		<Dialog open={open} onOpenChange={(newOpen) => (newOpen ? null : onClose())}>
 			<DialogContent className="w-11/12 max-h-full overflow-auto">
 				<DialogHeader>
 					<DialogTitle>Filtrez les actualités</DialogTitle>
-					<DialogDescription>
-						Affinez les actualités en fonction de vos préférences
-					</DialogDescription>
+					<DialogDescription>Affinez les actualités en fonction de vos préférences</DialogDescription>
 				</DialogHeader>
 
 				{children}
 			</DialogContent>
 		</Dialog>
-	);
+	)
 }
 
 function FilterLanguage({
 	selectedLanguage,
 	setSelectedLanguage
 }: {
-	selectedLanguage: string[],
+	selectedLanguage: string[]
 	setSelectedLanguage: (value: string[]) => void
 }) {
+	// const submit = useSubmit()
+	const fetcher = useFetcher()
+
 	const onChange = (checked: CheckedState, value: string) => {
+		let newLanguages = []
+
 		if (checked) {
 			setSelectedLanguage([...selectedLanguage, value])
+
+			newLanguages = [...selectedLanguage, value]
 		} else {
 			setSelectedLanguage(selectedLanguage.filter((lang) => lang !== value))
+
+			newLanguages = selectedLanguage.filter((lang) => lang !== value)
 		}
+
+		// submit({
+		// 	type: "newsPreferences",
+		// 	languages: selectedLanguage.join(","),
+		// 	redirect: "/news"
+		// }, {
+		// 	method: "POST",
+		// 	action: "/settings",
+		//     encType: "application/json",
+		// })
+
+		fetcher.submit(
+			{
+				type: "newsPreferences",
+				languages: newLanguages.join(","),
+				redirect: "/news"
+			},
+			{
+				method: "POST",
+				action: "/settings",
+				encType: "application/json"
+			}
+		)
 	}
 
 	return (
-		<div className="flex flex-col items-center gap-2">
+		<fetcher.Form className="flex flex-col items-center gap-2">
 			<div className="flex flex-row items-center justify-center gap-2">
-				<Checkbox id="french" value="fr-FR" defaultChecked={selectedLanguage.includes("fr-FR")} onCheckedChange={(checked) => onChange(checked, "fr-FR")} />
+				<Checkbox
+					id="french"
+					value="fr-FR"
+					defaultChecked={selectedLanguage.includes("fr-FR")}
+					onCheckedChange={(checked) => onChange(checked, "fr-FR")}
+				/>
 				<Label htmlFor="french">Français</Label>
 			</div>
 
@@ -265,7 +300,7 @@ function FilterLanguage({
 				/>
 				<Label htmlFor="english">Anglais</Label>
 			</div>
-		</div>
+		</fetcher.Form>
 	)
 }
 
@@ -273,49 +308,105 @@ function FilterImportance({
 	selectedImportance,
 	setSelectedImportance
 }: {
-	selectedImportance: string[],
+	selectedImportance: string[]
 	setSelectedImportance: (value: string[]) => void
 }) {
+	// const submit = useSubmit()
+	const fetcher = useFetcher()
 
 	const onChange = (checked: CheckedState, value: string) => {
+		let newImportances = []
+
 		if (checked) {
 			setSelectedImportance([...selectedImportance, value])
+
+			newImportances = [...selectedImportance, value]
 		} else {
 			setSelectedImportance(selectedImportance.filter((importance) => importance !== value))
+
+			newImportances = selectedImportance.filter((importance) => importance !== value)
 		}
+
+		fetcher.submit(
+			{
+				type: "newsPreferences",
+				importances: newImportances.join(","),
+				redirect: "/news"
+			},
+			{
+				method: "POST",
+				action: "/settings",
+				encType: "application/json"
+			}
+		)
+
+		// submit({
+		// 	type: "newsPreferences",
+		// 	importances: selectedImportance.join(","),
+		// 	redirect: "/news"
+		// }, {
+		// 	method: "POST",
+		// 	action: "/settings",
+		//     encType: "application/json",
+		// })
 	}
 
 	return (
-		<div className="flex flex-col items-center gap-2">
+		<fetcher.Form className="flex flex-col items-center gap-2">
 			<div className="flex flex-row items-center justify-center gap-2">
-				<Checkbox id="none" value="none" defaultChecked={selectedImportance.includes("none")} onCheckedChange={(checked) => onChange(checked, "none")} />
+				<Checkbox
+					id="none"
+					value="none"
+					defaultChecked={selectedImportance.includes("none")}
+					onCheckedChange={(checked) => onChange(checked, "none")}
+				/>
 				<Label htmlFor="none">Neutre</Label>
 			</div>
 
 			<div className="flex flex-row items-center justify-center gap-2">
-				<Checkbox id="low" value="low" defaultChecked={selectedImportance.includes("low")} onCheckedChange={(checked) => onChange(checked, "low")} />
+				<Checkbox
+					id="low"
+					value="low"
+					defaultChecked={selectedImportance.includes("low")}
+					onCheckedChange={(checked) => onChange(checked, "low")}
+				/>
 				<Label htmlFor="low">Faible</Label>
 				<ImportanceBadge importance={51} />
 			</div>
 
 			<div className="flex flex-row items-center justify-center gap-2">
-				<Checkbox id="medium" value="medium" defaultChecked={selectedImportance.includes("medium")} onCheckedChange={(checked) => onChange(checked, "medium")} />
+				<Checkbox
+					id="medium"
+					value="medium"
+					defaultChecked={selectedImportance.includes("medium")}
+					onCheckedChange={(checked) => onChange(checked, "medium")}
+				/>
 				<Label htmlFor="medium">Moyenne</Label>
 				<ImportanceBadge importance={101} />
 			</div>
 
 			<div className="flex flex-row items-center justify-center gap-2">
-				<Checkbox id="high" value="high" defaultChecked={selectedImportance.includes("high")} onCheckedChange={(checked) => onChange(checked, "high")} />
+				<Checkbox
+					id="high"
+					value="high"
+					defaultChecked={selectedImportance.includes("high")}
+					onCheckedChange={(checked) => onChange(checked, "high")}
+				/>
 				<Label htmlFor="high">Forte</Label>
 				<ImportanceBadge importance={151} />
 			</div>
 
 			<div className="flex flex-row items-center justify-center gap-2">
-				<Checkbox id="very-high" value="very-high" defaultChecked={selectedImportance.includes("very-high")} onCheckedChange={(checked) => onChange(checked, "very-high")} />
+				<Checkbox
+					id="very-high"
+					value="very-high"
+					defaultChecked={selectedImportance.includes("very-high")}
+					onCheckedChange={(checked) => onChange(checked, "very-high")}
+				/>
 				<Label htmlFor="very-high">Très forte</Label>
 				<ImportanceBadge importance={201} />
 			</div>
-		</div>
+		</fetcher.Form>
 	)
 }
 
@@ -344,10 +435,10 @@ const News = memo(function News({
 	selectedLanguage,
 	selectedImportance
 }: {
-	t: TFunction,
-	language: string,
-	actualPage: number,
-	selectedLanguage: string[],
+	t: TFunction
+	language: string
+	actualPage: number
+	selectedLanguage: string[]
 	selectedImportance: string[]
 }) {
 	const newsRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
@@ -366,7 +457,9 @@ const News = memo(function News({
 			}
 		],
 		queryFn: async () => {
-			const req = await fetch(`/api/news?page=${actualPage}&limit=20&languages=${selectedLanguage.join(",")}&importances=${selectedImportance.join(",")}`)
+			const req = await fetch(
+				`/api/news?page=${actualPage}&limit=20&languages=${selectedLanguage.join(",")}&importances=${selectedImportance.join(",")}`
+			)
 			const json = await req.json()
 
 			return json
@@ -405,7 +498,6 @@ const News = memo(function News({
 	if (!news || news.length <= 0) {
 		return <Empty t={t} />
 	}
-
 
 	return news.map((item) => (
 		<div
@@ -451,7 +543,8 @@ const News = memo(function News({
 					<p className="flex flex-row flex-wrap items-center gap-1 text-muted-foreground">
 						{formatDate(item.news.published * 1000, {
 							locale: language
-						})} - {item.news.source}
+						})}{" "}
+						- {item.news.source}
 						{/* <span>(via {item.news.mainSource})</span> */}
 					</p>
 				</CardFooter>

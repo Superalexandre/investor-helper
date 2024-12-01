@@ -1,22 +1,24 @@
-import { RemixBrowser } from "@remix-run/react";
-import { startTransition, StrictMode } from "react";
-import { hydrateRoot } from "react-dom/client";
-import i18n from "./i18n";
-import i18next from "i18next";
-import { I18nextProvider, initReactI18next } from "react-i18next";
-import LanguageDetector from "i18next-browser-languagedetector";
-import Backend from "i18next-http-backend";
-import { getInitialNamespaces } from "remix-i18next/client";
+import { RemixBrowser } from "@remix-run/react"
+import { startTransition, StrictMode } from "react"
+import { hydrateRoot } from "react-dom/client"
+import i18n from "./i18n"
+import i18next from "i18next"
+import { I18nextProvider, initReactI18next } from "react-i18next"
+import LanguageDetector from "i18next-browser-languagedetector"
+import Backend from "i18next-http-backend"
+import { getInitialNamespaces } from "remix-i18next/client"
 
 async function hydrate() {
 	await i18next
 		.use(initReactI18next)
-		.use(new LanguageDetector(null, {
-			lookupLocalStorage: "language",
+		.use(
+			new LanguageDetector(null, {
+				lookupLocalStorage: "language",
 
-			order: ["localStorage", "htmlTag", "navigator"],
-			caches: ["localStorage"],
-		}))
+				order: ["localStorage", "htmlTag", "navigator"],
+				caches: ["localStorage"]
+			})
+		)
 		.use(Backend)
 		.init({
 			...i18n,
@@ -25,9 +27,9 @@ async function hydrate() {
 			detection: {
 				excludeCacheFor: ["cimode"],
 				order: ["htmlTag"],
-                caches: [],
-			},
-		});
+				caches: []
+			}
+		})
 
 	startTransition(() => {
 		hydrateRoot(
@@ -37,14 +39,14 @@ async function hydrate() {
 					<RemixBrowser />
 				</StrictMode>
 			</I18nextProvider>
-		);
-	});
+		)
+	})
 }
 
 if (window.requestIdleCallback) {
-	window.requestIdleCallback(hydrate);
+	window.requestIdleCallback(hydrate)
 } else {
 	// Safari doesn't support requestIdleCallback
 	// https://caniuse.com/requestidlecallback
-	window.setTimeout(hydrate, 1);
+	window.setTimeout(hydrate, 1)
 }

@@ -1,10 +1,7 @@
 import { type ActionFunctionArgs, json } from "@remix-run/node"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
-import {
-	notificationSubscribedNewsSchema,
-    notificationSubscribedNewsKeywordsSchema
-} from "@/schema/notifications"
+import { notificationSubscribedNewsSchema, notificationSubscribedNewsKeywordsSchema } from "@/schema/notifications"
 // import { generateSubscriptionId } from "@remix-pwa/push"
 import { getUser } from "../../../../../session.server"
 import { v4 as uuid } from "uuid"
@@ -14,8 +11,8 @@ export function loader() {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-    // Get the body of the request
-    const formData = await request.formData()
+	// Get the body of the request
+	const formData = await request.formData()
 
 	const sqlite = new Database("../db/sqlite.db")
 	const db = drizzle(sqlite)
@@ -38,26 +35,24 @@ export async function action({ request }: ActionFunctionArgs) {
 	}
 
 	const name = formData.get("name") as string
-    const keysWords = formData.get("keywords") ? formData.get("keywords") as string : null
+	const keysWords = formData.get("keywords") ? (formData.get("keywords") as string) : null
 
-    const notificationId = uuid()
-    await db.insert(notificationSubscribedNewsSchema)
-        .values({
-            userId: user.id,
-            notificationId: notificationId,
-			name: name,
-        })
+	const notificationId = uuid()
+	await db.insert(notificationSubscribedNewsSchema).values({
+		userId: user.id,
+		notificationId: notificationId,
+		name: name
+	})
 
-    if (keysWords) {
-        const keys = keysWords.split(",")
-        for (const key of keys) {
-            await db.insert(notificationSubscribedNewsKeywordsSchema)
-                .values({
-                    notificationId: notificationId,
-                    keyword: key.trim(),
-                })
-        }
-    }
+	if (keysWords) {
+		const keys = keysWords.split(",")
+		for (const key of keys) {
+			await db.insert(notificationSubscribedNewsKeywordsSchema).values({
+				notificationId: notificationId,
+				keyword: key.trim()
+			})
+		}
+	}
 
 	// Check if the user is already subscribed to the notification
 	// const pushSubscription = body.pushSubscription
@@ -84,7 +79,7 @@ export async function action({ request }: ActionFunctionArgs) {
 	// }
 
 	// Check if the event is passed
-    /*
+	/*
 	const event = await db
 		.select()
 		.from(events)

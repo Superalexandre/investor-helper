@@ -5,7 +5,6 @@ import { eq } from "drizzle-orm"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import { usersSchema, type User } from "../../db/schema/users"
 import "dotenv/config"
-import type HomePreferences from "../types/Preferences"
 
 const SESSION_KEY = "token"
 
@@ -16,7 +15,7 @@ const sessionStorage = createCookieSessionStorage({
 		path: "/",
 		sameSite: "lax",
 		secrets: [process.env.SESSION_SECRET as string],
-		secure: process.env.NODE_ENV === "production",
+		secure: process.env.NODE_ENV === "production"
 	}
 })
 
@@ -56,17 +55,19 @@ export async function createUserSession({
 	})
 }
 
-export async function changeLanguage({
+export async function setSession({
 	request,
-	language,
+	key,
+	value,
 	redirectUrl = "/"
 }: {
 	request: Request
-	language: string
+	key: string
+	value: unknown
 	redirectUrl?: string
 }) {
 	const session = await getSession(request)
-	session.set("language", language)
+	session.set(key, value)
 
 	return redirect(redirectUrl, {
 		headers: {
@@ -75,40 +76,18 @@ export async function changeLanguage({
 	})
 }
 
-export async function changeTheme({
+export async function clearCache({
 	request,
-	theme,
 	redirectUrl = "/"
 }: {
 	request: Request
-	theme: string
 	redirectUrl?: string
 }) {
 	const session = await getSession(request)
-	session.set("theme", theme)
 
 	return redirect(redirectUrl, {
 		headers: {
-			"Set-Cookie": await sessionStorage.commitSession(session)
-		}
-	})
-}
-
-export async function changeHomePreferences({
-	request,
-	preferences,
-	redirectUrl = "/"
-}: {
-	request: Request
-	preferences: HomePreferences[]
-	redirectUrl?: string
-}) {
-	const session = await getSession(request)
-	session.set("homePreferences", preferences)
-
-	return redirect(redirectUrl, {
-		headers: {
-			"Set-Cookie": await sessionStorage.commitSession(session)
+			"Set-Cookie": await sessionStorage.destroySession(session)
 		}
 	})
 }

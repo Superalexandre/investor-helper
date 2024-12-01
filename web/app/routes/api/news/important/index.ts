@@ -13,6 +13,6 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 	const toNews = new Date()
 
 	const news = await getLastImportantNews(fromNews, toNews, 150, parsedLimit)
-	
+
 	return json(news)
 }

@@ -50,15 +50,13 @@ export default memo(function DialogNotification({ open, setOpen }: DialogNotific
 			(error) => {
 				console.error("error", error)
 
-				if (error instanceof Error) {
-					if (error.message === "Registration failed - permission denied") {
-						setError({
-							...error,
-							message: "Vous avez refusé les notifications"
-						})
+				if (error instanceof Error && error.message === "Registration failed - permission denied") {
+					setError({
+						...error,
+						message: "Vous avez refusé les notifications"
+					})
 
-						return
-					}
+					return
 				}
 
 				setError(error)

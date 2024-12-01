@@ -65,16 +65,13 @@ export default async function login({
 			message: "Mot de passe incorrect"
 		}
 	}
-	
+
 	// Check if the url have a redirect parameter
 	const url = new URL(request.url)
 	const redirectUrl = url.searchParams.get("redirect")
 	const redirectUrlString = redirectUrl ? redirectUrl : "/"
 
-	const [theme, language] = await Promise.all([
-		getTheme(request),
-		getLanguage(request)
-	])
+	const [theme, language] = await Promise.all([getTheme(request), getLanguage(request)])
 
 	await updateUserPreferences({
 		user,

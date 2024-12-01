@@ -37,10 +37,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const [t, homePreferences] = await Promise.all([
-		i18next.getFixedT(request, "home"),
-		getHomePreferences(request)
-	])
+	const [t, homePreferences] = await Promise.all([i18next.getFixedT(request, "home"), getHomePreferences(request)])
 
 	const title = t("title")
 	const description = t("description")
@@ -82,73 +79,71 @@ export default function Index() {
 		}
 	}, [])
 
-	const menus = [{
-		name: "bestGainers",
-		component: () => (
-			<>
-				<h2 className="flex flex-row items-center gap-2 font-bold text-lg">
-					<MdShowChart />
+	const menus = [
+		{
+			name: "bestGainers",
+			component: () => (
+				<>
+					<h2 className="flex flex-row items-center gap-2 font-bold text-lg">
+						<MdShowChart />
 
-					{t("bestGainers")}
-				</h2>
+						{t("bestGainers")}
+					</h2>
 
-				<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
-					<DisplayBestGainers
-						t={t}
-					/>
-				</div>
-			</>
-		)
-	}, {
-		name: "news",
-		component: () => (
-			<>
-				<h2 className="flex flex-row items-center gap-2 font-bold text-lg">
-					<MdNewspaper />
+					<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
+						<DisplayBestGainers t={t} />
+					</div>
+				</>
+			)
+		},
+		{
+			name: "news",
+			component: () => (
+				<>
+					<h2 className="flex flex-row items-center gap-2 font-bold text-lg">
+						<MdNewspaper />
 
-					{t("lastNews")}
-				</h2>
+						{t("lastNews")}
+					</h2>
 
-				<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
-					<DisplayLastNews
-						t={t}
-						language={i18n.language}
-					/>
-				</div>
+					<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
+						<DisplayLastNews t={t} language={i18n.language} />
+					</div>
 
-				<Link to="/news">
-					<Button variant="default">{t("seeMore")}</Button>
-				</Link>
-			</>
-		)
-	}, {
-		name: "events",
-		component: () => (
-			<>
-				<h2 className="flex flex-row items-center gap-2 font-bold text-lg">
-					<MdCalendarToday />
+					<Link to="/news">
+						<Button variant="default">{t("seeMore")}</Button>
+					</Link>
+				</>
+			)
+		},
+		{
+			name: "events",
+			component: () => (
+				<>
+					<h2 className="flex flex-row items-center gap-2 font-bold text-lg">
+						<MdCalendarToday />
 
-					{t("nextEvents")}
-				</h2>
+						{t("nextEvents")}
+					</h2>
 
-				<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
-					<DisplayNextEvents
-						t={t}
-						language={i18n.language}
-					/>
-				</div>
+					<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
+						<DisplayNextEvents t={t} language={i18n.language} />
+					</div>
 
-				<Link to="/calendar">
-					<Button variant="default">{t("seeMore")}</Button>
-				</Link>
-			</>
-		)
-	}]
+					<Link to="/calendar">
+						<Button variant="default">{t("seeMore")}</Button>
+					</Link>
+				</>
+			)
+		}
+	]
 
 	console.log(homePreferences)
 
 	const sortedPreferences = homePreferences.filter((pref) => pref.visible).sort((a, b) => a.position - b.position)
-	const displayedMenu = sortedPreferences.map((pref) => menus.find((menu) => menu.name === pref.id)).filter((menu) => menu !== undefined)
+	const displayedMenu = sortedPreferences
+		.map((pref) => menus.find((menu) => menu.name === pref.id))
+		.filter((menu) => menu !== undefined)
 
 	return (
 		<div className="flex flex-col items-center justify-center gap-8">
@@ -165,9 +160,7 @@ export default function Index() {
 					}}
 				/>
 
-				<h1 className="font-bold text-xl">
-					{t("welcome")}
-				</h1>
+				<h1 className="font-bold text-xl">{t("welcome")}</h1>
 			</div>
 
 			{isInstalled ? null : (
@@ -193,7 +186,7 @@ export default function Index() {
 	)
 }
 
-const DisplayDate = memo(function DisplayDate({ date, locale }: { date: number, locale: string }) {
+const DisplayDate = memo(function DisplayDate({ date, locale }: { date: number; locale: string }) {
 	const d = new Date(date * 1000)
 
 	const formattedDate = formatDistanceToNow(d, {
@@ -205,8 +198,7 @@ const DisplayDate = memo(function DisplayDate({ date, locale }: { date: number, 
 })
 
 const DisplayBestGainers = memo(function DisplayBestGainers({
-	t,
-
+	t
 }: {
 	t: TFunction
 }) {
@@ -264,7 +256,8 @@ const DisplayBestGainers = memo(function DisplayBestGainers({
 				</CardTitle>
 				<CardContent className="flex flex-col items-center justify-center gap-4 p-4">
 					<p className="flex flex-row items-center gap-2">
-						{gainer.close}{gainer.currency}
+						{gainer.close}
+						{gainer.currency}
 						<span className="text-green-600">+{Number(gainer.change).toFixed(2)}%</span>
 					</p>
 
@@ -279,7 +272,7 @@ const DisplayLastNews = memo(function DisplayLastNews({
 	t,
 	language
 }: {
-	t: TFunction,
+	t: TFunction
 	language: string
 }) {
 	const {
@@ -332,7 +325,9 @@ const DisplayLastNews = memo(function DisplayLastNews({
 					<p className="h-24 max-h-24 overflow-clip">{news.news_article.shortDescription}</p>
 
 					<div className="absolute bottom-0 left-0 p-4 text-muted-foreground">
-						<p>{t("by")} {news.news.source}</p>
+						<p>
+							{t("by")} {news.news.source}
+						</p>
 						<DisplayDate date={news.news.published} locale={language} />
 					</div>
 				</CardContent>
@@ -345,7 +340,7 @@ const DisplayNextEvents = memo(function DisplayNextEvents({
 	t,
 	language
 }: {
-	t: TFunction,
+	t: TFunction
 	language: string
 }) {
 	const importance: Record<number, string> = {
@@ -404,8 +399,12 @@ const DisplayNextEvents = memo(function DisplayNextEvents({
 					<p className="h-24 max-h-24 overflow-clip">{event.comment}</p>
 
 					<div className="absolute bottom-0 left-0 p-4 text-muted-foreground">
-						<p>{t("importance")} : {importance[event.importance]}</p>
-						<p>{t("country")} : {countries[language][event.country]}</p>
+						<p>
+							{t("importance")} : {importance[event.importance]}
+						</p>
+						<p>
+							{t("country")} : {countries[language][event.country]}
+						</p>
 						<div className="flex flex-row items-center gap-1">
 							<p>
 								{formatDistanceToNow(new Date(event.date), {

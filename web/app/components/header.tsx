@@ -22,24 +22,28 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Separator } from "./ui/separator"
 import { cn } from "../lib/utils"
 import type { TFunction } from "i18next"
-import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuList, navigationMenuTriggerStyle } from "./ui/navigation-menu"
+import {
+	NavigationMenu,
+	NavigationMenuContent,
+	NavigationMenuItem,
+	NavigationMenuList,
+	navigationMenuTriggerStyle
+} from "./ui/navigation-menu"
 import { Trigger as NavigationMenuPrimitiveTrigger } from "@radix-ui/react-navigation-menu"
 
 export const handle = {
 	i18n: "header"
 }
 
-export default function Header(
-	{
-		// logged,
-		user,
-		t
-	}: {
-		// logged: boolean,
-		user: User | null,
-		t: TFunction
-	}
-) {
+export default function Header({
+	// logged,
+	user,
+	t
+}: {
+	// logged: boolean,
+	user: User | null
+	t: TFunction
+}) {
 	const [open, setOpen] = useState(false)
 
 	return (
@@ -55,10 +59,8 @@ export default function Header(
 							height="32"
 							width="32"
 						/>
-
 						Investor helper
 					</Link>
-
 
 					{/* <Button variant="ghost">
 						<Link to="/" className="flex flex-row items-center">
@@ -96,7 +98,11 @@ export default function Header(
 						<>
 							<Button variant="ghost">
 								<Link to="/profile" className="flex flex-row items-center gap-2">
-									<img src={`https://api.dicebear.com/7.x/bottts/png?seed=${user.username}`} alt={user.username} className="size-6 rounded-full" />
+									<img
+										src={`https://api.dicebear.com/7.x/bottts/png?seed=${user.username}`}
+										alt={user.username}
+										className="size-6 rounded-full"
+									/>
 
 									{t("header.profile")}
 								</Link>
@@ -127,11 +133,8 @@ export default function Header(
 						</>
 					)}
 				</div>
-			</nav >
-			<Sheet
-				open={open}
-				onOpenChange={(openChange) => setOpen(openChange)}
-			>
+			</nav>
+			<Sheet open={open} onOpenChange={(openChange) => setOpen(openChange)}>
 				<SheetTrigger
 					className="block h-full p-3 xl:hidden"
 					name="Open sidebar"
@@ -143,7 +146,10 @@ export default function Header(
 						<MdMenu className="size-full" />
 					</div>
 				</SheetTrigger>
-				<SheetContent side="left" className="flex flex-col items-center justify-between p-0 pt-16 pb-2 xl:hidden">
+				<SheetContent
+					side="left"
+					className="flex flex-col items-center justify-between p-0 pt-16 pb-2 xl:hidden"
+				>
 					<SheetTitle className="hidden">{t("header.sheetTitle")}</SheetTitle>
 					<SheetDescription className="hidden">{t("header.sheetDescription")}</SheetDescription>
 
@@ -158,7 +164,11 @@ export default function Header(
 							{t("header.news")}
 						</Link>
 
-						<Link to="/calendar" className="flex flex-row items-center text-xl" onClick={() => setOpen(false)}>
+						<Link
+							to="/calendar"
+							className="flex flex-row items-center text-xl"
+							onClick={() => setOpen(false)}
+						>
 							<MdCalendarMonth className="mr-2 inline-block" />
 							{t("header.calendar")}
 						</Link>
@@ -166,7 +176,11 @@ export default function Header(
 						<SeeMore t={t} onClick={() => setOpen(false)} />
 					</div>
 
-					{user ? <FooterLogged user={user} setOpen={setOpen} t={t} /> : <FooterNotLogged setOpen={setOpen} t={t} />}
+					{user ? (
+						<FooterLogged user={user} setOpen={setOpen} t={t} />
+					) : (
+						<FooterNotLogged setOpen={setOpen} t={t} />
+					)}
 				</SheetContent>
 			</Sheet>
 			<div className="block xl:hidden">
@@ -179,7 +193,7 @@ export default function Header(
 			</div>
 
 			{/* <Separator className="w-full h-[2px]" /> */}
-		</header >
+		</header>
 	)
 }
 
@@ -195,21 +209,27 @@ const SeeMore = memo(function SeeMore({
 			<NavigationMenuList>
 				<NavigationMenuItem>
 					<NavigationMenuPrimitiveTrigger asChild={true}>
-						<Button variant="ghost">
-							{t("header.seeMore")}
-						</Button>
+						<Button variant="ghost">{t("header.seeMore")}</Button>
 					</NavigationMenuPrimitiveTrigger>
 					<NavigationMenuContent>
 						<NavigationMenuList className="flex flex-col justify-center gap-2 p-2">
 							<NavigationMenuItem className="w-full">
-								<Link to="/heatmap" className={cn(navigationMenuTriggerStyle(), "w-full")} onClick={onClick}>
+								<Link
+									to="/heatmap"
+									className={cn(navigationMenuTriggerStyle(), "w-full")}
+									onClick={onClick}
+								>
 									<MdWaterfallChart className="mr-2 inline-block" />
 
 									{t("header.heatmap")}
 								</Link>
 							</NavigationMenuItem>
 							<NavigationMenuItem className="w-full">
-								<Link to="/settings" className={cn(navigationMenuTriggerStyle(), "w-full")} onClick={onClick}>
+								<Link
+									to="/settings"
+									className={cn(navigationMenuTriggerStyle(), "w-full")}
+									onClick={onClick}
+								>
 									<MdSettings className="mr-2 inline-block" />
 
 									{t("header.settings")}
@@ -238,24 +258,25 @@ function FooterLogged({
 	setOpen,
 	t
 }: {
-	user: User,
-	setOpen: (open: boolean) => void,
+	user: User
+	setOpen: (open: boolean) => void
 	t: TFunction
 }) {
 	const [dropdownOpen, setDropdownOpen] = useState(false)
 
 	return (
 		<div className="w-full px-2">
-			<DropdownMenu
-				open={dropdownOpen}
-				onOpenChange={setDropdownOpen}
-			>
+			<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
 				<DropdownMenuTrigger className="relative flex w-full flex-row items-center justify-between">
 					{/* <PingIndicator /> */}
 
 					<Button variant="outline" className="flex w-full flex-row items-center justify-between py-6">
 						<div className="flex flex-row items-center gap-2">
-							<img src={`https://api.dicebear.com/7.x/bottts/png?seed=${user.username}`} alt={user.username} className="size-8 rounded-full" />
+							<img
+								src={`https://api.dicebear.com/7.x/bottts/png?seed=${user.username}`}
+								alt={user.username}
+								className="size-8 rounded-full"
+							/>
 
 							{user.displayName || user.username}
 						</div>
@@ -297,7 +318,6 @@ function FooterLogged({
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
-
 		</div>
 	)
 }
@@ -306,7 +326,7 @@ function FooterNotLogged({
 	setOpen,
 	t
 }: {
-	setOpen: (open: boolean) => void,
+	setOpen: (open: boolean) => void
 	t: TFunction
 }) {
 	return (

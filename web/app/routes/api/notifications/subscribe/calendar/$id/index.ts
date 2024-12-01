@@ -1,10 +1,7 @@
 import { type ActionFunctionArgs, json } from "@remix-run/node"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
-import {
-	notificationEventSchema,
-	notificationSchema
-} from "@/schema/notifications"
+import { notificationEventSchema, notificationSchema } from "@/schema/notifications"
 // import { generateSubscriptionId } from "@remix-pwa/push"
 import { getUser } from "../../../../../../session.server"
 import { and, eq } from "drizzle-orm"
@@ -71,10 +68,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	}
 
 	// Check if the event is passed
-	const events = await db
-		.select()
-		.from(eventsSchema)
-		.where(eq(eventsSchema.id, id))
+	const events = await db.select().from(eventsSchema).where(eq(eventsSchema.id, id))
 
 	if (events.length <= 0) {
 		return json({

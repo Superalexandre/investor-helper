@@ -3,7 +3,6 @@ import Database from "better-sqlite3"
 import { newsSchema, newsRelatedSymbolsSchema, newsArticleSchema } from "../../db/schema/news.js"
 import { symbolsSchema } from "../../db/schema/symbols.js"
 import { and, desc, eq, gt, gte, inArray, like, lt, lte, or } from "drizzle-orm"
-import config from "../../config.js"
 
 import refreshSymbol from "./refreshSymbol.js"
 import { parse } from "node-html-parser"
@@ -17,7 +16,12 @@ import { sendNotification } from "./notifications.js"
 import type { NewsSymbols, NewsSymbolsArticle } from "../types/News.js"
 import i18n, { newsUrl } from "../app/i18n.js"
 
-async function getNews({ page = 1, limit = 10, language, scores }: { page?: number; limit?: number, language?: string[], scores?: number[][] }) {
+async function getNews({
+	page = 1,
+	limit = 10,
+	language,
+	scores
+}: { page?: number; limit?: number; language?: string[]; scores?: number[][] }) {
 	const sqlite = new Database("../db/sqlite.db")
 	const db = drizzle(sqlite)
 
@@ -26,10 +30,18 @@ async function getNews({ page = 1, limit = 10, language, scores }: { page?: numb
 	const allNews = await db
 		.select()
 		.from(newsSchema)
-		.where(and(
-			language ? inArray(newsSchema.lang, language) : undefined,
-			scores ? or(...scores.map((score) => and(gt(newsSchema.importanceScore, score[0]), lt(newsSchema.importanceScore, score[1])))) : undefined
-		))
+		.where(
+			and(
+				language ? inArray(newsSchema.lang, language) : undefined,
+				scores
+					? or(
+							...scores.map((score) =>
+								and(gt(newsSchema.importanceScore, score[0]), lt(newsSchema.importanceScore, score[1]))
+							)
+						)
+					: undefined
+			)
+		)
 		.limit(limit)
 		.offset(limit * (page - 1))
 		.orderBy(desc(newsSchema.published))
@@ -193,7 +205,7 @@ async function saveFetchNews() {
 	const languages = i18n.supportedLngs
 
 	const newsList: NewsSymbolsArticle[] = []
-	// const newsList = 
+	// const newsList =
 	await Promise.all(
 		languages.map(async (lang) => {
 			const news = await fetchNews(lang)

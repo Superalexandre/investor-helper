@@ -1,5 +1,5 @@
 import type { BestGainer } from "../../../../../types/Prices"
-import getPrices, { closeClient, Period } from "../../../../../utils/getPrices"
+import getPrices, { closeClient, type Period } from "../../../../../utils/getPrices"
 
 const columns = [
 	"name",
@@ -120,7 +120,7 @@ const filter = {
 	]
 }
 
-const cachedPrice = new Map<string, { prices: Period[], lastUpdate: number}>()
+const cachedPrice = new Map<string, { prices: Period[]; lastUpdate: number }>()
 const CACHE_TIME = 1000 * 60 * 60 // 1 hour
 
 export async function loader() {
@@ -172,13 +172,14 @@ export async function loader() {
 				continue
 			}
 
-			if (Date.now() - cached.lastUpdate < CACHE_TIME) {
-				reducedItem.prices = cached.prices
-				parsedResult.push(reducedItem)
-				continue
-			} else {
-				toFetch.push(reducedItem.symbol)
-			}
+			toFetch.push(reducedItem.symbol)
+			// if (Date.now() - cached.lastUpdate < Date.now()) {
+			// 	reducedItem.prices = cached.prices
+			// 	parsedResult.push(reducedItem)
+			// 	continue
+			// } else {
+			// 	toFetch.push(reducedItem.symbol)
+			// }
 		} else {
 			toFetch.push(reducedItem.symbol)
 		}

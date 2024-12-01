@@ -26,7 +26,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		title: title,
 		description: description
 	}
-
 }
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -70,10 +69,7 @@ export default function Index() {
             </Accordion> */}
 
 			<div className="w-full px-4 pt-4 lg:px-10 lg:pt-10">
-				<EconomicCalendar 
-					t={t}
-					language={i18n.language}
-				/>
+				<EconomicCalendar t={t} language={i18n.language} />
 			</div>
 			{/* <Tabs
 				defaultValue={tab}
@@ -108,7 +104,7 @@ const EconomicCalendar = memo(function EconomicCalendar({
 	t,
 	language
 }: {
-	t: TFunction,
+	t: TFunction
 	language: string
 }) {
 	const location = useLocation()
@@ -178,9 +174,14 @@ const EconomicCalendar = memo(function EconomicCalendar({
 	return (
 		<div className="flex flex-col space-y-6">
 			{events.map((event) => (
-				<div className="relative" key={event.id} id={event.id} ref={(element) => {
-					calendarRefs.current[event.id] = element
-				}}>
+				<div
+					className="relative"
+					key={event.id}
+					id={event.id}
+					ref={(element) => {
+						calendarRefs.current[event.id] = element
+					}}
+				>
 					<Card>
 						<Link
 							to={`/calendar/${event.id}`}

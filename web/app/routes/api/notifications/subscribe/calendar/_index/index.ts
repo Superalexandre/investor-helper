@@ -5,5 +5,5 @@ export function loader() {
 }
 
 export function action() {
-    return null
+	return null
 }
