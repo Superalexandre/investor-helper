@@ -1,15 +1,30 @@
 import { getNews } from "@/utils/news"
-import { json, type LoaderFunction, type LoaderFunctionArgs } from "@remix-run/node"
+import { type LoaderFunction, type LoaderFunctionArgs } from "@remix-run/node"
+import getLanguage from "../../../lib/getLanguage"
 
 export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) => {
+	// const language = await getLanguage(request)
 	const url = new URL(request.url)
 	const limit = url.searchParams.get("limit")
 	const page = url.searchParams.get("page")
+	const languages = url.searchParams.get("languages")?.split(",") || []
+	const importances = url.searchParams.get("importances")?.split(",") || []
 
 	const limitReq = limit ? Number.parseInt(limit) : 10
 	const pageReq = page ? Number.parseInt(page) : 1
 
-	const news = await getNews({ limit: limitReq, page: pageReq })
+	// Transform the importances to the correct score 
+	const scoreMap: Record<string, number[]> = {
+		"none": [0, 50],
+		"low": [50, 100],
+		"medium": [100, 150],
+		"high": [150, 200],
+		"very-high": [200, 1000]
+	}
 
-	return json(news)
+	const scores = importances.map((importance) => scoreMap[importance])
+
+	const news = await getNews({ limit: limitReq, page: pageReq, language: languages, scores: scores })
+
+	return news
 }

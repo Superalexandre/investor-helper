@@ -22,3 +22,19 @@ export const countries: Record<string, Record<string, string>> = {
 	"fr-FR": countriesFr,
 	"en-US": countriesEn
 }
+
+export const newsUrl: Record<string, { news: string, originLocale: string}> = {	
+	"fr-FR": {
+		news: "https://fr.tradingview.com/news/markets",
+		originLocale: "https://fr.tradingview.com"
+	},
+	"en-US": {
+		news: "https://www.tradingview.com/news/markets",
+		originLocale: "https://tradingview.com"
+	}
+}
+
+export const flags: Record<string, string> = {
+	"fr-FR": "/flags/fr.svg",
+	"en-US": "/flags/us.svg"
+}

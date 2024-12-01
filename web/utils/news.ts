@@ -2,7 +2,7 @@ import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
 import { newsSchema, newsRelatedSymbolsSchema, newsArticleSchema } from "../../db/schema/news.js"
 import { symbolsSchema } from "../../db/schema/symbols.js"
-import { and, desc, eq, gte, inArray, like, lte, or } from "drizzle-orm"
+import { and, desc, eq, gt, gte, inArray, like, lt, lte, or } from "drizzle-orm"
 import config from "../../config.js"
 
 import refreshSymbol from "./refreshSymbol.js"
@@ -15,14 +15,21 @@ import {
 } from "../../db/schema/notifications.js"
 import { sendNotification } from "./notifications.js"
 import type { NewsSymbols, NewsSymbolsArticle } from "../types/News.js"
+import i18n, { newsUrl } from "../app/i18n.js"
 
-async function getNews({ page = 1, limit = 10 }: { page?: number; limit?: number }) {
+async function getNews({ page = 1, limit = 10, language, scores }: { page?: number; limit?: number, language?: string[], scores?: number[][] }) {
 	const sqlite = new Database("../db/sqlite.db")
 	const db = drizzle(sqlite)
+
+	// Score is an array of double array, the first element is the minimum score and the second element is the maximum score
 
 	const allNews = await db
 		.select()
 		.from(newsSchema)
+		.where(and(
+			language ? inArray(newsSchema.lang, language) : undefined,
+			scores ? or(...scores.map((score) => and(gt(newsSchema.importanceScore, score[0]), lt(newsSchema.importanceScore, score[1])))) : undefined
+		))
 		.limit(limit)
 		.offset(limit * (page - 1))
 		.orderBy(desc(newsSchema.published))
@@ -32,8 +39,8 @@ async function getNews({ page = 1, limit = 10 }: { page?: number; limit?: number
 		const relatedSymbols = await db
 			.select()
 			.from(newsRelatedSymbolsSchema)
-			.where(eq(newsRelatedSymbolsSchema.newsId, newsItem.id))
 			.innerJoin(symbolsSchema, eq(newsRelatedSymbolsSchema.symbol, symbolsSchema.symbolId))
+			.where(eq(newsRelatedSymbolsSchema.newsId, newsItem.id))
 
 		news.push({
 			news: newsItem,
@@ -69,11 +76,13 @@ async function getNewsById({ id }: { id: string }) {
 	}
 }
 
-async function fetchNews() {
+async function fetchNews(lang = "fr-FR") {
 	const sqlite = new Database("../db/sqlite.db")
 	const db = drizzle(sqlite)
 
-	const response = await fetch(config.url.news)
+	const urlLang = newsUrl[lang]
+
+	const response = await fetch(urlLang.news)
 	const data = await response.text()
 
 	const root = parse(data)
@@ -101,7 +110,7 @@ async function fetchNews() {
 	}
 
 	// Make a deep copy of the news array
-	const newsCopy = [...news]
+	const newsCopy: NewsSymbolsArticle[] = [...news]
 
 	for (const newsItem of newsCopy) {
 		const exists = await db.select().from(newsSchema).where(eq(newsSchema.id, newsItem.id))
@@ -110,7 +119,7 @@ async function fetchNews() {
 			continue
 		}
 
-		const url = new URL(config.url.originLocale + newsItem.storyPath)
+		const url = new URL(urlLang.originLocale + newsItem.storyPath)
 
 		const fullArticle = await fetch(url, {
 			headers: {
@@ -124,9 +133,9 @@ async function fetchNews() {
 				Connection: "keep-alive",
 
 				// biome-ignore lint/style/useNamingConvention: Headers
-				Referer: config.url.eventsOrigin,
+				Referer: urlLang.originLocale,
 				// biome-ignore lint/style/useNamingConvention: Headers
-				Origin: config.url.eventsOrigin
+				Origin: urlLang.originLocale
 			}
 		})
 
@@ -158,6 +167,8 @@ async function fetchNews() {
 			newsItem.relatedSymbols
 		)
 
+		newsItem.language = lang
+
 		newsItem.article = {
 			// htmlDescription: htmlDescription,
 			// textDescription: textDescription,
@@ -179,7 +190,23 @@ async function saveFetchNews() {
 	const sqlite = new Database("../db/sqlite.db")
 	const db = drizzle(sqlite)
 
-	const newsList = await fetchNews()
+	const languages = i18n.supportedLngs
+
+	const newsList: NewsSymbolsArticle[] = []
+	// const newsList = 
+	await Promise.all(
+		languages.map(async (lang) => {
+			const news = await fetchNews(lang)
+
+			if (!news) {
+				return
+			}
+
+			newsList.push(...news)
+		})
+	)
+
+	// const newsList = await fetchNews()
 	if (!newsList) {
 		return
 	}
@@ -210,7 +237,7 @@ async function saveFetchNews() {
 				provider: news.provider,
 				link: news.link,
 				mainSource: "tradingview",
-				lang: "fr-FR",
+				lang: news.language,
 				importanceScore: news.article.importanceScore
 			})
 		}

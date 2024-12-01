@@ -10,6 +10,7 @@ interface NewsSymbolsArticle {
 	urgency: number
 	provider: string
 	link: string
+	language: string
 	relatedSymbols: { symbol: string }[]
 	article: {
 		jsonDescription: string

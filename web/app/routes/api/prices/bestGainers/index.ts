@@ -121,6 +121,7 @@ const filter = {
 }
 
 const cachedPrice = new Map<string, { prices: Period[], lastUpdate: number}>()
+const CACHE_TIME = 1000 * 60 * 60 // 1 hour
 
 export async function loader() {
 	const country = "france"
@@ -171,11 +172,12 @@ export async function loader() {
 				continue
 			}
 
-			const CACHE_TIME = 1000 * 60 * 60 // 1 hour
 			if (Date.now() - cached.lastUpdate < CACHE_TIME) {
 				reducedItem.prices = cached.prices
 				parsedResult.push(reducedItem)
 				continue
+			} else {
+				toFetch.push(reducedItem.symbol)
 			}
 		} else {
 			toFetch.push(reducedItem.symbol)
