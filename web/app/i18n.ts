@@ -1,7 +1,7 @@
 import { enUS, fr, type Locale } from "date-fns/locale"
 
-import countriesFr from "../../lang/countries-fr"
-import countriesEn from "../../lang/countries-en"
+import countriesFr from "../../lang/countries-fr.js"
+import countriesEn from "../../lang/countries-en.js"
 
 export default {
 	supportedLngs: ["fr-FR", "en-US"],
