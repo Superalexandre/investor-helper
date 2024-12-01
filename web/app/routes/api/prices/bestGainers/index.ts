@@ -1,5 +1,5 @@
 import type { BestGainer } from "../../../../../types/Prices"
-import getPrices, { closeClient } from "../../../../../utils/getPrices"
+import getPrices, { closeClient, Period } from "../../../../../utils/getPrices"
 
 const columns = [
 	"name",
@@ -120,6 +120,8 @@ const filter = {
 	]
 }
 
+const cachedPrice = new Map<string, { prices: Period[], lastUpdate: number}>()
+
 export async function loader() {
 	const country = "france"
 
@@ -151,6 +153,7 @@ export async function loader() {
 	const result = await request.json()
 
 	const parsedResult: BestGainer[] = []
+	const toFetch: string[] = []
 
 	for (const item of result.data) {
 		const reducedItem = columns.reduce((acc, key, index) => {
@@ -160,25 +163,48 @@ export async function loader() {
 
 		reducedItem.symbol = item.s
 
+		if (cachedPrice.has(reducedItem.symbol)) {
+			const cached = cachedPrice.get(reducedItem.symbol)
+
+			if (!cached) {
+				toFetch.push(reducedItem.symbol)
+				continue
+			}
+
+			const CACHE_TIME = 1000 * 60 * 60 // 1 hour
+			if (Date.now() - cached.lastUpdate < CACHE_TIME) {
+				reducedItem.prices = cached.prices
+				parsedResult.push(reducedItem)
+				continue
+			}
+		} else {
+			toFetch.push(reducedItem.symbol)
+		}
+
 		parsedResult.push(reducedItem)
 	}
 
 	// console.log("items : ", parsedResult.length)
 
-	// await Promise.all(
-	// 	parsedResult.map(async (item) => {
-	// 		const prices = await getPrices(item.symbol, {
-	// 			timeframe: "1",
-	// 			range: 360,
-	// 		})
+	console.log("toFetch : ", toFetch)
 
-	// 		const reversedPrices = prices.period.reverse()
+	await Promise.all(
+		toFetch.map(async (symbol) => {
+			const prices = await getPrices(symbol)
 
-	// 		item.prices = reversedPrices
-	// 	})
-	// )
+			cachedPrice.set(symbol, { prices: prices.period, lastUpdate: Date.now() })
 
-	// closeClient()
+			const item = parsedResult.find((item) => item.symbol === symbol)
+
+			if (item) {
+				item.prices = prices.period
+			}
+		})
+	)
+
+	// console.log(parsedResult)
+
+	closeClient()
 
 	return {
 		result: parsedResult

@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { usePWAManager } from "@remix-pwa/client"
 import { MdCalendarToday, MdDownload, MdNewspaper, MdShowChart } from "react-icons/md"
-import type { } from "@/utils/news"
 import { Link, useLoaderData, useNavigate } from "@remix-run/react"
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { formatDistanceToNow } from "date-fns"
@@ -18,10 +17,8 @@ import type { TFunction } from "i18next"
 import i18next from "../i18next.server"
 import SymbolLogo from "../components/symbolLogo"
 import type { BestGainer } from "../../types/Prices"
-import { Period } from "../../utils/getPrices"
-import { SmallChart } from "../components/charts/smallChart"
-import { ClientOnly } from "remix-utils/client-only"
 import getHomePreferences from "../lib/getHomePreferences"
+import { SmallChart } from "../components/charts/smallChart"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
 	if (!data) {
@@ -271,7 +268,7 @@ const DisplayBestGainers = memo(function DisplayBestGainers({
 						<span className="text-green-600">+{Number(gainer.change).toFixed(2)}%</span>
 					</p>
 
-					{/* <SmallChart prices={gainer.prices} /> */}
+					<SmallChart prices={gainer.prices} />
 				</CardContent>
 			</Card>
 		</Link>
