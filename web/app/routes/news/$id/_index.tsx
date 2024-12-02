@@ -146,7 +146,7 @@ function ConvertHtmlToReact({
 	json,
 	relatedSymbols,
 	newsId
-}: { json: string; relatedSymbols: FullSymbol[]; newsId: string }) {
+}: { json: string; relatedSymbols: FullSymbol[]; newsId: string }): (string | JSX.Element)[] {
 	const convertedJson = JSON.parse(json)
 
 	const Component: (string | JSX.Element)[] = []
@@ -176,7 +176,7 @@ function GetDeepComponent(
 	relatedSymbols: FullSymbol[],
 	newsId: string,
 	{ className, rawText, type, activeId }: Params = {}
-) {
+): (string | JSX.Element)[] {
 	const Component: Array<JSX.Element | string> = []
 
 	const configClassName = {
@@ -398,7 +398,7 @@ function GetDeepComponent(
 	return Component
 }
 
-function formatDateTime(date: string | number, locale: string) {
+function formatDateTime(date: string | number, locale: string): string {
 	return new Date(date).toLocaleDateString(locale, {
 		weekday: "long",
 		day: "numeric",

@@ -22,7 +22,7 @@ export async function loader() {
 			range: [0, 20],
 			sort: {
 				sortBy: "change",
-				sortOrder: "desc"
+				sortOrder: "asc"
 			},
 			symbols: {},
 			markets: [country]
@@ -30,7 +30,7 @@ export async function loader() {
 	})
 
 	if (!request.ok) {
-		console.error("Failed to fetch best gainers", request.statusText)
+		console.error("Failed to fetch best loosers", request.statusText)
 
 		return null
 	}
@@ -63,8 +63,8 @@ export async function loader() {
 				parsedResult.push(reducedItem)
 				continue
 			}
-			
-			toFetch.push(reducedItem.symbol)
+
+            toFetch.push(reducedItem.symbol)
 		} else {
 			toFetch.push(reducedItem.symbol)
 		}

@@ -5,21 +5,27 @@ async function getHomePreferences(request: Request) {
 	let hasChanged = false
 	let preferences: HomePreferences[] = [
 		{
+			id: "bestLosers",
+			title: "Best Losers",
+			position: 0,
+			visible: true
+		},
+		{
 			id: "bestGainers",
 			title: "Best Gainers",
-			position: 0,
+			position: 1,
 			visible: true
 		},
 		{
 			id: "news",
 			title: "News",
-			position: 1,
+			position: 2,
 			visible: true
 		},
 		{
 			id: "events",
 			title: "Events",
-			position: 2,
+			position: 3,
 			visible: true
 		}
 	]

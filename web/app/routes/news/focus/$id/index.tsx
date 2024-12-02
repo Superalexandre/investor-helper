@@ -93,7 +93,7 @@ export default function Index() {
 
 	return (
 		<div className="relative w-full overflow-hidden">
-			<BackButton forceRedirect="/news" fallbackRedirect="/news" label={t("seeAll")} />
+			<BackButton forceRedirect="/news" fallbackRedirect="/news" label={t("seeAllNews")} />
 
 			<ScrollTop showBelow={250} />
 
@@ -144,7 +144,7 @@ export default function Index() {
 									<p className="text-muted-foreground">
 										{formatDate(news.news.published * 1000, {
 											locale: i18n.language
-										})}{" "}
+										})} 
 										- {news.news.source}
 									</p>
 								</CardFooter>

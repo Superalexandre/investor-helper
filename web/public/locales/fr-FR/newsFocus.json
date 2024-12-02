@@ -1,7 +1,9 @@
 {
     "title": "Investor Helper - Les actualités",
     "description": "Les actualités qui pourraient vous intéresser",
-    "seeAll": "Voir toutes les actualités",
+    "seeAllNews": "Voir toutes les actualités",
+    "seeAll": "Voir tout",
+    "seeLess": "Voir moins",
     "couldBeInteresting": "Actualités qui pourraient vous intéresser",
     "noNews": "Aucune actualité trouvée"
 }

@@ -40,8 +40,8 @@ export const SmallChart = function SmallChart({
 					axisLine={false}
 					scale="auto"
 					domain={[
-						(dataMin: number) => Math.floor(dataMin * 0.85),
-						(dataMax: number) => Math.ceil(dataMax * 1.15)
+						(dataMin: number) => Math.floor(dataMin * 0.8),
+						(dataMax: number) => Math.ceil(dataMax * 1.2)
 					]}
 				/>
 

@@ -36,10 +36,18 @@ interface BestGainer {
 	market: string
 	sector: string
 	// biome-ignore lint/style/useNamingConvention: <explanation>
-	recommendation_mark: string
+	recommendation_mark: number | null
 	exchange: string
 	symbol: string
 	prices: Period[]
+	// biome-ignore lint/style/useNamingConvention: <explanation>
+	enterprise_value_current: number
+	// biome-ignore lint/style/useNamingConvention: <explanation>
+	country_tr: string
+	// biome-ignore lint/style/useNamingConvention: <explanation>
+	country_code_fund: string
+	// biome-ignore lint/style/useNamingConvention: <explanation>
+	float_shares_percent_current: number
 }
 
 export type { BestGainer }
