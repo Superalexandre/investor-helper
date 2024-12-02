@@ -5,7 +5,7 @@ import { changeLanguage, type TFunction } from "i18next"
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import i18next from "../../i18next.server"
 import { Form, useLoaderData, useSubmit } from "@remix-run/react"
-import { getSession, getUser, setSession } from "../../session.server"
+import { clearCache, getSession, getUser, setSession } from "../../session.server"
 import i18n from "../../i18n"
 import { getTheme } from "../../lib/getTheme"
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core"
@@ -18,6 +18,17 @@ import { changeUserLanguage, changeUserTheme } from "../../lib/userPreferences"
 import { Button } from "../../components/ui/button"
 
 export async function action({ request }: ActionFunctionArgs) {
+	// Get url parameters
+	const url = new URL(request.url)
+	const type = url.searchParams.get("type")
+
+	if (type === "emptyCache") {
+		return clearCache({
+			request: request,
+			redirectUrl: "/settings"
+		})
+	}
+
 	const [data, user] = await Promise.all([request.json(), getUser(request)])
 
 	// biome-ignore lint/complexity/useSimplifiedLogicExpression: <explanation>
@@ -391,8 +402,10 @@ function SortableItem({ item }: { item: HomePreferences /*changeVisibility: (id:
 
 const ClearCache = memo(function ClearCache() {
 	return (
-		<Button variant="destructive" type="submit">
-			Vider le cache
-		</Button>
+		<Form method="POST" action="/settings?type=emptyCache" className="flex w-2/3 flex-col items-center justify-center gap-2 lg:w-1/2">
+			<Button variant="destructive" type="submit">
+				Vider le cache
+			</Button>
+	</Form>
 	)
 })
