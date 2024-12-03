@@ -1,12 +1,28 @@
-import type { columns } from "../app/routes/api/prices/parameters"
+import type { columns } from "../app/routes/api/prices/parameters";
 import type { Period } from "../utils/getPrices"
+import type { ColumnType, ColumnTypeMappingType } from "../utils/tradingview/filter";
 
-type BestGainer = Record<typeof columns[number], unknown> & {
-	prices: Period[]
-}
+type FilteredColumnMapping<TColumns extends readonly ColumnType[]> = {
+    [K in TColumns[number]]: ColumnTypeMappingType[K];
+};
 
-type BestLoser = Record<typeof columns[number], unknown> & {
-	prices: Period[]
-}
+type BestGainerTyped<TColumns extends readonly ColumnType[]> = FilteredColumnMapping<TColumns> & {
+    prices: Period[];
+};
+
+type BestGainer = BestGainerTyped<typeof columns>;
+
+// // biome-ignore lint/style/useNamingConvention: <explanation>
+// type BestLoser<TColumns extends readonly ColumnType[]> = {
+// 	[K in TColumns[number]]: ColumnTypeMappingType[K];
+// } & {
+// 	prices: Period[];
+// };
+
+type BestLoserTyped<TColumns extends readonly ColumnType[]> = FilteredColumnMapping<TColumns> & {
+	prices: Period[];
+};
+
+type BestLoser = BestLoserTyped<typeof columns>;
 
 export type { BestGainer, BestLoser }

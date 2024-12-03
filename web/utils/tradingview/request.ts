@@ -1,10 +1,9 @@
 import { z } from "zod"
 import {
-	ColumnResultType,
 	type ColumnsArray,
 	ColumnSchema,
 	type ColumnType,
-	type FilterOperation,
+	type ColumnTypeMappingType,
 	FilterOperationSchemaNested,
 	LangSchema,
 	MarketsSchema,
@@ -24,19 +23,47 @@ interface TradingViewResponseDynamic<TColumns extends ColumnsArray> {
 	data: TradingViewDataItemDynamic<TColumns>[]
 }
 
+// function parseTradingViewResponse<TColumns extends ColumnsArray>(
+// 	columns: TColumns | null,
+// 	response: TradingViewResponseDynamic<TColumns>
+// ): Record<TColumns[number], unknown>[] {
+// 	if (!columns) {
+// 		return []
+// 	}
+
+// 	return response.data.map((item) => {
+// 		const reduced = columns.reduce(
+// 			(acc, column, index) => {
+// 				// @ts-expect-error: TS doesn't know that column is a valid key of item
+// 				acc[column] = item.d[index]
+// 				return acc
+// 			},
+// 			{} as Record<TColumns[number], unknown> & { symbol: string }
+// 		)
+
+// 		reduced.symbol = item.s
+
+// 		return reduced
+// 	})
+// }
+
 // biome-ignore lint/style/useNamingConvention: <explanation>
-function parseTradingViewResponse<TColumns extends ColumnType[]>(
-	columns: TColumns,
+function parseTradingViewResponse<TColumns extends ColumnsArray>(
+	columns: TColumns | null,
 	response: TradingViewResponseDynamic<TColumns>
-): Record<TColumns[number], unknown>[] {
+): { [K in TColumns[number]]: ColumnTypeMappingType[K] }[] {
+	if (!columns) {
+		return []
+	}
+
 	return response.data.map((item) => {
 		const reduced = columns.reduce(
 			(acc, column, index) => {
 				// @ts-expect-error: TS doesn't know that column is a valid key of item
-				acc[column] = item.d[index]
+				acc[column] = item.d[index] as ColumnTypeMappingType[typeof column]
 				return acc
 			},
-			{} as Record<TColumns[number], unknown> & { symbol: string }
+			{} as { [K in TColumns[number]]: ColumnTypeMappingType[K] } & { symbol: string }
 		)
 
 		reduced.symbol = item.s
@@ -69,9 +96,11 @@ const FetchParamsSchema = z.object({
 	columns: z.array(ColumnSchema),
 	filter: FilterOperationSchemaNested.optional(),
 	range: z.tuple([z.number(), z.number()]).optional(),
-	options: z.object({
-		lang: LangSchema
-	}).optional(),
+	options: z
+		.object({
+			lang: LangSchema
+		})
+		.optional(),
 	sort: z
 		.object({
 			sortBy: SortBySchema,
@@ -96,28 +125,9 @@ const fetchData = async <TColumns extends ColumnsArray>({
 	success: boolean
 	message: string
 	result: TradingViewResponseDynamic<TColumns> | null
-	parsedResult: Record<TColumns[number], unknown>[] | null
+	parsedResult: { [K in TColumns[number]]: ColumnTypeMappingType[K] }[] | null;
 }> => {
 	const url = `https://scanner.tradingview.com/${country}/scan?label-product=screener-stock`
-
-	/*
-    columns,
-			filter2: filter,
-			// biome-ignore lint/style/useNamingConvention: <explanation>
-			ignore_unknown_fields: false,
-			options: {
-				lang: "fr"
-			},
-			range: [0, 20],
-			sort: {
-				sortBy: "change",
-				sortOrder: "asc"
-			},
-			symbols: {},
-			markets: [country]
-            */
-
-	console.log(sort)
 
 	const requestBody: TradingViewRequest = {
 		columns,
@@ -153,7 +163,7 @@ const fetchData = async <TColumns extends ColumnsArray>({
 	}
 
 	const result: TradingViewResponseDynamic<TColumns> = await response.json()
-	const parsed = parseTradingViewResponse(columns, result)
+	const parsed = parseTradingViewResponse(columns as TColumns, result)
 
 	return {
 		success: true,
@@ -164,18 +174,3 @@ const fetchData = async <TColumns extends ColumnsArray>({
 }
 
 export { fetchData }
-
-/*
-const _fetchExample = async () => {
-    const filter = and(
-        createFilterExpression("change", "greater", 0),
-    )
-
-    const { parsed } = await fetchDynamicData({
-		country: "US",
-		columns: ["change", "close", "currency"]
-	})
-
-	console.log(parsed[0])
-}
-*/
