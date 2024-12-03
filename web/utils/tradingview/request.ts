@@ -85,6 +85,35 @@ function parseTradingViewResponse<TColumns extends ColumnsArray>(
     );
 }
 
+// Utility function to convert snake_case to camelCase
+function snakeToCamel(snake: string): string {
+    return snake.replace(/(_\w)/g, (matches) => matches[1].toUpperCase());
+}
+
+// Automatically generate the `columns` field
+function generateColumns(columnsSnakeCase: string[]): string[] {
+    return columnsSnakeCase.map(snakeToCamel);
+}
+
+// Parse the response and map columns dynamically, converting to camelCase
+function parseTradingViewResponseCamelCase<TColumns extends string[]>(
+    columnsSnakeCase: TColumns,
+    response: TradingViewResponseDynamic<TColumns>
+): Array<Record<string, any>> {
+    // Convert columns to camelCase
+    const columnsCamelCase = generateColumns(columnsSnakeCase);
+
+    // Map response data to camelCase keys
+    return response.data.map((item) => {
+        const parsedObject = {} as Record<string, any>;
+        columnsCamelCase.forEach((camelColumn, index) => {
+            parsedObject[camelColumn] = item.d[index];
+        });
+        return parsedObject;
+    });
+}
+
+
 const fetchDynamicData = async <TColumns extends ColumnsArray>({
     country, filter, columns
 }: {
@@ -117,11 +146,11 @@ const fetchDynamicData = async <TColumns extends ColumnsArray>({
     });
 
 
-    
+
     if (!response.ok) {
         throw new Error(`Failed to fetch data: ${response.statusText}`);
     }
-    
+
     const result: TradingViewResponseDynamic<TColumns> = await response.json();
     const parsed = parseTradingViewResponse(columns, result);
 
@@ -134,7 +163,7 @@ const fetchDynamicData = async <TColumns extends ColumnsArray>({
 
 const fetchExample = async () => {
     const columns: ColumnsArray = ["name", "description", "close"]
-    
+
     const { result, parsed } = await fetchDynamicData({
         country: "US",
         columns,
