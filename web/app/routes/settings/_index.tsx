@@ -16,6 +16,7 @@ import type HomePreferences from "../../../types/Preferences"
 import { memo, useState } from "react"
 import { changeUserLanguage, changeUserTheme } from "../../lib/userPreferences"
 import { Button } from "../../components/ui/button"
+import { restrictToParentElement } from '@dnd-kit/modifiers'
 
 export async function action({ request }: ActionFunctionArgs) {
 	// Get url parameters
@@ -358,7 +359,7 @@ const ChangeHomePreferences = memo(function ChangeHomePreferences({
 	return (
 		<Form className="flex w-2/3 flex-col items-center justify-center gap-2 lg:w-1/2 touch-pan-x">
 			<Label className="text-center">Préférences de la page d'accueil</Label>
-			<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleChangePosition}>
+			<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleChangePosition} modifiers={[restrictToParentElement]}>
 				<SortableContext
 					items={homePreferencesState.map((item) => item.id)}
 					strategy={verticalListSortingStrategy}

@@ -1,6 +1,7 @@
 import type { BestGainer } from "../../../../../types/Prices"
 import getPrices, { closeClient, type Period } from "../../../../../utils/getPrices"
-import { columns, filter } from "../parameters";
+import { fetchData } from "../../../../../utils/tradingview/request"
+import { columns, filter } from "../parameters"
 
 const cachedPrice = new Map<string, { prices: Period[]; lastUpdate: number }>()
 const CACHE_TIME = 1000 * 60 * 60 // 1 hour
@@ -8,81 +9,59 @@ const CACHE_TIME = 1000 * 60 * 60 // 1 hour
 export async function loader() {
 	const country = "france"
 
-	const url = `https://scanner.tradingview.com/${country}/scan?label-product=screener-stock`
-	const request = await fetch(url, {
-		method: "POST",
-		body: JSON.stringify({
-			columns,
-			filter2: filter,
-			// biome-ignore lint/style/useNamingConvention: <explanation>
-			ignore_unknown_fields: false,
-			options: {
-				lang: "fr"
-			},
-			range: [0, 20],
-			sort: {
-				sortBy: "change",
-				sortOrder: "desc"
-			},
-			symbols: {},
-			markets: [country]
-		})
+	const { parsedResult } = await fetchData({
+		country: country,
+		columns: columns,
+		filter: filter,
+		sort: {
+			sortBy: "change",
+			sortOrder: "desc"
+		}
 	})
 
-	if (!request.ok) {
-		console.error("Failed to fetch best gainers", request.statusText)
-
-		return null
+	if (!parsedResult) {
+		return {
+			result: []
+		}
 	}
 
-	const result = await request.json()
-
-	console.log("result : ", result)
-
-	const parsedResult: BestGainer[] = []
+	const result: BestGainer[] = []
 	const toFetch: string[] = []
 
-	for (const item of result.data) {
-		const reducedItem = columns.reduce((acc, key, index) => {
-			acc[key] = item.d[index]
-			return acc
-		}, {} as BestGainer)
+	for (const item of parsedResult) {
+		const symbol = item.symbol as string
 
-		reducedItem.symbol = item.s
-
-		if (cachedPrice.has(reducedItem.symbol)) {
-			const cached = cachedPrice.get(reducedItem.symbol)
+		if (cachedPrice.has(symbol)) {
+			const cached = cachedPrice.get(symbol)
 
 			if (!cached) {
-				toFetch.push(reducedItem.symbol)
+				toFetch.push(symbol)
 				continue
 			}
 
 			if (Date.now() - cached.lastUpdate < CACHE_TIME) {
-				reducedItem.prices = cached.prices
-				parsedResult.push(reducedItem)
+				result.push({
+					...item,
+					prices: cached.prices
+				})
 				continue
 			}
-			
-			toFetch.push(reducedItem.symbol)
-		} else {
-			toFetch.push(reducedItem.symbol)
-		}
 
-		parsedResult.push(reducedItem)
+			toFetch.push(symbol)
+		} else {
+			toFetch.push(symbol)
+		}
 	}
 
-	// console.log("items : ", parsedResult.length)
-
-	console.log("toFetch : ", toFetch)
+	console.log("toFetch (gainers)", toFetch)
 
 	await Promise.all(
 		toFetch.map(async (symbol) => {
 			const prices = await getPrices(symbol, {
-				// 1-360
 				range: 360,
 				timeframe: "1"
 			})
+
 			const reversed = prices.period.reverse()
 
 			cachedPrice.set(symbol, { prices: reversed, lastUpdate: Date.now() })
@@ -90,16 +69,19 @@ export async function loader() {
 			const item = parsedResult.find((item) => item.symbol === symbol)
 
 			if (item) {
-				item.prices = reversed
+				result.push({
+					...item,
+					prices: reversed
+				})
 			}
 		})
 	)
 
-	// console.log(parsedResult)
-
-	closeClient()
+	if (toFetch.length > 0) {
+		closeClient()
+	}
 
 	return {
-		result: parsedResult
+		result: result
 	}
 }

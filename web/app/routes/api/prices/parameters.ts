@@ -1,4 +1,7 @@
-export const columns = [
+import { and, createFilterExpression, or, type ColumnType } from "../../../../utils/tradingview/filter"
+
+export const columns: ColumnType[] = [
+	"exchange",
 	"name",
 	"description",
 	"logoid",
@@ -32,6 +35,7 @@ export const columns = [
 	"recommendation_mark"
 ]
 
+/*
 export const filter = {
 	operator: "and",
 	operands: [
@@ -163,3 +167,25 @@ export const filter = {
 		}
 	]
 }
+	*/
+
+// Convert filter object to FilterOperation schema
+export const filter = and(
+	and(
+		createFilterExpression("country_code_fund", "equal", "FR"),
+		createFilterExpression("market_cap_basic", "greater", 0),
+		createFilterExpression("volume", "greater", 0)
+	),
+	or(
+		and(createFilterExpression("type", "equal", "stock"), createFilterExpression("typespecs", "has", ["common"])),
+		and(
+			createFilterExpression("type", "equal", "stock"),
+			createFilterExpression("typespecs", "has", ["preferred"])
+		),
+		createFilterExpression("type", "equal", "dr"),
+		and(
+			createFilterExpression("type", "equal", "fund"),
+			createFilterExpression("typespecs", "has_none_of", ["etf"])
+		)
+	)
+)
