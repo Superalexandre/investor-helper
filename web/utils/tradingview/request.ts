@@ -1,24 +1,6 @@
 import { z } from "zod"
 import { FilterOperation, FilterOperationSchemaNested, LangSchema, MarketsSchema, SortBySchema } from "./filter";
 
-// Request structure
-const TradingViewRequestSchema = z.object({
-    columns: z.array(z.string()),
-    filter2: FilterOperationSchemaNested,
-    ignore_unknown_fields: z.boolean(),
-    options: z.object({
-        lang: LangSchema,
-    }),
-    range: z.tuple([z.number(), z.number()]),
-    sort: z.object({
-        sortBy: SortBySchema,
-        sortOrder: z.enum(["asc", "desc"]),
-    }),
-    symbols: z.record(z.unknown()), // Symbols can be any structure
-    markets: MarketsSchema,
-});
-type TradingViewRequest = z.infer<typeof TradingViewRequestSchema>;
-
 type Column =
     | "name"
     | "description"
@@ -113,6 +95,23 @@ function parseTradingViewResponseCamelCase<TColumns extends string[]>(
     });
 }
 
+// Request structure
+const TradingViewRequestSchema = z.object({
+    columns: ColumnsArray,
+    filter2: FilterOperationSchemaNested,
+    ignore_unknown_fields: z.boolean(),
+    options: z.object({
+        lang: LangSchema,
+    }),
+    range: z.tuple([z.number(), z.number()]),
+    sort: z.object({
+        sortBy: SortBySchema,
+        sortOrder: SortOrderSchema,
+    }),
+    symbols: z.record(z.unknown()), // Symbols can be any structure
+    markets: MarketsSchema,
+});
+type TradingViewRequest = z.infer<typeof TradingViewRequestSchema>;
 
 const fetchDynamicData = async <TColumns extends ColumnsArray>({
     country, filter, columns

@@ -43,6 +43,9 @@ type FilterOperation = z.infer<typeof FilterOperationSchemaNested>;
 const SortBySchema = z.enum(["change", "volume", "market_cap_basic"]);
 type SortByType = z.infer<typeof SortBySchema>;
 
+const SortOrder = z.enum(["asc", "desc"])
+type SortByOrder = z.infer<typeof SortOrder>
+
 // Supported `markets` values
 const MarketsSchema = z.array(z.string());
 type MarketsType = z.infer<typeof MarketsSchema>;
@@ -82,6 +85,7 @@ export {
     FilterExpressionSchema,
     FilterOperationSchemaNested,
     SortBySchema,
+    SortOrderSchema,
     MarketsSchema,
     LangSchema,
     createFilterExpression,
@@ -96,6 +100,7 @@ export type {
     FilterExpression,
     FilterOperation,
     SortByType,
+    SortByOrder,
     MarketsType,
     LangType,
 }
