@@ -17,7 +17,8 @@ export async function loader() {
 		sort: {
 			sortBy: "change",
 			sortOrder: "asc"
-		}
+		},
+		range: [0, 20]
 	})
 
 	if (!parsedResult) {

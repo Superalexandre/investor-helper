@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { usePWAManager } from "@remix-pwa/client"
-import { MdCalendarToday, MdDownload, MdNewspaper, MdShowChart } from "react-icons/md"
+import { MdBarChart, MdCalendarToday, MdDownload, MdNewspaper } from "react-icons/md"
 import { Link, useLoaderData, useNavigate } from "@remix-run/react"
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { formatDistanceToNow } from "date-fns"
@@ -86,7 +86,7 @@ export default function Index() {
 			component: () => (
 				<>
 					<h2 className="flex flex-row items-center gap-2 font-bold text-lg">
-						<MdShowChart />
+						<MdBarChart />
 
 						{t("bestLosers")}
 					</h2>
@@ -102,7 +102,7 @@ export default function Index() {
 			component: () => (
 				<>
 					<h2 className="flex flex-row items-center gap-2 font-bold text-lg">
-						<MdShowChart />
+						<MdBarChart />
 
 						{t("bestGainers")}
 					</h2>
