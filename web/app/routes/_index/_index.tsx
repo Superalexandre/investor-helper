@@ -248,31 +248,30 @@ const DisplayBestLosers = memo(function DisplayBestLosers({
 		{
 			min: 0,
 			max: 1,
-			recommendation: "Strong buy",
+			recommendation: t("recommendations.strongBuy"),
 			color: "text-green-600"
 		}, {
 			min: 1,
 			max: 2,
-			recommendation: "Buy",
+			recommendation: t("recommendations.buy"),
 			color: "text-green-500"
 		}, {
 			min: 2,
 			max: 3,
-			recommendation: "Hold",
+			recommendation: t("recommendations.hold"),
 			color: "text-gray-500"
 		}, {
 			min: 3,
 			max: 4,
-			recommendation: "Sell",
+			recommendation: t("recommendations.sell"),
 			color: "text-red-500"
 		}, {
 			min: 4,
 			max: 5,
-			recommendation: "Strong sell",
+			recommendation: t("recommendations.strongSell"),
 			color: "text-red-600"
 		}
 	]
-
 	const recommendation = (value: number): string => {
 		const rec = recommendationMap.find((rec) => value >= rec.min && value < rec.max)
 		return rec ? rec.recommendation : "Unknown"
@@ -369,27 +368,27 @@ const DisplayBestGainers = memo(function DisplayBestGainers({
 		{
 			min: 0,
 			max: 1,
-			recommendation: "Strong buy",
+			recommendation: t("recommendations.strongBuy"),
 			color: "text-green-600"
 		}, {
 			min: 1,
 			max: 2,
-			recommendation: "Buy",
+			recommendation: t("recommendations.buy"),
 			color: "text-green-500"
 		}, {
 			min: 2,
 			max: 3,
-			recommendation: "Hold",
+			recommendation: t("recommendations.hold"),
 			color: "text-gray-500"
 		}, {
 			min: 3,
 			max: 4,
-			recommendation: "Sell",
+			recommendation: t("recommendations.sell"),
 			color: "text-red-500"
 		}, {
 			min: 4,
 			max: 5,
-			recommendation: "Strong sell",
+			recommendation: t("recommendations.strongSell"),
 			color: "text-red-600"
 		}
 	]

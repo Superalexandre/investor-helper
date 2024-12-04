@@ -92,13 +92,13 @@ export async function clearCache({
 	})
 }
 
-export async function getUserToken(request: Request) {
+export async function getUserToken(request: Request): Promise<string | null> {
 	const session = await getSession(request)
 	const token: string = session.get(SESSION_KEY)
 	return token
 }
 
-export async function getUser(request: Request) {
+export async function getUser(request: Request): Promise<User | null> {
 	const token = await getUserToken(request)
 
 	if (!token) {
@@ -119,7 +119,7 @@ export async function getUser(request: Request) {
 	return user as User
 }
 
-export async function getUserByToken(token: string) {
+export async function getUserByToken(token: string): Promise<User | null> {
 	const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
 	const db = drizzle(sqlite)
 

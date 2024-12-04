@@ -8,6 +8,7 @@
     "seeMore": "Voir plus",
     "nextEvents": "Prochains événements importants",
     "bestGainers": "Meilleurs hausses",
+    "bestLosers": "Meilleures baisses",
     "by": "Par",
     "country": "Pays",
     "importance": "Importance",
@@ -19,5 +20,12 @@
     },
     "low": "faible",
     "medium": "moyenne",
-    "high": "élevée"
+    "high": "élevée",
+    "recommendations": {
+        "strongBuy": "Achat fort",
+        "buy": "Acheter",
+        "hold": "Conserver",
+        "sell": "Vendre",
+        "strongSell": "Vente forte"
+    }
 }

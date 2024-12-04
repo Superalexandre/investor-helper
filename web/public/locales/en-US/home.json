@@ -8,6 +8,7 @@
     "seeMore": "See more",
     "nextEvents": "Upcoming important events",
     "bestGainers": "Best gainers",
+    "bestLosers": "Best losers",
     "by": "By",
     "country": "Country",
     "importance": "Importance",
@@ -19,5 +20,12 @@
     },
     "low": "low",
     "medium": "medium",
-    "high": "high"
+    "high": "high",
+    "recommendations": {
+        "strongBuy": "Strong buy",
+        "buy": "Buy",
+        "hold": "Hold",
+        "sell": "Sell",
+        "strongSell": "Strong sell"
+    }
 }

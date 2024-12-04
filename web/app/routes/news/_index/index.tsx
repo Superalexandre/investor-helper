@@ -21,6 +21,7 @@ import { Label } from "../../../components/ui/label"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../../../components/ui/dialog"
 import type { CheckedState } from "@radix-ui/react-checkbox"
 import getNewsPreferences from "../../../lib/getNewsPreferences"
+import { getSourceList } from "../../../../utils/news"
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const t = await i18next.getFixedT(request, "news")
@@ -31,10 +32,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	const title = t("title")
 	const description = t("description")
 
+	const sources = await getSourceList({
+		languages: newsPreferences.languages
+	})
+
 	return {
 		title: title,
 		description: description,
-		newsPreferences: newsPreferences
+		newsPreferences: newsPreferences,
+		sources: sources
 	}
 }
 
@@ -59,7 +65,7 @@ export const handle = {
 }
 
 export default function Index() {
-	const { newsPreferences } = useLoaderData<typeof loader>()
+	const { newsPreferences, sources } = useLoaderData<typeof loader>()
 	const { t, i18n } = useTranslation("news")
 
 	const location = useLocation()
@@ -71,6 +77,7 @@ export default function Index() {
 
 	const [selectedLanguage, setSelectedLanguage] = useState<string[]>(newsPreferences.languages)
 	const [selectedImportance, setSelectedImportance] = useState<string[]>(newsPreferences.importances)
+	const [selectedSource, setSelectedSource] = useState<string[]>(sources as unknown as string[])
 
 	return (
 		<div>
@@ -96,6 +103,9 @@ export default function Index() {
 					setSelectedLanguage={setSelectedLanguage}
 					selectedImportance={selectedImportance}
 					setSelectedImportance={setSelectedImportance}
+					allSources={sources as unknown as string[]}
+					selectedSource={selectedSource}
+					setSelectedSource={setSelectedSource}
 				/>
 
 				<News
@@ -149,7 +159,10 @@ function DisplayFilter({
 	selectedLanguage,
 	setSelectedLanguage,
 	selectedImportance,
-	setSelectedImportance
+	setSelectedImportance,
+	allSources,
+	selectedSource,
+	setSelectedSource
 }: {
 	t: TFunction
 	selectedLanguage: string[]
@@ -157,6 +170,10 @@ function DisplayFilter({
 
 	selectedImportance: string[]
 	setSelectedImportance: (value: string[]) => void
+
+	allSources: string[]
+	selectedSource: string[]
+	setSelectedSource: (value: string[]) => void
 }) {
 	const [opened, setOpened] = useState<string | null>(null)
 
@@ -170,6 +187,14 @@ function DisplayFilter({
 				<FilterImportance
 					selectedImportance={selectedImportance}
 					setSelectedImportance={setSelectedImportance}
+				/>
+			</PopupFilter>
+
+			<PopupFilter open={opened === "sources"} onClose={() => setOpened(null)}>
+				<FilterSources
+					allSources={allSources}
+					selectedSource={selectedSource}
+					setSelectedSource={setSelectedSource}
 				/>
 			</PopupFilter>
 
@@ -189,9 +214,16 @@ function DisplayFilter({
 				</div>
 			</PopupFilter>
 
-			<div className="overflow-x-auto flex flex-row items-center gap-2">
+			<div className="flex flex-row items-center gap-2 overflow-x-auto">
 				<Button variant={opened === "language" ? "default" : "outline"} onClick={() => setOpened("language")}>
 					Langue ({selectedLanguage.length})
+				</Button>
+
+				<Button
+					variant={opened === "sources" ? "default" : "outline"}
+					onClick={() => setOpened("sources")}
+				>
+					Sources ({selectedSource.length})
 				</Button>
 
 				<Button
@@ -405,6 +437,66 @@ function FilterImportance({
 				/>
 				<Label htmlFor="very-high">Très forte</Label>
 				<ImportanceBadge importance={201} />
+			</div>
+		</fetcher.Form>
+	)
+}
+
+function FilterSources({
+	allSources,
+	selectedSource,
+	setSelectedSource
+}: {
+	allSources: string[]
+	selectedSource: string[]
+	setSelectedSource: (value: string[]) => void
+}) {
+	// const submit = useSubmit()
+	const fetcher = useFetcher()
+
+	const onChange = (checked: CheckedState, value: string) => {
+		console.log(checked, value)
+
+		// submit({
+		// 	type: "newsPreferences",
+		// 	languages: selectedLanguage.join(","),
+		// 	redirect: "/news"
+		// }, {
+		// 	method: "POST",
+		// 	action: "/settings",
+		//     encType: "application/json",
+		// })
+
+		// fetcher.submit(
+		// 	{
+		// 		type: "newsPreferences",
+		// 		languages: newLanguages.join(","),
+		// 		redirect: "/news"
+		// 	},
+		// 	{
+		// 		method: "POST",
+		// 		action: "/settings",
+		// 		encType: "application/json"
+		// 	}
+		// )
+	}
+
+	console.log(allSources)
+
+	return (
+		<fetcher.Form className="flex flex-col items-center gap-2">
+			<div>
+				{[...allSources, ...allSources, ...allSources, ...allSources, ...allSources, ...allSources].map((source) => (
+					<div key={source} className="flex flex-row items-center justify-center gap-2">
+						<Checkbox
+							id={source}
+							value={source}
+							defaultChecked={selectedSource.includes(source)}
+							onCheckedChange={(checked) => onChange(checked, source)}
+						/>
+						<Label htmlFor={source}>{source}</Label>
+					</div>
+				))}
 			</div>
 		</fetcher.Form>
 	)

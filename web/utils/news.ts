@@ -20,8 +20,9 @@ async function getNews({
 	page = 1,
 	limit = 10,
 	language,
-	scores
-}: { page?: number; limit?: number; language?: string[]; scores?: number[][] }) {
+	scores,
+	sources
+}: { page?: number; limit?: number; language?: string[]; scores?: number[][]; sources?: string[] }) {
 	const sqlite = new Database("../db/sqlite.db")
 	const db = drizzle(sqlite)
 
@@ -39,7 +40,8 @@ async function getNews({
 								and(gt(newsSchema.importanceScore, score[0]), lt(newsSchema.importanceScore, score[1]))
 							)
 						)
-					: undefined
+					: undefined,
+				sources ? inArray(newsSchema.source, sources) : undefined
 			)
 		)
 		.limit(limit)
@@ -61,6 +63,28 @@ async function getNews({
 	}
 
 	return news
+}
+
+async function getSourceList({
+	languages
+}: {
+	languages: string[]
+}) {
+	const sqlite = new Database("../db/sqlite.db")
+	const db = drizzle(sqlite)
+
+	const sources = await db
+		.selectDistinct({
+			source: newsSchema.source,
+		})
+		.from(newsSchema)
+		.where(inArray(newsSchema.lang, languages))
+
+	console.log(sources)
+
+	const sourcesList = sources.map((source) => source.source)
+
+	return sourcesList
 }
 
 async function getNewsById({ id }: { id: string }) {
@@ -647,6 +671,7 @@ async function getLastImportantNews(from: Date, to: Date, importance: number, li
 
 export default getNews
 export {
+	getSourceList,
 	getNews,
 	getNewsById,
 	fetchNews,

@@ -110,8 +110,8 @@ export async function action({ request }: ActionFunctionArgs) {
 	}
 
 	if (data.type === "newsPreferences") {
-		// biome-ignore lint/complexity/useSimplifiedLogicExpression: <explanation>
 		if (
+			// biome-ignore lint/complexity/useSimplifiedLogicExpression: <explanation>
 			!data.languages &&
 			!Array.isArray(data.languages) &&
 			!data.importances &&
@@ -129,8 +129,8 @@ export async function action({ request }: ActionFunctionArgs) {
 		const session = await getSession(request)
 		const newsPreferences = session.get("newsPreferences")
 
-		let newLanguages = []
-		let newImportances = []
+		let newLanguages: string[] = []
+		let newImportances: string[] = []
 
 		if (data.languages) {
 			newLanguages = data.languages.split(",")

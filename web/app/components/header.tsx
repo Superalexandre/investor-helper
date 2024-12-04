@@ -69,22 +69,22 @@ export default function Header({
 						</Link>
 					</Button> */}
 
-					<Button variant="ghost">
-						<Link to="/news" className="flex flex-row items-center">
+					<Button variant="ghost" className="p-0">
+						<Link to="/news" className="flex flex-row items-center px-4 py-2">
 							<MdNewspaper className="mr-2 inline-block" />
 							{t("header.news")}
 						</Link>
 					</Button>
 
-					<Button variant="ghost">
-						<Link to="/calendar" className="flex flex-row items-center">
+					<Button variant="ghost" className="p-0">
+						<Link to="/calendar" className="flex flex-row items-center px-4 py-2">
 							<MdCalendarMonth className="mr-2 inline-block" />
 							{t("header.calendar")}
 						</Link>
 					</Button>
 
-					<Button variant="ghost">
-						<Link to="/search" className="flex flex-row items-center">
+					<Button variant="ghost" className="p-0">
+						<Link to="/search" className="flex flex-row items-center px-4 py-2">
 							<MdSearch className="mr-2 inline-block" />
 							{t("header.search")}
 						</Link>
@@ -96,8 +96,8 @@ export default function Header({
 				<div className="flex flex-row items-center">
 					{user ? (
 						<>
-							<Button variant="ghost">
-								<Link to="/profile" className="flex flex-row items-center gap-2">
+							<Button variant="ghost" className="p-0">
+								<Link to="/profile" className="flex flex-row items-center gap-2 px-4 py-2">
 									<img
 										src={`https://api.dicebear.com/7.x/bottts/png?seed=${user.username}`}
 										alt={user.username}
@@ -108,8 +108,8 @@ export default function Header({
 								</Link>
 							</Button>
 
-							<Button variant="ghost">
-								<Link to="/logout" className="flex flex-row items-center">
+							<Button variant="ghost" className="p-0">
+								<Link to="/logout" className="flex flex-row items-center px-4 py-2">
 									<MdLogout className="mr-2 inline-block" />
 									{t("header.logout")}
 								</Link>
@@ -117,15 +117,15 @@ export default function Header({
 						</>
 					) : (
 						<>
-							<Button variant="ghost">
-								<Link to="/login" className="flex flex-row items-center">
+							<Button variant="ghost" className="p-0">
+								<Link to="/login" className="flex flex-row items-center px-4 py-2">
 									<MdLogin className="mr-2 inline-block" />
 									{t("header.login")}
 								</Link>
 							</Button>
 
-							<Button variant="ghost">
-								<Link to="/register" className="flex flex-row items-center">
+							<Button variant="ghost" className="p-0">
+								<Link to="/register" className="flex flex-row items-center px-4 py-2">
 									<MdAdd className="mr-2 inline-block" />
 									{t("header.register")}
 								</Link>
