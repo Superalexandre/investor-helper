@@ -496,12 +496,10 @@ function FilterSources({
 		// )
 	}
 
-	console.log(allSources)
-
 	return (
 		<fetcher.Form className="flex flex-col items-center gap-2">
 			<div>
-				{[...allSources, ...allSources, ...allSources, ...allSources, ...allSources, ...allSources].map((source) => (
+				{allSources.map((source) => (
 					<div key={source} className="flex flex-row items-center justify-center gap-2">
 						<Checkbox
 							id={source}
