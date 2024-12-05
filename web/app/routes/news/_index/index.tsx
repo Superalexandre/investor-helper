@@ -11,7 +11,7 @@ import { useQuery } from "@tanstack/react-query"
 import type { NewsSymbols } from "../../../../types/News"
 import SkeletonNews from "../../../components/skeletons/skeletonNews"
 import DisplaySymbols from "../../../components/displaySymbols"
-import { memo, type ReactNode, useEffect, useRef, useState } from "react"
+import { memo, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { TFunction } from "i18next"
 import i18next from "../../../i18next.server"
@@ -68,12 +68,18 @@ export default function Index() {
 	const { newsPreferences, sources } = useLoaderData<typeof loader>()
 	const { t, i18n } = useTranslation("news")
 
+	// Memoize the translation function to prevent unstable references
+	const memoT = useMemo(() => t, [t]) 
+
 	const location = useLocation()
 
-	const actualPage = location.search ? Number.parseInt(new URLSearchParams(location.search).get("page") || "1") : 1
+	// Memoize URLSearchParams to avoid recalculating on every render
+	const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search])
 
-	const previousPage = location.search && actualPage - 1 >= 1 ? actualPage - 1 : 1
-	const nextPage = location.search ? actualPage + 1 : 2
+	const actualPage = searchParams ? Number.parseInt(searchParams.get("page") || "1") : 1
+
+	const previousPage = searchParams && actualPage - 1 >= 1 ? actualPage - 1 : 1
+	const nextPage = searchParams ? actualPage + 1 : 2
 
 	const [selectedLanguage, setSelectedLanguage] = useState<string[]>(newsPreferences.languages)
 	const [selectedImportance, setSelectedImportance] = useState<string[]>(newsPreferences.importances)
@@ -84,10 +90,10 @@ export default function Index() {
 			<ScrollTop showBelow={250} />
 
 			<div className="flex flex-col items-center justify-center space-y-1 pt-4">
-				<p className="text-center font-bold text-2xl">{t("lastNews")}</p>
+				<p className="text-center font-bold text-2xl">{memoT("lastNews")}</p>
 				{actualPage > 1 ? (
 					<p className="text-muted-foreground text-sm">
-						{t("page")} {actualPage}
+						{memoT("page")} {actualPage}
 					</p>
 				) : null}
 
@@ -98,7 +104,7 @@ export default function Index() {
 
 			<div className="flex flex-col space-y-6 p-4 lg:p-10">
 				<DisplayFilter
-					t={t}
+					t={memoT}
 					selectedLanguage={selectedLanguage}
 					setSelectedLanguage={setSelectedLanguage}
 					selectedImportance={selectedImportance}
@@ -109,7 +115,7 @@ export default function Index() {
 				/>
 
 				<News
-					t={t}
+					t={memoT}
 					language={i18n.language}
 					actualPage={actualPage}
 					selectedLanguage={selectedLanguage}
@@ -130,7 +136,7 @@ export default function Index() {
 						}}
 					>
 						<MdArrowBack className="size-5" />
-						{t("previousPage")}
+						{memoT("previousPage")}
 					</Link>
 				</Button>
 
@@ -145,7 +151,7 @@ export default function Index() {
 							search: `?page=${nextPage}`
 						}}
 					>
-						{t("nextPage")}
+						{memoT("nextPage")}
 						<MdArrowForward className="size-5" />
 					</Link>
 				</Button>
@@ -154,7 +160,7 @@ export default function Index() {
 	)
 }
 
-function DisplayFilter({
+const DisplayFilter = memo(function DisplayFilter({
 	t,
 	selectedLanguage,
 	setSelectedLanguage,
@@ -177,20 +183,29 @@ function DisplayFilter({
 }) {
 	const [opened, setOpened] = useState<string | null>(null)
 
+	// Memoized handlers for opening filters
+	const handleOpenLanguage = useCallback(() => setOpened("language"), [])
+	const handleOpenSources = useCallback(() => setOpened("sources"), [])
+	const handleOpenImportance = useCallback(() => setOpened("importance"), [])
+	const handleOpenAll = useCallback(() => setOpened("all"), [])
+
+	// Memoized handler for closing filters
+	const handleClose = useCallback(() => setOpened(null), [])
+
 	return (
 		<>
-			<PopupFilter open={opened === "language"} onClose={() => setOpened(null)}>
+			<PopupFilter open={opened === "language"} onClose={handleClose}>
 				<FilterLanguage selectedLanguage={selectedLanguage} setSelectedLanguage={setSelectedLanguage} />
 			</PopupFilter>
 
-			<PopupFilter open={opened === "importance"} onClose={() => setOpened(null)}>
+			<PopupFilter open={opened === "importance"} onClose={handleClose}>
 				<FilterImportance
 					selectedImportance={selectedImportance}
 					setSelectedImportance={setSelectedImportance}
 				/>
 			</PopupFilter>
 
-			<PopupFilter open={opened === "sources"} onClose={() => setOpened(null)}>
+			<PopupFilter open={opened === "sources"} onClose={handleClose}>
 				<FilterSources
 					allSources={allSources}
 					selectedSource={selectedSource}
@@ -198,7 +213,7 @@ function DisplayFilter({
 				/>
 			</PopupFilter>
 
-			<PopupFilter open={opened === "all"} onClose={() => setOpened(null)}>
+			<PopupFilter open={opened === "all"} onClose={handleClose}>
 				<div className="flex flex-col items-center justify-center gap-4">
 					<div className="flex flex-col items-center justify-center gap-2">
 						<p className="text-muted-foreground text-sm">Langue</p>
@@ -215,31 +230,31 @@ function DisplayFilter({
 			</PopupFilter>
 
 			<div className="flex flex-row items-center gap-2 overflow-x-auto">
-				<Button variant={opened === "language" ? "default" : "outline"} onClick={() => setOpened("language")}>
+				<Button variant={opened === "language" ? "default" : "outline"} onClick={handleOpenLanguage}>
 					Langue ({selectedLanguage.length})
 				</Button>
 
 				<Button
 					variant={opened === "sources" ? "default" : "outline"}
-					onClick={() => setOpened("sources")}
+					onClick={handleOpenSources}
 				>
 					Sources ({selectedSource.length})
 				</Button>
 
 				<Button
 					variant={opened === "importance" ? "default" : "outline"}
-					onClick={() => setOpened("importance")}
+					onClick={handleOpenImportance}
 				>
 					Importance ({selectedImportance.length})
 				</Button>
 
-				<Button variant={opened === "all" ? "default" : "outline"} onClick={() => setOpened("all")}>
+				<Button variant={opened === "all" ? "default" : "outline"} onClick={handleOpenAll}>
 					Tout les filtres
 				</Button>
 			</div>
 		</>
 	)
-}
+})
 
 function PopupFilter({
 	open,
