@@ -17,6 +17,8 @@ import { memo, useState } from "react"
 import { changeUserLanguage, changeUserTheme } from "../../lib/userPreferences"
 import { Button } from "../../components/ui/button"
 import { restrictToParentElement } from '@dnd-kit/modifiers'
+import { MdDragIndicator } from "react-icons/md"
+import { getSourceList } from "../../../utils/news"
 
 export async function action({ request }: ActionFunctionArgs) {
 	// Get url parameters
@@ -68,7 +70,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 	if (data.type === "theme") {
 		// biome-ignore lint/complexity/useSimplifiedLogicExpression: <explanation>
-		if (!data.value || !["dark", "light"].includes(data.value)) {
+		if (!data.value || !["dark", "light", "light-dark"].includes(data.value)) {
 			return {
 				success: false,
 				error: true,
@@ -115,7 +117,8 @@ export async function action({ request }: ActionFunctionArgs) {
 			!data.languages &&
 			!Array.isArray(data.languages) &&
 			!data.importances &&
-			!Array.isArray(data.importances)
+			!Array.isArray(data.importances) &&
+			!data.sources
 		) {
 			console.log("Invalid preferences", data.languages, data.importances)
 
@@ -131,13 +134,14 @@ export async function action({ request }: ActionFunctionArgs) {
 
 		let newLanguages: string[] = []
 		let newImportances: string[] = []
+		let newSources: string[] = []
 
 		if (data.languages) {
 			newLanguages = data.languages.split(",")
 		} else if (newsPreferences) {
 			newLanguages = newsPreferences.languages
 		} else {
-			newLanguages = ["fr-FR"]
+			newLanguages = [i18n.fallbackLng]
 		}
 
 		if (data.importances) {
@@ -148,9 +152,25 @@ export async function action({ request }: ActionFunctionArgs) {
 			newImportances = ["none", "low", "medium", "high", "very-high"]
 		}
 
+		if (data.sources && Array.isArray(data.sources)) {
+			newSources = data.sources.split(",")
+		} else if (data.sources && typeof data.sources === "string") {
+			newSources = []
+		} else if (newsPreferences) {
+			newSources = newsPreferences.sources
+		} else {
+
+			const sources = await getSourceList({
+				languages: newLanguages
+			})
+
+			newSources = sources
+		}
+
 		const newNewsPreferences = {
 			languages: newLanguages,
-			importances: newImportances
+			importances: newImportances,
+			sources: newSources
 		}
 
 		return setSession({
@@ -304,8 +324,9 @@ const ChangeTheme = memo(function ChangeTheme({
 					<SelectValue placeholder={t("chooseTheme")} />
 				</SelectTrigger>
 				<SelectContent>
-					<SelectItem value="dark">{t("dark")}</SelectItem>
+					<SelectItem value="light-dark">Sombre</SelectItem>
 					<SelectItem value="light">{t("light")}</SelectItem>
+					<SelectItem value="dark">Très sombre</SelectItem>
 				</SelectContent>
 			</Select>
 		</Form>
@@ -390,6 +411,8 @@ function SortableItem({ item }: { item: HomePreferences /*changeVisibility: (id:
 			className="flex w-full flex-row items-center justify-center gap-2"
 		>
 			<p>{item.title}</p>
+
+			<MdDragIndicator className="ml-auto"/>
 			{/* <Button variant="ghost">
                 {item.visible ? (
                     <MdVisibility />

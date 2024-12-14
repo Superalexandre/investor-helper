@@ -8,6 +8,7 @@ type FilteredColumnMapping<TColumns extends readonly ColumnType[]> = {
 
 type BestGainerTyped<TColumns extends readonly ColumnType[]> = FilteredColumnMapping<TColumns> & {
     prices: Period[];
+    rawChange: number;
 };
 
 type BestGainer = BestGainerTyped<typeof columns>;
@@ -21,6 +22,7 @@ type BestGainer = BestGainerTyped<typeof columns>;
 
 type BestLoserTyped<TColumns extends readonly ColumnType[]> = FilteredColumnMapping<TColumns> & {
 	prices: Period[];
+    rawChange: number;
 };
 
 type BestLoser = BestLoserTyped<typeof columns>;

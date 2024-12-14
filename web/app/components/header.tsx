@@ -47,7 +47,7 @@ export default function Header({
 	const [open, setOpen] = useState(false)
 
 	return (
-		<header className="relative h-16 touch-none bg-slate-300 dark:bg-slate-900">
+		<header className="relative h-16 touch-none bg-navbar-background text-navbar-foreground">
 			<nav className="hidden h-full flex-row items-center justify-between gap-4 p-3 xl:flex">
 				<div className="flex flex-row items-center">
 					<Link to="/" className="mr-4 flex flex-row items-center gap-2">

@@ -72,7 +72,8 @@ export function Layout({ children }: { children: ReactNode }) {
 		<html
 			lang={locale}
 			dir={i18n.dir()}
-			className={`${theme === "dark" ? "dark" : ""} bg-background`}
+			className={`${theme} bg-background`}
+			data-theme={theme}
 			translate="no"
 		>
 			<head>

@@ -24,23 +24,25 @@ import getNewsPreferences from "../../../lib/getNewsPreferences"
 import { getSourceList } from "../../../../utils/news"
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const t = await i18next.getFixedT(request, "news")
-	const newsPreferences = await getNewsPreferences(request)
+	const [t, newsPreferences] = await Promise.all([
+		i18next.getFixedT(request, "news"),
+		getNewsPreferences(request)
+	])
 
 	console.log(newsPreferences)
 
-	const title = t("title")
-	const description = t("description")
-
-	const sources = await getSourceList({
+	const allSources = await getSourceList({
 		languages: newsPreferences.languages
 	})
+
+	const title = t("title")
+	const description = t("description")
 
 	return {
 		title: title,
 		description: description,
 		newsPreferences: newsPreferences,
-		sources: sources
+		allSources: allSources
 	}
 }
 
@@ -65,11 +67,11 @@ export const handle = {
 }
 
 export default function Index() {
-	const { newsPreferences, sources } = useLoaderData<typeof loader>()
+	const { newsPreferences, allSources } = useLoaderData<typeof loader>()
 	const { t, i18n } = useTranslation("news")
 
 	// Memoize the translation function to prevent unstable references
-	const memoT = useMemo(() => t, [t]) 
+	const memoT = useMemo(() => t, [t])
 
 	const location = useLocation()
 
@@ -83,7 +85,7 @@ export default function Index() {
 
 	const [selectedLanguage, setSelectedLanguage] = useState<string[]>(newsPreferences.languages)
 	const [selectedImportance, setSelectedImportance] = useState<string[]>(newsPreferences.importances)
-	const [selectedSource, setSelectedSource] = useState<string[]>(sources as unknown as string[])
+	const [selectedSource, setSelectedSource] = useState<string[]>(newsPreferences.sources)
 
 	return (
 		<div>
@@ -109,7 +111,7 @@ export default function Index() {
 					setSelectedLanguage={setSelectedLanguage}
 					selectedImportance={selectedImportance}
 					setSelectedImportance={setSelectedImportance}
-					allSources={sources as unknown as string[]}
+					allSources={allSources}
 					selectedSource={selectedSource}
 					setSelectedSource={setSelectedSource}
 				/>
@@ -120,6 +122,7 @@ export default function Index() {
 					actualPage={actualPage}
 					selectedLanguage={selectedLanguage}
 					selectedImportance={selectedImportance}
+					selectedSource={selectedSource}
 				/>
 			</div>
 
@@ -192,6 +195,8 @@ const DisplayFilter = memo(function DisplayFilter({
 	// Memoized handler for closing filters
 	const handleClose = useCallback(() => setOpened(null), [])
 
+	const commonSources = allSources.filter((source) => selectedSource.includes(source))
+
 	return (
 		<>
 			<PopupFilter open={opened === "language"} onClose={handleClose}>
@@ -226,6 +231,14 @@ const DisplayFilter = memo(function DisplayFilter({
 							setSelectedImportance={setSelectedImportance}
 						/>
 					</div>
+					<div className="flex flex-col items-center justify-center gap-2">
+						<p className="text-muted-foreground text-sm">Sources</p>
+						<FilterSources
+							allSources={allSources}
+							selectedSource={selectedSource}
+							setSelectedSource={setSelectedSource}
+						/>
+					</div>
 				</div>
 			</PopupFilter>
 
@@ -238,7 +251,7 @@ const DisplayFilter = memo(function DisplayFilter({
 					variant={opened === "sources" ? "default" : "outline"}
 					onClick={handleOpenSources}
 				>
-					Sources ({selectedSource.length})
+					Sources ({commonSources.length})
 				</Button>
 
 				<Button
@@ -418,7 +431,7 @@ function FilterImportance({
 					onCheckedChange={(checked) => onChange(checked, "low")}
 				/>
 				<Label htmlFor="low">Faible</Label>
-				<ImportanceBadge importance={51} />
+				<ImportanceBadge starNumber={1} />
 			</div>
 
 			<div className="flex flex-row items-center justify-center gap-2">
@@ -429,7 +442,7 @@ function FilterImportance({
 					onCheckedChange={(checked) => onChange(checked, "medium")}
 				/>
 				<Label htmlFor="medium">Moyenne</Label>
-				<ImportanceBadge importance={101} />
+				<ImportanceBadge starNumber={2} />
 			</div>
 
 			<div className="flex flex-row items-center justify-center gap-2">
@@ -440,7 +453,7 @@ function FilterImportance({
 					onCheckedChange={(checked) => onChange(checked, "high")}
 				/>
 				<Label htmlFor="high">Forte</Label>
-				<ImportanceBadge importance={151} />
+				<ImportanceBadge starNumber={3} />
 			</div>
 
 			<div className="flex flex-row items-center justify-center gap-2">
@@ -451,7 +464,7 @@ function FilterImportance({
 					onCheckedChange={(checked) => onChange(checked, "very-high")}
 				/>
 				<Label htmlFor="very-high">Très forte</Label>
-				<ImportanceBadge importance={201} />
+				<ImportanceBadge starNumber={4} />
 			</div>
 		</fetcher.Form>
 	)
@@ -470,30 +483,32 @@ function FilterSources({
 	const fetcher = useFetcher()
 
 	const onChange = (checked: CheckedState, value: string) => {
-		console.log(checked, value)
+		let newSources = []
 
-		// submit({
-		// 	type: "newsPreferences",
-		// 	languages: selectedLanguage.join(","),
-		// 	redirect: "/news"
-		// }, {
-		// 	method: "POST",
-		// 	action: "/settings",
-		//     encType: "application/json",
-		// })
+		if (checked) {
+			setSelectedSource([...selectedSource, value])
 
-		// fetcher.submit(
-		// 	{
-		// 		type: "newsPreferences",
-		// 		languages: newLanguages.join(","),
-		// 		redirect: "/news"
-		// 	},
-		// 	{
-		// 		method: "POST",
-		// 		action: "/settings",
-		// 		encType: "application/json"
-		// 	}
-		// )
+			newSources = [...selectedSource, value]
+		} else {
+			setSelectedSource(selectedSource.filter((source) => source !== value))
+
+			newSources = selectedSource.filter((source) => source !== value) || []
+		}
+
+		console.log(newSources)
+
+		fetcher.submit(
+			{
+				type: "newsPreferences",
+				sources: newSources.join(","),
+				redirect: "/news"
+			},
+			{
+				method: "POST",
+				action: "/settings",
+				encType: "application/json"
+			}
+		)
 	}
 
 	return (
@@ -538,13 +553,15 @@ const News = memo(function News({
 	language,
 	actualPage,
 	selectedLanguage,
-	selectedImportance
+	selectedImportance,
+	selectedSource
 }: {
 	t: TFunction
 	language: string
 	actualPage: number
 	selectedLanguage: string[]
 	selectedImportance: string[]
+	selectedSource: string[]
 }) {
 	const newsRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
@@ -557,13 +574,14 @@ const News = memo(function News({
 			"news",
 			selectedLanguage,
 			selectedImportance,
+			selectedSource,
 			{
 				page: actualPage
 			}
 		],
 		queryFn: async () => {
 			const req = await fetch(
-				`/api/news?page=${actualPage}&limit=20&languages=${selectedLanguage.join(",")}&importances=${selectedImportance.join(",")}`
+				`/api/news?page=${actualPage}&limit=20&languages=${selectedLanguage.join(",")}&importances=${selectedImportance.join(",")}&sources=${selectedSource.join(",")}`
 			)
 			const json = await req.json()
 
@@ -615,12 +633,12 @@ const News = memo(function News({
 		>
 			{item.news.importanceScore > 50 ? (
 				<ImportanceBadge
-					importance={item.news.importanceScore}
+					starNumber={Math.floor(item.news.importanceScore / 50)}
 					className="-right-[10px] -top-[10px] absolute"
 				/>
 			) : null}
 
-			<Card>
+			<Card className="border-card-border">
 				<Link
 					to={{
 						pathname: `/news/${item.news.id}`

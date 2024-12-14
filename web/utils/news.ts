@@ -80,8 +80,6 @@ async function getSourceList({
 		.from(newsSchema)
 		.where(inArray(newsSchema.lang, languages))
 
-	console.log(sources)
-
 	const sourcesList = sources.map((source) => source.source)
 
 	return sourcesList

@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next"
 import i18next from "../../../i18next.server"
 import type { TFunction } from "i18next"
 import { countries } from "../../../i18n"
+import ImportanceBadge from "../../../components/importanceBadge"
 // import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs"
 // import { useState } from "react"
 // import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
@@ -137,18 +138,21 @@ const EconomicCalendar = memo(function EconomicCalendar({
 		}
 	}, [location.hash, events])
 
-	const importance: Record<number, { name: string; color: string }> = {
+	const importance: Record<number, { name: string; color: string, stars: number }> = {
 		[-1]: {
 			name: t("low"),
-			color: "text-green-500"
+			color: "text-green-500",
+			stars: 1
 		},
 		0: {
 			name: t("medium"),
-			color: "text-orange-500"
+			color: "text-orange-500",
+			stars: 2
 		},
 		1: {
 			name: t("high"),
-			color: "text-red-500"
+			color: "text-red-500",
+			stars: 3
 		}
 	}
 
@@ -182,7 +186,12 @@ const EconomicCalendar = memo(function EconomicCalendar({
 						calendarRefs.current[event.id] = element
 					}}
 				>
-					<Card>
+					<ImportanceBadge
+						starNumber={importance[event.importance].stars}
+						className="-right-[10px] -top-[10px] absolute"
+					/>
+
+					<Card className="border-card-border">
 						<Link
 							to={`/calendar/${event.id}`}
 							state={{
@@ -194,10 +203,10 @@ const EconomicCalendar = memo(function EconomicCalendar({
 							<CardHeader>
 								<CardTitle>
 									<span>{event.title}</span>
-									<span> - </span>
+									{/* <span> - </span>
 									<span className={importance[event.importance].color}>
 										{t("importance")} {importance[event.importance].name}
-									</span>
+									</span> */}
 								</CardTitle>
 							</CardHeader>
 						</Link>

@@ -8,6 +8,7 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 	const page = url.searchParams.get("page")
 	const languages = url.searchParams.get("languages")?.split(",") || []
 	const importances = url.searchParams.get("importances")?.split(",") || []
+	const sources = url.searchParams.get("sources")?.split(",") || []
 
 	const limitReq = limit ? Number.parseInt(limit) : 10
 	const pageReq = page ? Number.parseInt(page) : 1
@@ -23,7 +24,7 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 
 	const scores = importances.map((importance) => scoreMap[importance])
 
-	const news = await getNews({ limit: limitReq, page: pageReq, language: languages, scores: scores })
+	const news = await getNews({ limit: limitReq, page: pageReq, language: languages, scores: scores, sources: sources })
 
 	return news
 }

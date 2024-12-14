@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { usePWAManager } from "@remix-pwa/client"
-import { MdBarChart, MdCalendarToday, MdDownload, MdNewspaper } from "react-icons/md"
+import { MdArrowDropDown, MdArrowDropUp, MdBarChart, MdCalendarToday, MdDownload, MdNewspaper } from "react-icons/md"
 import { Link, useLoaderData, useNavigate } from "@remix-run/react"
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { formatDistanceToNow } from "date-fns"
@@ -20,6 +20,7 @@ import type { BestGainer } from "../../../types/Prices"
 import getHomePreferences from "../../lib/getHomePreferences"
 import { SmallChart } from "../../components/charts/smallChart"
 import { cn } from "../../lib/utils"
+import { Badge } from "../../components/ui/badge"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
 	if (!data) {
@@ -289,7 +290,7 @@ const DisplayBestLosers = memo(function DisplayBestLosers({
 	if (isPending) {
 		return new Array(10).fill(null).map((_, index) => (
 			// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal" key={index}>
+			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={index}>
 				<CardTitle className="p-4 text-center">
 					<Skeleton className="h-6 w-1/2" />
 				</CardTitle>
@@ -311,7 +312,7 @@ const DisplayBestLosers = memo(function DisplayBestLosers({
 
 	return losers.result.map((loser) => (
 		<Link to={`/data/${loser.symbol}`} key={loser.name}>
-			<Card className="relative size-80 whitespace-normal">
+			<Card className="relative size-80 whitespace-normal border-card-border">
 				<CardTitle className="flex flex-row items-center justify-center gap-2 p-4 text-center">
 					<SymbolLogo symbol={loser} className="size-6 rounded-full" alt={loser.description} />
 
@@ -320,9 +321,14 @@ const DisplayBestLosers = memo(function DisplayBestLosers({
 				<CardContent className="flex flex-col items-center justify-center gap-4 p-4">
 					<div className="flex flex-col items-center justify-center">
 						<p className="flex flex-row items-center gap-2">
-							{loser.close}
-							{loser.currency}
-							<span className="text-red-600">{Number(loser.change).toFixed(2)}%</span>
+							<span>
+								{loser.close}
+								{loser.currency}
+							</span>
+							<Badge className="flex flex-row items-center bg-red-500 font-bold text-white hover:bg-red-500">
+								<MdArrowDropDown className="size-5" />
+								<span>{Number(loser.rawChange).toFixed(2)}%</span>
+							</Badge>
 						</p>
 						{loser.recommendation_mark ?
 							<p className={cn(recommendationColor(loser.recommendation_mark))}>{recommendation(loser.recommendation_mark)}</p>
@@ -410,7 +416,7 @@ const DisplayBestGainers = memo(function DisplayBestGainers({
 	if (isPending) {
 		return new Array(10).fill(null).map((_, index) => (
 			// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal" key={index}>
+			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={index}>
 				<CardTitle className="p-4 text-center">
 					<Skeleton className="h-6 w-1/2" />
 				</CardTitle>
@@ -432,7 +438,7 @@ const DisplayBestGainers = memo(function DisplayBestGainers({
 
 	return gainers.result.map((gainer) => (
 		<Link to={`/data/${gainer.symbol}`} key={gainer.name}>
-			<Card className="relative size-80 whitespace-normal">
+			<Card className="relative size-80 whitespace-normal border-card-border">
 				<CardTitle className="flex flex-row items-center justify-center gap-2 p-4 text-center">
 					<SymbolLogo symbol={gainer} className="size-6 rounded-full" alt={gainer.description} />
 
@@ -440,10 +446,16 @@ const DisplayBestGainers = memo(function DisplayBestGainers({
 				</CardTitle>
 				<CardContent className="flex flex-col items-center justify-center gap-4 p-4">
 					<div className="flex flex-col items-center justify-center">
-						<p className="flex flex-row items-center gap-2">
-							{gainer.close}
-							{gainer.currency}
-							<span className="text-green-600">+{Number(gainer.change).toFixed(2)}%</span>
+						
+					<p className="flex flex-row items-center gap-2">
+							<span>
+								{gainer.close}
+								{gainer.currency}
+							</span>
+							<Badge className="flex flex-row items-center bg-green-500 font-bold text-white hover:bg-green-500">
+								<MdArrowDropUp className="size-5" />
+								<span>{Number(gainer.rawChange).toFixed(2)}%</span>
+							</Badge>
 						</p>
 						{gainer.recommendation_mark ?
 							<p className={cn(recommendationColor(gainer.recommendation_mark))}>{recommendation(gainer.recommendation_mark)}</p>
@@ -486,7 +498,7 @@ const DisplayLastNews = memo(function DisplayLastNews({
 	if (isPending) {
 		return new Array(10).fill(null).map((_, index) => (
 			// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal" key={index}>
+			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={index}>
 				<CardTitle className="p-4 text-center">
 					<Skeleton className="h-6 w-1/2" />
 				</CardTitle>
@@ -508,7 +520,7 @@ const DisplayLastNews = memo(function DisplayLastNews({
 
 	return lastNews.map((news) => (
 		<Link to={`/news/${news.news.id}`} key={news.news.id}>
-			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal">
+			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border">
 				<CardTitle className="p-4 text-center">{news.news.title}</CardTitle>
 				<CardContent className="flex flex-col gap-4 p-4">
 					<p className="h-24 max-h-24 overflow-clip">{news.news_article.shortDescription}</p>
@@ -560,7 +572,7 @@ const DisplayNextEvents = memo(function DisplayNextEvents({
 	if (isPending) {
 		return new Array(10).fill(null).map((_, index) => (
 			// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal" key={index}>
+			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={index}>
 				<CardTitle className="p-4 text-center">
 					<Skeleton className="h-6 w-1/2" />
 				</CardTitle>
@@ -582,7 +594,7 @@ const DisplayNextEvents = memo(function DisplayNextEvents({
 
 	return nextEvents.map((event) => (
 		<Link to={`/calendar/${event.id}`} key={event.id}>
-			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal">
+			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border">
 				<CardTitle className="p-4 text-center">{event.title}</CardTitle>
 				<CardContent className="flex flex-col gap-4 p-4">
 					<p className="h-24 max-h-24 overflow-clip">{event.comment}</p>

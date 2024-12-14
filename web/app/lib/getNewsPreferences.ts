@@ -1,13 +1,18 @@
+import { getSourceList } from "../../utils/news"
 import { getSession } from "../session.server"
 import getLanguage from "./getLanguage"
 
 async function getNewsPreferences(request: Request) {
 	const language = await getLanguage(request)
+	const sources = await getSourceList({
+		languages: [language]
+	})
 
 	let hasChanged = false
 	let preferences = {
 		languages: [language],
-		importances: ["none", "low", "medium", "high", "very-high"]
+		importances: ["none", "low", "medium", "high", "very-high"],
+		sources: sources
 	}
 
 	const sessionPreferences = await getNewsPreferencesFromSession(request)
@@ -17,6 +22,13 @@ async function getNewsPreferences(request: Request) {
 			...preferences,
 			...sessionPreferences
 		}
+
+		
+	// const sources = await getSourceList({
+	// 	languages: newsPreferences.languages
+	// })
+
+		console.log("Preferences language", preferences.languages)
 	}
 
 	return preferences

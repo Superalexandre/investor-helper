@@ -41,8 +41,12 @@ export async function loader() {
 			}
 
 			if (Date.now() - cached.lastUpdate < CACHE_TIME) {
+				const rawChange = item.change.toString().replace(/\+|-/g, "")
+				const rawChangeNumber = Number.parseFloat(rawChange)
+
 				result.push({
 					...item,
+					rawChange: rawChangeNumber,
 					prices: cached.prices
 				})
 				continue
@@ -70,8 +74,12 @@ export async function loader() {
 			const item = parsedResult.find((item) => item.symbol === symbol)
 
 			if (item) {
+				const rawChange = item.change.toString().replace(/\+|-/g, "")
+				const rawChangeNumber = Number.parseFloat(rawChange)
+
 				result.push({
 					...item,
+					rawChange: rawChangeNumber,
 					prices: reversed
 				})
 			}
