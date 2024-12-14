@@ -5,7 +5,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import formatDate from "@/utils/formatDate"
 import { ScrollTop } from "@/components/scrollTop"
 import { Button } from "@/components/ui/button"
-import { MdArrowBack, MdArrowForward } from "react-icons/md"
+import { MdArrowBack, MdArrowForward, MdFilterAlt, MdLanguage } from "react-icons/md"
 import ImportanceBadge from "@/components/importanceBadge"
 import { useQuery } from "@tanstack/react-query"
 import type { NewsSymbols } from "../../../../types/News"
@@ -22,6 +22,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import type { CheckedState } from "@radix-ui/react-checkbox"
 import getNewsPreferences from "../../../lib/getNewsPreferences"
 import { getSourceList } from "../../../../utils/news"
+import type { JSX } from "react"
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const [t, newsPreferences] = await Promise.all([
@@ -187,82 +188,82 @@ const DisplayFilter = memo(function DisplayFilter({
 	const [opened, setOpened] = useState<string | null>(null)
 
 	// Memoized handlers for opening filters
-	const handleOpenLanguage = useCallback(() => setOpened("language"), [])
-	const handleOpenSources = useCallback(() => setOpened("sources"), [])
-	const handleOpenImportance = useCallback(() => setOpened("importance"), [])
-	const handleOpenAll = useCallback(() => setOpened("all"), [])
-
-	// Memoized handler for closing filters
+	const handleOpen = useCallback((type: string) => () => setOpened(type), [])
 	const handleClose = useCallback(() => setOpened(null), [])
 
 	const commonSources = allSources.filter((source) => selectedSource.includes(source))
 
+	const languageItems = ["fr-FR", "en-US"]
+	const languageLabels = { "fr-FR": "Français", "en-US": "Anglais" }
+
+	const importanceItems = ["none", "low", "medium", "high", "very-high"]
+	const importanceLabels = {
+		"none": <div className="flex flex-row items-center gap-2"><p>Neutre</p></div>,
+		"low": <div className="flex flex-row items-center gap-2"><p>Faible</p><ImportanceBadge starNumber={1} /></div>,
+		"medium": <div className="flex flex-row items-center gap-2"><p>Moyenne</p><ImportanceBadge starNumber={2} /></div>,
+		"high": <div className="flex flex-row items-center gap-2"><p>Forte</p><ImportanceBadge starNumber={3} /></div>,
+		"very-high": <div className="flex flex-row items-center gap-2"><p>Très forte</p><ImportanceBadge starNumber={4} /></div>
+	}
+
+	const sourceLabels = allSources.reduce((acc, source) => {
+		acc[source] = source
+		return acc
+	}, {} as { [key: string]: string | ReactNode })
+
+	const renderFilterComponent = (type: string, selectedItems: string[], setSelectedItems: (value: string[]) => void, items: string[], labels: { [key: string]: string | ReactNode }) => (
+		<PopupFilter open={opened === type} onClose={handleClose}>
+			<FilterComponent
+				selectedItems={selectedItems}
+				setSelectedItems={setSelectedItems}
+				items={items}
+				labels={labels}
+				type={type}
+			/>
+		</PopupFilter>
+	)
+
 	return (
 		<>
-			<PopupFilter open={opened === "language"} onClose={handleClose}>
-				<FilterLanguage selectedLanguage={selectedLanguage} setSelectedLanguage={setSelectedLanguage} />
-			</PopupFilter>
-
-			<PopupFilter open={opened === "importance"} onClose={handleClose}>
-				<FilterImportance
-					selectedImportance={selectedImportance}
-					setSelectedImportance={setSelectedImportance}
-				/>
-			</PopupFilter>
-
-			<PopupFilter open={opened === "sources"} onClose={handleClose}>
-				<FilterSources
-					allSources={allSources}
-					selectedSource={selectedSource}
-					setSelectedSource={setSelectedSource}
-				/>
-			</PopupFilter>
+			{renderFilterComponent("language", selectedLanguage, setSelectedLanguage, languageItems, languageLabels)}
+			{renderFilterComponent("importance", selectedImportance, setSelectedImportance, importanceItems, importanceLabels)}
+			{renderFilterComponent("sources", selectedSource, setSelectedSource, allSources, sourceLabels)}
 
 			<PopupFilter open={opened === "all"} onClose={handleClose}>
 				<div className="flex flex-col items-center justify-center gap-4">
 					<div className="flex flex-col items-center justify-center gap-2">
 						<p className="text-muted-foreground text-sm">Langue</p>
-						<FilterLanguage selectedLanguage={selectedLanguage} setSelectedLanguage={setSelectedLanguage} />
+						{renderFilterComponent("languages", selectedLanguage, setSelectedLanguage, languageItems, languageLabels)}
 					</div>
 					<div className="flex flex-col items-center justify-center gap-2">
 						<p className="text-muted-foreground text-sm">Importance</p>
-						<FilterImportance
-							selectedImportance={selectedImportance}
-							setSelectedImportance={setSelectedImportance}
-						/>
+						{renderFilterComponent("importances", selectedImportance, setSelectedImportance, importanceItems, importanceLabels)}
 					</div>
 					<div className="flex flex-col items-center justify-center gap-2">
 						<p className="text-muted-foreground text-sm">Sources</p>
-						<FilterSources
-							allSources={allSources}
-							selectedSource={selectedSource}
-							setSelectedSource={setSelectedSource}
-						/>
+						{renderFilterComponent("sources", selectedSource, setSelectedSource, allSources, sourceLabels)}
 					</div>
 				</div>
 			</PopupFilter>
 
 			<div className="flex flex-row items-center gap-2 overflow-x-auto">
-				<Button variant={opened === "language" ? "default" : "outline"} onClick={handleOpenLanguage}>
+				<Button variant={opened === "language" ? "default" : "outline"} onClick={handleOpen("language")} className="flex flex-row items-center gap-2">
+					<MdLanguage className="size-5" />
+
 					Langue ({selectedLanguage.length})
 				</Button>
 
-				<Button
-					variant={opened === "sources" ? "default" : "outline"}
-					onClick={handleOpenSources}
-				>
+				<Button variant={opened === "sources" ? "default" : "outline"} onClick={handleOpen("sources")}>
 					Sources ({commonSources.length})
 				</Button>
 
-				<Button
-					variant={opened === "importance" ? "default" : "outline"}
-					onClick={handleOpenImportance}
-				>
+				<Button variant={opened === "importance" ? "default" : "outline"} onClick={handleOpen("importance")}>
 					Importance ({selectedImportance.length})
 				</Button>
 
-				<Button variant={opened === "all" ? "default" : "outline"} onClick={handleOpenAll}>
-					Tout les filtres
+				<Button variant={opened === "all" ? "default" : "outline"} onClick={handleOpen("all")} className="flex flex-row items-center gap-2">
+					<MdFilterAlt className="size-5" />
+
+					Tous les filtres
 				</Button>
 			</div>
 		</>
@@ -292,43 +293,36 @@ function PopupFilter({
 	)
 }
 
-function FilterLanguage({
-	selectedLanguage,
-	setSelectedLanguage
+function FilterComponent({
+	selectedItems,
+	setSelectedItems,
+	items,
+	labels,
+	type
 }: {
-	selectedLanguage: string[]
-	setSelectedLanguage: (value: string[]) => void
+	selectedItems: string[]
+	setSelectedItems: (value: string[]) => void
+	items: string[]
+	labels: { [key: string]: string | ReactNode }
+	type: string
 }) {
-	// const submit = useSubmit()
 	const fetcher = useFetcher()
 
 	const onChange = (checked: CheckedState, value: string) => {
-		let newLanguages = []
+		let newItems = []
 
 		if (checked) {
-			setSelectedLanguage([...selectedLanguage, value])
-
-			newLanguages = [...selectedLanguage, value]
+			newItems = [...selectedItems, value]
 		} else {
-			setSelectedLanguage(selectedLanguage.filter((lang) => lang !== value))
-
-			newLanguages = selectedLanguage.filter((lang) => lang !== value)
+			newItems = selectedItems.filter((item) => item !== value)
 		}
 
-		// submit({
-		// 	type: "newsPreferences",
-		// 	languages: selectedLanguage.join(","),
-		// 	redirect: "/news"
-		// }, {
-		// 	method: "POST",
-		// 	action: "/settings",
-		//     encType: "application/json",
-		// })
+		setSelectedItems(newItems)
 
 		fetcher.submit(
 			{
 				type: "newsPreferences",
-				languages: newLanguages.join(","),
+				[type]: newItems.join(","),
 				redirect: "/news"
 			},
 			{
@@ -341,191 +335,17 @@ function FilterLanguage({
 
 	return (
 		<fetcher.Form className="flex flex-col items-center gap-2">
-			<div className="flex flex-row items-center justify-center gap-2">
-				<Checkbox
-					id="french"
-					value="fr-FR"
-					defaultChecked={selectedLanguage.includes("fr-FR")}
-					onCheckedChange={(checked) => onChange(checked, "fr-FR")}
-				/>
-				<Label htmlFor="french">Français</Label>
-			</div>
-
-			<div className="flex flex-row items-center justify-center gap-2">
-				<Checkbox
-					id="english"
-					value="en-US"
-					defaultChecked={selectedLanguage.includes("en-US")}
-					onCheckedChange={(checked) => onChange(checked, "en-US")}
-				/>
-				<Label htmlFor="english">Anglais</Label>
-			</div>
-		</fetcher.Form>
-	)
-}
-
-function FilterImportance({
-	selectedImportance,
-	setSelectedImportance
-}: {
-	selectedImportance: string[]
-	setSelectedImportance: (value: string[]) => void
-}) {
-	// const submit = useSubmit()
-	const fetcher = useFetcher()
-
-	const onChange = (checked: CheckedState, value: string) => {
-		let newImportances = []
-
-		if (checked) {
-			setSelectedImportance([...selectedImportance, value])
-
-			newImportances = [...selectedImportance, value]
-		} else {
-			setSelectedImportance(selectedImportance.filter((importance) => importance !== value))
-
-			newImportances = selectedImportance.filter((importance) => importance !== value)
-		}
-
-		fetcher.submit(
-			{
-				type: "newsPreferences",
-				importances: newImportances.join(","),
-				redirect: "/news"
-			},
-			{
-				method: "POST",
-				action: "/settings",
-				encType: "application/json"
-			}
-		)
-
-		// submit({
-		// 	type: "newsPreferences",
-		// 	importances: selectedImportance.join(","),
-		// 	redirect: "/news"
-		// }, {
-		// 	method: "POST",
-		// 	action: "/settings",
-		//     encType: "application/json",
-		// })
-	}
-
-	return (
-		<fetcher.Form className="flex flex-col items-center gap-2">
-			<div className="flex flex-row items-center justify-center gap-2">
-				<Checkbox
-					id="none"
-					value="none"
-					defaultChecked={selectedImportance.includes("none")}
-					onCheckedChange={(checked) => onChange(checked, "none")}
-				/>
-				<Label htmlFor="none">Neutre</Label>
-			</div>
-
-			<div className="flex flex-row items-center justify-center gap-2">
-				<Checkbox
-					id="low"
-					value="low"
-					defaultChecked={selectedImportance.includes("low")}
-					onCheckedChange={(checked) => onChange(checked, "low")}
-				/>
-				<Label htmlFor="low">Faible</Label>
-				<ImportanceBadge starNumber={1} />
-			</div>
-
-			<div className="flex flex-row items-center justify-center gap-2">
-				<Checkbox
-					id="medium"
-					value="medium"
-					defaultChecked={selectedImportance.includes("medium")}
-					onCheckedChange={(checked) => onChange(checked, "medium")}
-				/>
-				<Label htmlFor="medium">Moyenne</Label>
-				<ImportanceBadge starNumber={2} />
-			</div>
-
-			<div className="flex flex-row items-center justify-center gap-2">
-				<Checkbox
-					id="high"
-					value="high"
-					defaultChecked={selectedImportance.includes("high")}
-					onCheckedChange={(checked) => onChange(checked, "high")}
-				/>
-				<Label htmlFor="high">Forte</Label>
-				<ImportanceBadge starNumber={3} />
-			</div>
-
-			<div className="flex flex-row items-center justify-center gap-2">
-				<Checkbox
-					id="very-high"
-					value="very-high"
-					defaultChecked={selectedImportance.includes("very-high")}
-					onCheckedChange={(checked) => onChange(checked, "very-high")}
-				/>
-				<Label htmlFor="very-high">Très forte</Label>
-				<ImportanceBadge starNumber={4} />
-			</div>
-		</fetcher.Form>
-	)
-}
-
-function FilterSources({
-	allSources,
-	selectedSource,
-	setSelectedSource
-}: {
-	allSources: string[]
-	selectedSource: string[]
-	setSelectedSource: (value: string[]) => void
-}) {
-	// const submit = useSubmit()
-	const fetcher = useFetcher()
-
-	const onChange = (checked: CheckedState, value: string) => {
-		let newSources = []
-
-		if (checked) {
-			setSelectedSource([...selectedSource, value])
-
-			newSources = [...selectedSource, value]
-		} else {
-			setSelectedSource(selectedSource.filter((source) => source !== value))
-
-			newSources = selectedSource.filter((source) => source !== value) || []
-		}
-
-		console.log(newSources)
-
-		fetcher.submit(
-			{
-				type: "newsPreferences",
-				sources: newSources.join(","),
-				redirect: "/news"
-			},
-			{
-				method: "POST",
-				action: "/settings",
-				encType: "application/json"
-			}
-		)
-	}
-
-	return (
-		<fetcher.Form className="flex flex-col items-center gap-2">
-			<div>
-				{allSources.map((source) => (
-					<div key={source} className="flex flex-row items-center justify-center gap-2">
-						<Checkbox
-							id={source}
-							value={source}
-							defaultChecked={selectedSource.includes(source)}
-							onCheckedChange={(checked) => onChange(checked, source)}
-						/>
-						<Label htmlFor={source}>{source}</Label>
-					</div>
-				))}
-			</div>
+			{items.map((item) => (
+				<div key={item} className="flex flex-row items-center justify-center gap-2">
+					<Checkbox
+						id={item}
+						value={item}
+						defaultChecked={selectedItems.includes(item)}
+						onCheckedChange={(checked) => onChange(checked, item)}
+					/>
+					<Label htmlFor={item}>{labels[item]}</Label>
+				</div>
+			))}
 		</fetcher.Form>
 	)
 }
