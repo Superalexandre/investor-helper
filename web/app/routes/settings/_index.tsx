@@ -152,9 +152,9 @@ export async function action({ request }: ActionFunctionArgs) {
 			newImportances = ["none", "low", "medium", "high", "very-high"]
 		}
 
-		if (data.sources && Array.isArray(data.sources)) {
+		if (data.sources && data.sources !== "") {
 			newSources = data.sources.split(",")
-		} else if (data.sources && typeof data.sources === "string") {
+		} else if (data.sources && data.sources === "") {
 			newSources = []
 		} else if (newsPreferences) {
 			newSources = newsPreferences.sources
