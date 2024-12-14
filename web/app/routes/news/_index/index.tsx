@@ -210,8 +210,8 @@ const DisplayFilter = memo(function DisplayFilter({
 		return acc
 	}, {} as { [key: string]: string | ReactNode })
 
-	const renderFilterComponent = (type: string, selectedItems: string[], setSelectedItems: (value: string[]) => void, items: string[], labels: { [key: string]: string | ReactNode }) => (
-		<PopupFilter open={opened === type} onClose={handleClose}>
+	const renderFilterComponent = (isPopup: boolean, type: string, selectedItems: string[], setSelectedItems: (value: string[]) => void, items: string[], labels: { [key: string]: string | ReactNode }) => {
+		const child = (
 			<FilterComponent
 				selectedItems={selectedItems}
 				setSelectedItems={setSelectedItems}
@@ -219,28 +219,38 @@ const DisplayFilter = memo(function DisplayFilter({
 				labels={labels}
 				type={type}
 			/>
-		</PopupFilter>
-	)
+		)
+
+		if (!isPopup) {
+			return child
+		}
+
+		return (
+			<PopupFilter open={opened === type} onClose={handleClose}>
+				{child}
+			</PopupFilter>
+		)
+	}
 
 	return (
 		<>
-			{renderFilterComponent("language", selectedLanguage, setSelectedLanguage, languageItems, languageLabels)}
-			{renderFilterComponent("importance", selectedImportance, setSelectedImportance, importanceItems, importanceLabels)}
-			{renderFilterComponent("sources", selectedSource, setSelectedSource, allSources, sourceLabels)}
+			{renderFilterComponent(true, "language", selectedLanguage, setSelectedLanguage, languageItems, languageLabels)}
+			{renderFilterComponent(true, "importance", selectedImportance, setSelectedImportance, importanceItems, importanceLabels)}
+			{renderFilterComponent(true, "sources", selectedSource, setSelectedSource, allSources, sourceLabels)}
 
 			<PopupFilter open={opened === "all"} onClose={handleClose}>
 				<div className="flex flex-col items-center justify-center gap-4">
 					<div className="flex flex-col items-center justify-center gap-2">
 						<p className="text-muted-foreground text-sm">Langue</p>
-						{renderFilterComponent("languages", selectedLanguage, setSelectedLanguage, languageItems, languageLabels)}
+						{renderFilterComponent(false, "languages", selectedLanguage, setSelectedLanguage, languageItems, languageLabels)}
 					</div>
 					<div className="flex flex-col items-center justify-center gap-2">
 						<p className="text-muted-foreground text-sm">Importance</p>
-						{renderFilterComponent("importances", selectedImportance, setSelectedImportance, importanceItems, importanceLabels)}
+						{renderFilterComponent(false, "importances", selectedImportance, setSelectedImportance, importanceItems, importanceLabels)}
 					</div>
 					<div className="flex flex-col items-center justify-center gap-2">
 						<p className="text-muted-foreground text-sm">Sources</p>
-						{renderFilterComponent("sources", selectedSource, setSelectedSource, allSources, sourceLabels)}
+						{renderFilterComponent(false, "sources", selectedSource, setSelectedSource, allSources, sourceLabels)}
 					</div>
 				</div>
 			</PopupFilter>
