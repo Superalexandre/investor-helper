@@ -494,11 +494,17 @@ const News = memo(function News({
 
 				<CardFooter>
 					<p className="flex flex-row flex-wrap items-center gap-1 text-muted-foreground">
-						{formatDate(item.news.published * 1000, {
-							locale: language
-						})}{" "}
-						- {item.news.source}
-						{/* <span>(via {item.news.mainSource})</span> */}
+						
+						{item.news.source} - {" "}
+						{new Date(item.news.published * 1000 || "").toLocaleDateString(language, {
+							hour: "numeric",
+							minute: "numeric",
+							year: "numeric",
+							month: "long",
+							day: "numeric",
+							timeZoneName: "shortOffset",
+							weekday: "long"
+						})}
 					</p>
 				</CardFooter>
 			</Card>

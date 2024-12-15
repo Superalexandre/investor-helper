@@ -213,7 +213,7 @@ const EconomicCalendar = memo(function EconomicCalendar({
 
 						<CardContent>{event.comment}</CardContent>
 
-						<CardFooter className="flex flex-col items-center justify-start gap-1 lg:flex-row lg:gap-2">
+						<CardFooter className="flex flex-col items-center justify-start gap-1 lg:flex-row lg:gap-2 text-muted-foreground">
 							<span className="text-center">{countries[language][event.country]}</span>
 							<span className="hidden lg:block">-</span>
 							<span className="text-center">

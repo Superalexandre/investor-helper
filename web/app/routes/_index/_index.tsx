@@ -5,7 +5,7 @@ import { usePWAManager } from "@remix-pwa/client"
 import { MdArrowDropDown, MdArrowDropUp, MdBarChart, MdCalendarToday, MdDownload, MdNewspaper } from "react-icons/md"
 import { Link, useLoaderData, useNavigate } from "@remix-run/react"
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
-import { formatDistanceToNow } from "date-fns"
+import { differenceInSeconds, formatDistanceToNow } from "date-fns"
 import { useEffect, useState, memo, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Skeleton } from "../../components/ui/skeleton"
@@ -21,6 +21,7 @@ import getHomePreferences from "../../lib/getHomePreferences"
 import { SmallChart } from "../../components/charts/smallChart"
 import { cn } from "../../lib/utils"
 import { Badge } from "../../components/ui/badge"
+import { toZonedTime } from "date-fns-tz"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
 	if (!data) {
@@ -199,6 +200,18 @@ export default function Index() {
 
 			{displayedMenu.map((menu) => (
 				<div className="flex max-w-full flex-col items-center gap-2 p-4" key={menu.name}>
+					<>
+						<h2 className="flex flex-row items-center gap-2 font-bold text-lg">
+							<MdCalendarToday />
+
+							Ouverture des marchés
+						</h2>
+
+						<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
+							<DisplayHours t={t} language={i18n.language} />
+						</div>
+					</>
+
 					{menu.component()}
 				</div>
 			))}
@@ -446,8 +459,8 @@ const DisplayBestGainers = memo(function DisplayBestGainers({
 				</CardTitle>
 				<CardContent className="flex flex-col items-center justify-center gap-4 p-4">
 					<div className="flex flex-col items-center justify-center">
-						
-					<p className="flex flex-row items-center gap-2">
+
+						<p className="flex flex-row items-center gap-2">
 							<span>
 								{gainer.close}
 								{gainer.currency}
@@ -618,5 +631,163 @@ const DisplayNextEvents = memo(function DisplayNextEvents({
 				</CardContent>
 			</Card>
 		</Link>
+	))
+})
+
+
+const DisplayHours = memo(function DisplayHours({
+	t,
+	language
+}: {
+	t: TFunction
+	language: string
+}) {
+	const [actualDate, setActualDate] = useState(new Date())
+
+	const {
+		data: hours,
+		isPending,
+		error
+	} = useQuery<[]>({
+		queryKey: ["hours"],
+		queryFn: async () => {
+			const req = await fetch("/api/hours")
+			const json = await req.json()
+
+			return json
+		},
+		refetchOnWindowFocus: true
+	})
+
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setActualDate(new Date())
+		}, 1000)
+
+		return () => clearInterval(interval)
+	}, [])
+
+	if (error) {
+		return <p>{t("errors.loading")}</p>
+	}
+
+	if (isPending) {
+		return new Array(10).fill(null).map((_, index) => (
+			// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={index}>
+				<CardTitle className="p-4 text-center">
+					<Skeleton className="h-6 w-1/2" />
+				</CardTitle>
+				<CardContent className="flex flex-col gap-4 p-4">
+					<Skeleton className="h-24 w-full" />
+
+					<div className="absolute bottom-0 left-0 flex w-full flex-col gap-2 p-4 text-muted-foreground">
+						<Skeleton className="h-4 w-1/2" />
+						<Skeleton className="h-4 w-1/2" />
+					</div>
+				</CardContent>
+			</Card>
+		))
+	}
+
+	if (!hours || hours?.length <= 0) {
+		return <p>{t("errors.emptyNews")}</p>
+	}
+
+
+	const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+
+	const formatDistance = (dateParam: string, timezone: string): string => {
+		const zonedDate = toZonedTime(new Date(dateParam), timezone);
+		const now = new Date(); // Date actuelle
+
+		// Calculer la différence en secondes
+		const diff = differenceInSeconds(zonedDate, now);
+
+		const days = Math.floor(diff / 86400);
+		const hours = Math.floor((diff % 86400) / 3600);
+		const minutes = Math.floor((diff % 3600) / 60);
+		const seconds = diff % 60;
+
+		let formatted = "";
+
+		if (days > 0) formatted += `${days}j `;
+		if (hours > 0) formatted += `${hours}h `;
+		if (minutes > 0) formatted += `${minutes}m `;
+		if (seconds > 0) formatted += `${seconds}s`;
+
+		return formatted.trim();
+	}
+
+	const getOpeningTimeInUserLocal = (openTime: string, marketTimezone: string): string => {
+		// Convertir l'heure d'ouverture au fuseau horaire du marché
+		const marketOpenTime = toZonedTime(new Date(openTime), marketTimezone);
+
+		// Formater l'heure d'ouverture pour l'affichage dans le fuseau horaire local de l'utilisateur
+		const formattedTime = marketOpenTime.toLocaleTimeString(language, {
+			hour: "2-digit",
+			minute: "2-digit",
+			timeZone: userTimezone
+		});
+
+		return formattedTime;
+	}
+
+	const formatDecimalTime = (decimalTime: number): string => {
+		// Séparer les parties entière et décimale
+		const hours = Math.floor(decimalTime);
+		const minutes = Math.round((decimalTime % 1) * 60);
+
+		// Formater avec deux chiffres pour les heures et minutes
+		return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+	}
+
+	return hours.map((hour) => (
+		<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={hour.marketId}>
+			<CardTitle className="p-4 text-center flex flex-row items-center justify-center gap-2">
+				{hour.hasLogo ? (
+					<img
+						src={`/logo/${hour.marketId}.png`}
+						alt={hour.marketName}
+						className="rounded-full size-6"
+						loading="lazy"
+						width="48"
+						height="48"
+					/>
+				) : null}
+
+				{hour.marketName}
+			</CardTitle>
+			<CardContent className="flex flex-col gap-4 p-4">
+				<p className="h-24 max-h-24 overflow-clip">{hour.open ? "ouvert" : "fermé"} ({hour.closeReason})</p>
+
+				{hour.open ? (
+					<p>
+						Prochaine fermeture : {getOpeningTimeInUserLocal(hour.nextCloseDate, hour.timezone)} ({formatDecimalTime(hour.openHour)}h pour {hour.timezone})
+					</p>
+				) : (
+					<p>
+						Prochaine ouverture : {getOpeningTimeInUserLocal(hour.nextOpenDate, hour.timezone)} pour {userTimezone} ({formatDecimalTime(hour.openHour)}h pour {hour.timezone})
+					</p>
+				)}
+
+				{/* <div className="absolute bottom-0 left-0 p-4 text-muted-foreground">
+					<p>
+						{t("importance")} : {importance[event.importance]}
+					</p>
+					<p>
+						{t("country")} : {countries[language][event.country]}
+					</p>
+					<div className="flex flex-row items-center gap-1">
+						<p>
+							{formatDistanceToNow(new Date(event.date), {
+								locale: dateFns[language],
+								addSuffix: true
+							})}
+						</p>
+					</div>
+				</div> */}
+			</CardContent>
+		</Card>
 	))
 })
