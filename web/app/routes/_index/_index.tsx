@@ -21,7 +21,8 @@ import getHomePreferences from "../../lib/getHomePreferences"
 import { SmallChart } from "../../components/charts/smallChart"
 import { cn } from "../../lib/utils"
 import { Badge } from "../../components/ui/badge"
-import { toZonedTime } from "date-fns-tz"
+import { format, toDate, fromZonedTime, } from "date-fns-tz"
+import type { MarketStatus } from "../../../types/Hours"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
 	if (!data) {
@@ -648,7 +649,7 @@ const DisplayHours = memo(function DisplayHours({
 		data: hours,
 		isPending,
 		error
-	} = useQuery<[]>({
+	} = useQuery<MarketStatus[]>({
 		queryKey: ["hours"],
 		queryFn: async () => {
 			const req = await fetch("/api/hours")
@@ -694,44 +695,51 @@ const DisplayHours = memo(function DisplayHours({
 		return <p>{t("errors.emptyNews")}</p>
 	}
 
-
 	const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
-	const formatDistance = (dateParam: string, timezone: string): string => {
-		const zonedDate = toZonedTime(new Date(dateParam), timezone);
-		const now = new Date(); // Date actuelle
+	const formatDistance = (marketDate: Date, marketTimezone: string): string => {
+		const marketDateTimezone = fromZonedTime(marketDate, marketTimezone)
+		marketDateTimezone.setSeconds(0) // Avoiding seconds to avoid flickering
+
+		// Convertir la date en date locale
+		const marketDateLocal = toDate(marketDateTimezone)
 
 		// Calculer la différence en secondes
-		const diff = differenceInSeconds(zonedDate, now);
+		const diff = differenceInSeconds(marketDateLocal, actualDate)
 
-		const days = Math.floor(diff / 86400);
-		const hours = Math.floor((diff % 86400) / 3600);
-		const minutes = Math.floor((diff % 3600) / 60);
-		const seconds = diff % 60;
+		const diffInHours = diff / 3600
+		const diffInMinutes = diff / 60
+		const diffInSeconds = diff
 
-		let formatted = "";
+		// Formater la différence
+		let formatted = ""
 
-		if (days > 0) formatted += `${days}j `;
-		if (hours > 0) formatted += `${hours}h `;
-		if (minutes > 0) formatted += `${minutes}m `;
-		if (seconds > 0) formatted += `${seconds}s`;
+		if (diffInHours > 0) {
+			formatted += `${Math.floor(diffInHours)}h `
+		}
 
-		return formatted.trim();
+		if (diffInMinutes > 0) {
+			formatted += `${Math.floor(diffInMinutes % 60)}m `
+		}
+
+		if (diffInSeconds > 0) {
+			formatted += `${Math.floor(diffInSeconds % 60)}s`
+		}
+
+		return formatted
 	}
 
-	const getOpeningTimeInUserLocal = (openTime: string, marketTimezone: string): string => {
-		// Convertir l'heure d'ouverture au fuseau horaire du marché
-		const marketOpenTime = toZonedTime(new Date(openTime), marketTimezone);
-
-		// Formater l'heure d'ouverture pour l'affichage dans le fuseau horaire local de l'utilisateur
-		const formattedTime = marketOpenTime.toLocaleTimeString(language, {
-			hour: "2-digit",
-			minute: "2-digit",
+	const getOpeningTimeInUserLocal = (
+		marketDate: Date,
+		marketTimezone: string
+	): string => {
+		const marketDateTimezone = fromZonedTime(marketDate, marketTimezone)
+		
+		// Formater la date
+		return format(marketDateTimezone, "HH:mm", {
 			timeZone: userTimezone
 		});
-
-		return formattedTime;
-	}
+	};
 
 	const formatDecimalTime = (decimalTime: number): string => {
 		// Séparer les parties entière et décimale
@@ -744,7 +752,7 @@ const DisplayHours = memo(function DisplayHours({
 
 	return hours.map((hour) => (
 		<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={hour.marketId}>
-			<CardTitle className="p-4 text-center flex flex-row items-center justify-center gap-2">
+			<CardTitle className="flex flex-row items-center justify-center gap-2 p-4 text-center">
 				{hour.hasLogo ? (
 					<img
 						src={`/logo/${hour.marketId}.png`}
@@ -759,34 +767,18 @@ const DisplayHours = memo(function DisplayHours({
 				{hour.marketName}
 			</CardTitle>
 			<CardContent className="flex flex-col gap-4 p-4">
-				<p className="h-24 max-h-24 overflow-clip">{hour.open ? "ouvert" : "fermé"} ({hour.closeReason})</p>
+				<p className="h-24 max-h-24 overflow-clip">{hour.open ? "ouvert" : `fermé ${hour.closeReason}`}</p>
 
 				{hour.open ? (
 					<p>
-						Prochaine fermeture : {getOpeningTimeInUserLocal(hour.nextCloseDate, hour.timezone)} ({formatDecimalTime(hour.openHour)}h pour {hour.timezone})
+						Prochaine fermeture : {getOpeningTimeInUserLocal(hour.nextCloseDate, hour.timezone)} pour {userTimezone} ({formatDecimalTime(hour.closeHour)}h pour {hour.timezone})
 					</p>
 				) : (
 					<p>
 						Prochaine ouverture : {getOpeningTimeInUserLocal(hour.nextOpenDate, hour.timezone)} pour {userTimezone} ({formatDecimalTime(hour.openHour)}h pour {hour.timezone})
+						{formatDistance(hour.nextOpenDate, hour.timezone)}
 					</p>
 				)}
-
-				{/* <div className="absolute bottom-0 left-0 p-4 text-muted-foreground">
-					<p>
-						{t("importance")} : {importance[event.importance]}
-					</p>
-					<p>
-						{t("country")} : {countries[language][event.country]}
-					</p>
-					<div className="flex flex-row items-center gap-1">
-						<p>
-							{formatDistanceToNow(new Date(event.date), {
-								locale: dateFns[language],
-								addSuffix: true
-							})}
-						</p>
-					</div>
-				</div> */}
 			</CardContent>
 		</Card>
 	))
