@@ -1,7 +1,7 @@
 import { type Path, useNavigate } from "@remix-run/react"
 import { Button } from "../ui/button"
-import { MdArrowBack } from "react-icons/md"
 import { useEffect, useState } from "react"
+import { ArrowLeftIcon } from "lucide-react"
 
 type To = string | Partial<Path>
 
@@ -36,7 +36,7 @@ export default function BackButton({
 					navigate(goTo as To)
 				}}
 			>
-				<MdArrowBack className="size-6" />
+				<ArrowLeftIcon className="size-6" />
 
 				{label}
 			</Button>

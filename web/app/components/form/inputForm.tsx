@@ -1,8 +1,9 @@
-import type { HTMLInputAutoCompleteAttribute, HTMLInputTypeAttribute } from "react"
+import type { ForwardRefExoticComponent, HTMLInputAutoCompleteAttribute, HTMLInputTypeAttribute, RefAttributes } from "react"
 import type { IconType } from "react-icons/lib"
 import type { JSX } from "react"
 import { Input } from "../ui/input"
 import { cn } from "../../lib/utils"
+import type { LucideProps } from "lucide-react"
 
 interface FieldErrors {
 	[key: string]: {
@@ -20,7 +21,7 @@ interface InputFormProps {
 	id?: string | undefined
 	name?: string | undefined
 	// biome-ignore lint/style/useNamingConvention: <explanation>
-	Icon?: IconType
+	Icon?: IconType | ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>
 	errors?: FieldErrors
 	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 	register?: any

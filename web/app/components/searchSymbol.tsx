@@ -3,11 +3,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from "react"
 import { Badge } from "@/components/ui/badge"
-import { MdDelete } from "react-icons/md"
 import { useDebounceValue, useOnClickOutside } from "usehooks-ts"
 import { Label } from "./ui/label"
 import { cn } from "@/lib/utils"
 import { normalizeSymbolHtml } from "@/utils/normalizeSymbol"
+import { Trash2Icon } from "lucide-react"
 
 interface SelectSymbolType {
 	symbol: string
@@ -152,7 +152,7 @@ export default function SelectSymbol({
 							className="ml-2 flex h-8 flex-row items-center justify-center"
 							onClick={() => setSelectedSymbol((prev) => prev.filter((s) => s !== symbol))}
 						>
-							<MdDelete />
+							<Trash2Icon />
 						</button>
 					</Badge>
 				))}

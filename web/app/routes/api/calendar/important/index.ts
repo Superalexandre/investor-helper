@@ -1,4 +1,4 @@
-import { json, type LoaderFunction, type LoaderFunctionArgs } from "@remix-run/node"
+import type { LoaderFunction, LoaderFunctionArgs } from "@remix-run/node"
 import { getNextImportantEvent } from "../../../../../utils/events"
 
 export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) => {
@@ -12,5 +12,5 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 
 	const events = await getNextImportantEvent(fromCalendar, toCalendar, 0, parsedLimit)
 
-	return json(events)
+	return events
 }

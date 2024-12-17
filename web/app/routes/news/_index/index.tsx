@@ -2,10 +2,8 @@ import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Link, useFetcher, useLoaderData, useLocation } from "@remix-run/react"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
-import formatDate from "@/utils/formatDate"
 import { ScrollTop } from "@/components/scrollTop"
 import { Button } from "@/components/ui/button"
-import { MdArrowBack, MdArrowForward, MdFilterAlt, MdLanguage } from "react-icons/md"
 import ImportanceBadge from "@/components/importanceBadge"
 import { useQuery } from "@tanstack/react-query"
 import type { NewsSymbols } from "../../../../types/News"
@@ -22,7 +20,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import type { CheckedState } from "@radix-ui/react-checkbox"
 import getNewsPreferences from "../../../lib/getNewsPreferences"
 import { getSourceList } from "../../../../utils/news"
-import type { JSX } from "react"
+import { ArrowLeftIcon, ArrowRightIcon, FilterIcon, GlobeIcon, RssIcon, StarIcon } from "lucide-react"
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const [t, newsPreferences] = await Promise.all([
@@ -139,7 +137,7 @@ export default function Index() {
 							search: `?page=${previousPage}`
 						}}
 					>
-						<MdArrowBack className="size-5" />
+						<ArrowLeftIcon className="size-5" />
 						{memoT("previousPage")}
 					</Link>
 				</Button>
@@ -156,7 +154,7 @@ export default function Index() {
 						}}
 					>
 						{memoT("nextPage")}
-						<MdArrowForward className="size-5" />
+						<ArrowRightIcon className="size-5" />
 					</Link>
 				</Button>
 			</div>
@@ -257,21 +255,25 @@ const DisplayFilter = memo(function DisplayFilter({
 
 			<div className="flex flex-row items-center gap-2 overflow-x-auto">
 				<Button variant={opened === "language" ? "default" : "outline"} onClick={handleOpen("language")} className="flex flex-row items-center gap-2">
-					<MdLanguage className="size-5" />
+					<GlobeIcon className="size-5" />
 
 					Langue ({selectedLanguage.length})
 				</Button>
 
-				<Button variant={opened === "sources" ? "default" : "outline"} onClick={handleOpen("sources")}>
+				<Button variant={opened === "sources" ? "default" : "outline"} onClick={handleOpen("sources")} className="flex flex-row items-center gap-2">
+					<RssIcon className="size-5" />
+					
 					Sources ({commonSources.length})
 				</Button>
 
-				<Button variant={opened === "importance" ? "default" : "outline"} onClick={handleOpen("importance")}>
+				<Button variant={opened === "importance" ? "default" : "outline"} onClick={handleOpen("importance")} className="flex flex-row items-center gap-2">
+					<StarIcon className="size-5" />
+					
 					Importance ({selectedImportance.length})
 				</Button>
 
 				<Button variant={opened === "all" ? "default" : "outline"} onClick={handleOpen("all")} className="flex flex-row items-center gap-2">
-					<MdFilterAlt className="size-5" />
+					<FilterIcon className="size-5" />
 
 					Tous les filtres
 				</Button>

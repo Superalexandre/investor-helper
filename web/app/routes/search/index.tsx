@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils"
 import { normalizeSymbol, normalizeSymbolHtml } from "@/utils/normalizeSymbol"
 import type { News } from "@/schema/news"
 import { Link, useLocation, useNavigate } from "@remix-run/react"
-import { MdClose } from "react-icons/md"
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { useQuery } from "@tanstack/react-query"
 import { Skeleton } from "../../components/ui/skeleton"
@@ -14,6 +13,7 @@ import { useTranslation } from "react-i18next"
 import type { TFunction } from "i18next"
 import i18next from "../../i18next.server"
 import type { Events } from "../../../../db/schema/events"
+import { XIcon } from "lucide-react"
 
 interface SelectSymbolType {
 	symbol: string
@@ -223,7 +223,7 @@ function SearchInput({
 						}}
 						className="absolute top-0 right-0"
 					>
-						<MdClose className="size-6" />
+						<XIcon className="size-6" />
 					</Button>
 				)}
 			</div>

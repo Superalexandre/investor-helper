@@ -1,7 +1,6 @@
 import { Form, Link, useSearchParams } from "@remix-run/react"
 import InputForm, { type FieldErrors } from "./inputForm"
 import { useEffect, useState } from "react"
-import { MdAdd, MdBadge, MdEmail, MdPassword } from "react-icons/md"
 import { useRemixForm } from "remix-hook-form"
 import { z as zod } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -11,6 +10,7 @@ import { Label } from "../ui/label"
 import { Checkbox } from "../ui/checkbox"
 import Loading from "../loading"
 import { useTranslation } from "react-i18next"
+import { IdCardIcon, LockKeyholeIcon, MailIcon, PlusIcon } from "lucide-react"
 
 const schema = zod.object({
 	name: zod.string().min(3).max(32).trim(),
@@ -86,7 +86,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				autoComplete="name"
 				errors={errors as FieldErrors}
 				register={register}
-				Icon={MdBadge}
+				Icon={IdCardIcon}
 			/>
 
 			<InputForm
@@ -97,7 +97,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				autoComplete="given-name"
 				errors={errors as FieldErrors}
 				register={register}
-				Icon={MdBadge}
+				Icon={IdCardIcon}
 			/>
 
 			<InputForm
@@ -108,7 +108,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				autoComplete="username"
 				errors={errors as FieldErrors}
 				register={register}
-				Icon={MdBadge}
+				Icon={IdCardIcon}
 			/>
 
 			<InputForm
@@ -119,7 +119,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				autoComplete="email"
 				errors={errors as FieldErrors}
 				register={register}
-				Icon={MdEmail}
+				Icon={MailIcon}
 			/>
 
 			<InputForm
@@ -130,7 +130,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				autoComplete="new-password"
 				errors={errors as FieldErrors}
 				register={register}
-				Icon={MdPassword}
+				Icon={LockKeyholeIcon}
 				ShowButton={<ShowButtonComponent show={showPassword} setShow={setShowPassword} />}
 			/>
 
@@ -142,7 +142,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				autoComplete="new-password"
 				errors={errors as FieldErrors}
 				register={register}
-				Icon={MdPassword}
+				Icon={LockKeyholeIcon}
 				ShowButton={
 					<ShowButtonComponent show={showPasswordConfirmation} setShow={setShowPasswordConfirmation} />
 				}
@@ -197,7 +197,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				// className={`${isSubmitting ? "opacity-50" : "hover:bg-green-700"} flex flex-row items-center justify-center gap-2 rounded bg-green-500 p-4 text-white`}
 				disabled={isSubmitting}
 			>
-				{isSubmitting ? <Loading className="size-5 border-2 dark:text-black" /> : <MdAdd size={20} />}
+				{isSubmitting ? <Loading className="size-5 border-2 dark:text-black" /> : <PlusIcon className="size-5" />}
 
 				{t("createAccount")}
 			</Button>

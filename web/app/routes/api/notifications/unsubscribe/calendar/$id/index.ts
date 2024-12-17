@@ -1,4 +1,4 @@
-import { type ActionFunctionArgs, json } from "@remix-run/node"
+import type { ActionFunctionArgs } from "@remix-run/node"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import { notificationEventSchema } from "@/schema/notifications"
@@ -13,11 +13,11 @@ export function loader() {
 export async function action({ request, params }: ActionFunctionArgs) {
 	const { id } = params
 	if (!id) {
-		return json({
+		return {
 			success: false,
 			error: true,
 			message: "Event id not found"
-		})
+		}
 	}
 
 	const sqlite = new Database("../db/sqlite.db")
@@ -25,21 +25,21 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 	const user = await getUser(request)
 	if (!user) {
-		return json({
+		return {
 			success: false,
 			error: true,
 			message: "User not found"
-		})
+		}
 	}
 
 	await db
 		.delete(notificationEventSchema)
 		.where(and(eq(notificationEventSchema.userId, user.id), eq(notificationEventSchema.eventId, id)))
 
-	return json({
+	return {
 		success: true,
 		error: false,
 		message: "Notification push unsubscribed"
 		// subscriptionId
-	})
+	}
 }

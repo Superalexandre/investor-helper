@@ -1,5 +1,5 @@
 import { getUser } from "@/session.server"
-import { type ActionFunction, type ActionFunctionArgs, json /*redirect*/ } from "@remix-run/node"
+import type { ActionFunction, ActionFunctionArgs } from "@remix-run/node"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import { walletSchema /*, walletSymbols as walletSymbolsSchema*/ } from "../../../../../../../db/schema/users"
@@ -8,7 +8,7 @@ import { eq } from "drizzle-orm"
 export const action: ActionFunction = async ({ request }: ActionFunctionArgs) => {
 	const user = await getUser(request)
 	if (!user) {
-		return json({ error: "Unauthorized" }, { status: 401 })
+		return { error: "Unauthorized" }
 	}
 
 	// Get the wallet id from the query string
@@ -16,7 +16,7 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 	const walletId = url.searchParams.get("walletId")
 
 	if (!walletId) {
-		return json({ error: "Missing walletId" }, { status: 400 })
+		return { error: "Missing walletId" }
 	}
 
 	// Check if the wallet exists
@@ -27,13 +27,13 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 	const walletResults = await db.select().from(walletSchema).where(eq(walletSchema.walletId, walletId))
 
 	if (walletResults.length === 0) {
-		return json({ error: "Wallet not found" }, { status: 404 })
+		return { error: "Wallet not found" }
 	}
 
 	const wallet = walletResults[0]
 	// Check if the wallet belongs to the user
 	if (wallet.userId !== user.id) {
-		return json({ error: "Unauthorized" }, { status: 401 })
+		return { error: "Unauthorized" }
 	}
 
 	// const body = await request.formData()

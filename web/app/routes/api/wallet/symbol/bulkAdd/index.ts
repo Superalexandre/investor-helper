@@ -18,7 +18,7 @@ interface Symbols {
 export const action: ActionFunction = async ({ request }: ActionFunctionArgs) => {
 	const user = await getUser(request)
 	if (!user) {
-		return json({ error: "Unauthorized" }, { status: 401 })
+		return { error: "Unauthorized" }
 	}
 
 	const body = await request.formData()
@@ -28,7 +28,7 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 	const walletId = url.searchParams.get("walletId") || (body.get("walletId") as string)
 
 	if (!walletId) {
-		return json({ error: "Missing walletId" }, { status: 400 })
+		return { error: "Missing walletId" }
 	}
 
 	// Check if the wallet exists
@@ -39,13 +39,13 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 	const walletResults = await db.select().from(walletSchema).where(eq(walletSchema.walletId, walletId))
 
 	if (walletResults.length === 0) {
-		return json({ error: "Wallet not found" }, { status: 404 })
+		return { error: "Wallet not found" }
 	}
 
 	const wallet = walletResults[0]
 	// Check if the wallet belongs to the user
 	if (wallet.userId !== user.id) {
-		return json({ error: "Unauthorized" }, { status: 401 })
+		return { error: "Unauthorized" }
 	}
 
 	const allSymbols = body.getAll("symbol").filter((s) => s !== "")

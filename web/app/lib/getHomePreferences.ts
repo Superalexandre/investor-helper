@@ -5,27 +5,33 @@ async function getHomePreferences(request: Request) {
 	let hasChanged = false
 	let preferences: HomePreferences[] = [
 		{
+			id: "marketHours",
+			title: "Market Hours",
+			position: 0,
+			visible: true
+		},
+		{
 			id: "bestLosers",
 			title: "Best Losers",
-			position: 0,
+			position: 1,
 			visible: true
 		},
 		{
 			id: "bestGainers",
 			title: "Best Gainers",
-			position: 1,
+			position: 2,
 			visible: true
 		},
 		{
 			id: "news",
 			title: "News",
-			position: 2,
+			position: 3,
 			visible: true
 		},
 		{
 			id: "events",
 			title: "Events",
-			position: 3,
+			position: 4,
 			visible: true
 		}
 	]
@@ -33,7 +39,10 @@ async function getHomePreferences(request: Request) {
 	const sessionPreferences = await getHomePreferencesFromSession(request)
 	if (!hasChanged && sessionPreferences) {
 		hasChanged = true
-		preferences = sessionPreferences
+		preferences = {
+			...preferences,
+			...sessionPreferences
+		}
 	}
 
 	return preferences

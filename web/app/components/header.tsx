@@ -1,18 +1,3 @@
-import {
-	MdAdd,
-	MdArrowDropUp,
-	MdCalendarMonth,
-	MdHome,
-	MdLogin,
-	MdLogout,
-	MdMenu,
-	MdNewspaper,
-	// MdNotifications,
-	MdPerson,
-	MdSearch,
-	MdSettings,
-	MdWaterfallChart
-} from "react-icons/md"
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Link } from "@remix-run/react"
 import { useState, memo } from "react"
@@ -30,6 +15,7 @@ import {
 	navigationMenuTriggerStyle
 } from "./ui/navigation-menu"
 import { Trigger as NavigationMenuPrimitiveTrigger } from "@radix-ui/react-navigation-menu"
+import { CalendarDaysIcon, ChartCandlestickIcon, ChevronUpIcon, CircleUserRoundIcon, HomeIcon, LogInIcon, LogOutIcon, MenuIcon, NewspaperIcon, SearchIcon, SettingsIcon, UserRoundPlusIcon } from "lucide-react"
 
 export const handle = {
 	i18n: "header"
@@ -71,21 +57,22 @@ export default function Header({
 
 					<Button variant="ghost" className="p-0">
 						<Link to="/news" className="flex flex-row items-center px-4 py-2">
-							<MdNewspaper className="mr-2 inline-block" />
+							{/* <MdNewspaper className="mr-2 inline-block" /> */}
+							<NewspaperIcon className="mr-2 inline-block size-5" />
 							{t("header.news")}
 						</Link>
 					</Button>
 
 					<Button variant="ghost" className="p-0">
 						<Link to="/calendar" className="flex flex-row items-center px-4 py-2">
-							<MdCalendarMonth className="mr-2 inline-block" />
+							<CalendarDaysIcon className="mr-2 inline-block size-5" />
 							{t("header.calendar")}
 						</Link>
 					</Button>
 
 					<Button variant="ghost" className="p-0">
 						<Link to="/search" className="flex flex-row items-center px-4 py-2">
-							<MdSearch className="mr-2 inline-block" />
+							<SearchIcon className="mr-2 inline-block size-5" />
 							{t("header.search")}
 						</Link>
 					</Button>
@@ -110,7 +97,7 @@ export default function Header({
 
 							<Button variant="ghost" className="p-0">
 								<Link to="/logout" className="flex flex-row items-center px-4 py-2">
-									<MdLogout className="mr-2 inline-block" />
+									<LogOutIcon className="mr-2 inline-block size-5" />
 									{t("header.logout")}
 								</Link>
 							</Button>
@@ -119,14 +106,14 @@ export default function Header({
 						<>
 							<Button variant="ghost" className="p-0">
 								<Link to="/login" className="flex flex-row items-center px-4 py-2">
-									<MdLogin className="mr-2 inline-block" />
+									<LogInIcon className="mr-2 inline-block size-5" />
 									{t("header.login")}
 								</Link>
 							</Button>
 
 							<Button variant="ghost" className="p-0">
 								<Link to="/register" className="flex flex-row items-center px-4 py-2">
-									<MdAdd className="mr-2 inline-block" />
+									<UserRoundPlusIcon className="mr-2 inline-block size-5" />
 									{t("header.register")}
 								</Link>
 							</Button>
@@ -143,7 +130,7 @@ export default function Header({
 					<div className="relative size-6">
 						{/* <PingIndicator className="-top-[0.5px]"/> */}
 
-						<MdMenu className="size-full" />
+						<MenuIcon className="size-full" />
 					</div>
 				</SheetTrigger>
 				<SheetContent
@@ -155,12 +142,12 @@ export default function Header({
 
 					<div className="flex w-full flex-col items-center gap-4">
 						<Link to="/" className="flex flex-row items-center text-xl" onClick={() => setOpen(false)}>
-							<MdHome className="mr-2 inline-block" />
+							<HomeIcon className="mr-2 inline-block size-5" />
 							{t("header.home")}
 						</Link>
 
 						<Link to="/news" className="flex flex-row items-center text-xl" onClick={() => setOpen(false)}>
-							<MdNewspaper className="mr-2 inline-block" />
+							<NewspaperIcon className="mr-2 inline-block size-5" />
 							{t("header.news")}
 						</Link>
 
@@ -169,7 +156,7 @@ export default function Header({
 							className="flex flex-row items-center text-xl"
 							onClick={() => setOpen(false)}
 						>
-							<MdCalendarMonth className="mr-2 inline-block" />
+							<CalendarDaysIcon className="mr-2 inline-block size-5" />
 							{t("header.calendar")}
 						</Link>
 
@@ -185,8 +172,8 @@ export default function Header({
 			</Sheet>
 			<div className="block xl:hidden">
 				<Link to="/search" className="absolute inset-y-0 right-0 mr-3 flex flex-row items-center">
-					<Button className="px-8">
-						<MdSearch className="size-6" />
+					<Button className="px-8 flex flex-row items-center justify-center gap-2">
+						<SearchIcon className="size-5" />
 						{t("header.search")}
 					</Button>
 				</Link>
@@ -219,7 +206,7 @@ const SeeMore = memo(function SeeMore({
 									className={cn(navigationMenuTriggerStyle(), "w-full")}
 									onClick={onClick}
 								>
-									<MdWaterfallChart className="mr-2 inline-block" />
+									<ChartCandlestickIcon className="mr-2 inline-block size-5" />
 
 									{t("header.heatmap")}
 								</Link>
@@ -230,7 +217,7 @@ const SeeMore = memo(function SeeMore({
 									className={cn(navigationMenuTriggerStyle(), "w-full")}
 									onClick={onClick}
 								>
-									<MdSettings className="mr-2 inline-block" />
+									<SettingsIcon className="mr-2 inline-block size-5" />
 
 									{t("header.settings")}
 								</Link>
@@ -281,7 +268,7 @@ function FooterLogged({
 							{user.displayName || user.username}
 						</div>
 
-						<MdArrowDropUp className={cn(dropdownOpen ? "rotate-180" : "", "size-6 duration-100")} />
+						<ChevronUpIcon className={cn(dropdownOpen ? "rotate-180" : "", "size-6 duration-100")} />
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent className="w-[--radix-popper-anchor-width]">
@@ -300,7 +287,7 @@ function FooterLogged({
 					<DropdownMenuItem asChild={true} className="w-full p-0">
 						<Link to="/profile" className="w-full hover:cursor-pointer" onClick={() => setOpen(false)}>
 							<Button variant="ghost" className="flex w-full flex-row justify-start gap-2 px-2">
-								<MdPerson className="size-6" />
+								<CircleUserRoundIcon className="size-5" />
 
 								{t("header.profile")}
 							</Button>
@@ -310,7 +297,7 @@ function FooterLogged({
 					<DropdownMenuItem asChild={true} className="w-full p-0">
 						<Link to="/logout" className="w-full hover:cursor-pointer" onClick={() => setOpen(false)}>
 							<Button variant="ghost" className="flex w-full flex-row justify-start gap-2 px-2">
-								<MdLogout className="size-6" />
+								<LogOutIcon className="size-5" />
 
 								{t("header.logout")}
 							</Button>
@@ -334,11 +321,11 @@ function FooterNotLogged({
 			<Separator />
 
 			<Link to="/login" className="flex flex-row items-center text-xl" onClick={() => setOpen(false)}>
-				<MdLogin className="mr-2 inline-block" />
+				<LogInIcon className="mr-2 inline-block size-5" />
 				{t("header.login")}
 			</Link>
 			<Link to="/register" className="flex flex-row items-center text-xl" onClick={() => setOpen(false)}>
-				<MdAdd className="mr-2 inline-block" />
+				<UserRoundPlusIcon className="mr-2 inline-block size-5" />
 				{t("header.register")}
 			</Link>
 		</div>

@@ -1,7 +1,7 @@
-import { MdShare } from "react-icons/md"
 import { Button } from "../ui/button"
 import { cn } from "../../lib/utils"
 import { useTranslation } from "react-i18next"
+import { Share2Icon } from "lucide-react"
 
 export default function ShareButton({
 	title,
@@ -47,7 +47,7 @@ export default function ShareButton({
 			className={cn("flex w-full flex-row items-center justify-start gap-1.5", className)}
 		>
 			{t("shareLink.trigger")}
-			<MdShare className="size-5" />
+			<Share2Icon className="size-5" />
 		</Button>
 	)
 }

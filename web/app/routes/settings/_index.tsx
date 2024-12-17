@@ -17,8 +17,8 @@ import { memo, useState } from "react"
 import { changeUserLanguage, changeUserTheme } from "../../lib/userPreferences"
 import { Button } from "../../components/ui/button"
 import { restrictToParentElement } from '@dnd-kit/modifiers'
-import { MdDragIndicator } from "react-icons/md"
 import { getSourceList } from "../../../utils/news"
+import { GripVerticalIcon } from "lucide-react"
 
 export async function action({ request }: ActionFunctionArgs) {
 	// Get url parameters
@@ -412,7 +412,7 @@ function SortableItem({ item }: { item: HomePreferences /*changeVisibility: (id:
 		>
 			<p>{item.title}</p>
 
-			<MdDragIndicator className="ml-auto"/>
+			<GripVerticalIcon className="ml-auto"/>
 			{/* <Button variant="ghost">
                 {item.visible ? (
                     <MdVisibility />

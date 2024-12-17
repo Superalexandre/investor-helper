@@ -1,4 +1,4 @@
-import { type ActionFunctionArgs, json } from "@remix-run/node"
+import type { ActionFunctionArgs } from "@remix-run/node"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import { notificationEventSchema, notificationSchema } from "@/schema/notifications"
@@ -14,21 +14,21 @@ export function loader() {
 export async function action({ request, params }: ActionFunctionArgs) {
 	const { id } = params
 	if (!id) {
-		return json({
+		return {
 			success: false,
 			error: true,
 			message: "Event id not found"
-		})
+		}
 	}
 
 	// Get the body of the request
 	const body = await request.json()
 	if (!body.remindThirtyMinutesBefore || !body.remindOnTime) {
-		return json({
+		return {
 			success: false,
 			error: true,
 			message: "Missing remindThirtyMinutesBefore or remindOnTime"
-		})
+		}
 	}
 
 	const sqlite = new Database("../db/sqlite.db")
@@ -36,11 +36,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 	const user = await getUser(request)
 	if (!user) {
-		return json({
+		return {
 			success: false,
 			error: true,
 			message: "User not found"
-		})
+		}
 	}
 
 	// Check if the user is already subscribed to the notification
@@ -71,22 +71,22 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	const events = await db.select().from(eventsSchema).where(eq(eventsSchema.id, id))
 
 	if (events.length <= 0) {
-		return json({
+		return {
 			success: false,
 			error: true,
 			message: "Event not found"
-		})
+		}
 	}
 
 	const eventDate = new Date(events[0].date)
 	const now = new Date()
 
 	if (eventDate.getTime() < now.getTime()) {
-		return json({
+		return {
 			success: false,
 			error: true,
 			message: "Event already passed"
-		})
+		}
 	}
 
 	const notification = await db
@@ -95,11 +95,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		.where(and(eq(notificationEventSchema.userId, user.id), eq(notificationEventSchema.eventId, id)))
 
 	if (notification.length > 0) {
-		return json({
+		return {
 			success: false,
 			error: true,
 			message: "Notification already subscribed"
-		})
+		}
 	}
 
 	await db.insert(notificationEventSchema).values({
@@ -109,10 +109,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		remindOnTime: body.remindOnTime
 	})
 
-	return json({
+	return {
 		success: true,
 		error: false,
 		message: "Notification push subscribed"
 		// subscriptionId
-	})
+	}
 }

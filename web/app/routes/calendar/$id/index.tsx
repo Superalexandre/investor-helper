@@ -1,13 +1,5 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Link, redirect, useLoaderData } from "@remix-run/react"
-import {
-	MdAdd,
-	MdDelete,
-	MdMoreVert,
-	MdNotificationsActive,
-	MdOpenInNew,
-	MdOutlineNotificationAdd
-} from "react-icons/md"
 import { ScrollTop } from "@/components/scrollTop"
 import { getEventById } from "@/utils/events"
 import { cn } from "@/lib/utils"
@@ -47,6 +39,7 @@ import i18next from "../../../i18next.server"
 import { useTranslation } from "react-i18next"
 import { countries } from "../../../i18n"
 import type { TFunction } from "i18next"
+import { BellDotIcon, BellPlusIcon, EllipsisVerticalIcon, PlusIcon, SquareArrowOutUpRightIcon, Trash2Icon } from "lucide-react"
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
 	const t = await i18next.getFixedT(request, "calendarId")
@@ -166,14 +159,6 @@ export default function Index() {
 
 			return
 		}
-
-		// fetch("/api/subscribe", {
-		// 	method: "POST",
-		// 	body: JSON.stringify({ event: event.id }),
-		// 	headers: {
-		// 		"Content-Type": "application/json"
-		// 	}
-		// })
 	}
 
 	return (
@@ -214,7 +199,7 @@ export default function Index() {
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild={true}>
 							<Button variant="ghost">
-								<MdMoreVert className="size-6" />
+								<EllipsisVerticalIcon className="size-6" />
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent className="mx-4">
@@ -228,12 +213,12 @@ export default function Index() {
 										{isSubscribed && hasNotification ? (
 											<p className="flex flex-row justify-start gap-1.5">
 												{t("editNotification")}
-												<MdNotificationsActive className="size-5" />
+												<BellDotIcon className="size-5" />
 											</p>
 										) : (
 											<p className="flex flex-row justify-start gap-1.5">
 												{t("addNotification")}
-												<MdOutlineNotificationAdd className="size-5" />
+												<BellPlusIcon className="size-5" />
 											</p>
 										)}
 									</Button>
@@ -385,7 +370,7 @@ const EventDetails = memo(function EventDetails({
 									>
 										{event.source && event.source !== "" ? event.source : event.sourceUrl}
 
-										<MdOpenInNew className="inline-block" />
+										<SquareArrowOutUpRightIcon className="inline-block" />
 									</Link>
 								</p>
 							) : null}
@@ -498,7 +483,7 @@ function DialogNewNotification({
 						{loading ? (
 							<Loading className="size-5 border-2 dark:text-black" />
 						) : (
-							<MdAdd className="size-5" />
+							<PlusIcon className="size-5" />
 						)}
 						Ajouter
 					</Button>
@@ -579,7 +564,7 @@ function DialogDeleteNotification({
 						{loading ? (
 							<Loading className="size-5 border-2 dark:text-black" />
 						) : (
-							<MdDelete className="size-5" />
+							<Trash2Icon className="size-5" />
 						)}
 						Supprimer
 					</Button>

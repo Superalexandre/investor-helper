@@ -12,7 +12,6 @@ import { ScrollTop } from "@/components/scrollTop"
 import BackButton from "@/components/button/backButton"
 import type { JSX } from "react"
 import { Button } from "../../../components/ui/button"
-import { MdMoreVert } from "react-icons/md"
 import ShareButton from "../../../components/button/shareButton"
 import {
 	DropdownMenu,
@@ -23,6 +22,7 @@ import {
 import CopyButton from "../../../components/button/copyButton"
 import { useTranslation } from "react-i18next"
 import i18next from "../../../i18next.server"
+import { EllipsisVerticalIcon } from "lucide-react"
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
 	const t = await i18next.getFixedT(request, "newsId")
@@ -84,7 +84,7 @@ export default function Index() {
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild={true}>
 							<Button variant="ghost">
-								<MdMoreVert className="size-6" />
+								<EllipsisVerticalIcon className="size-6" />
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent className="mx-4">

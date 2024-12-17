@@ -1,4 +1,4 @@
-import { type ActionFunctionArgs, json } from "@remix-run/node"
+import type { ActionFunctionArgs } from "@remix-run/node"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import { notificationSchema } from "@/schema/notifications"
@@ -26,9 +26,9 @@ export async function action({ request }: ActionFunctionArgs) {
 			)
 		)
 
-	return json({
+	return {
 		success: true,
 		error: false,
 		message: "Notification unsubscribe"
-	})
+	}
 }

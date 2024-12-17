@@ -1,7 +1,6 @@
 import { Form, Link, useSearchParams } from "@remix-run/react"
 import InputForm, { type FieldErrors } from "./inputForm"
 import { useEffect, useState } from "react"
-import { MdLogin, MdMail, MdPassword } from "react-icons/md"
 import { useRemixForm } from "remix-hook-form"
 import { z as zod } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -9,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { ShowButtonComponent } from "../button/showHideButton"
 import Loading from "../loading"
 import { useTranslation } from "react-i18next"
+import { LockKeyholeIcon, LogInIcon, UserIcon } from "lucide-react"
 
 const schema = zod.object({
 	emailOrUsername: zod.string().trim().min(3).max(255),
@@ -78,7 +78,7 @@ export default function Login({ redirect, callback }: LoginProps) {
 				autoComplete="username email"
 				errors={errors as FieldErrors}
 				register={register}
-				Icon={MdMail}
+				Icon={UserIcon}
 			/>
 
 			<InputForm
@@ -89,7 +89,7 @@ export default function Login({ redirect, callback }: LoginProps) {
 				autoComplete="current-password"
 				errors={errors as FieldErrors}
 				register={register}
-				Icon={MdPassword}
+				Icon={LockKeyholeIcon}
 				ShowButton={<ShowButtonComponent show={showPassword} setShow={setShowPassword} />}
 			/>
 
@@ -110,7 +110,7 @@ export default function Login({ redirect, callback }: LoginProps) {
 				className="flex flex-row items-center justify-center gap-2"
 				disabled={isSubmitting}
 			>
-				{isSubmitting ? <Loading className="size-5 border-2 dark:text-black" /> : <MdLogin size={20} />}
+				{isSubmitting ? <Loading className="size-5 border-2 dark:text-black" /> : <LogInIcon className="size-5" />}
 
 				{t("connect")}
 			</Button>

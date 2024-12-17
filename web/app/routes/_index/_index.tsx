@@ -2,7 +2,6 @@ import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { usePWAManager } from "@remix-pwa/client"
-import { MdArrowDropDown, MdArrowDropUp, MdBarChart, MdCalendarToday, MdDownload, MdNewspaper } from "react-icons/md"
 import { Link, useLoaderData, useNavigate } from "@remix-run/react"
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { differenceInSeconds, formatDistanceToNow } from "date-fns"
@@ -23,6 +22,8 @@ import { cn } from "../../lib/utils"
 import { Badge } from "../../components/ui/badge"
 import { format, toDate, fromZonedTime, } from "date-fns-tz"
 import type { MarketStatus } from "../../../types/Hours"
+import { CalendarDaysIcon, ChartSplineIcon, ClockIcon, DownloadIcon, NewspaperIcon } from "lucide-react"
+import { TriangleDownIcon, TriangleUpIcon } from "@radix-ui/react-icons"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
 	if (!data) {
@@ -67,7 +68,7 @@ export default function Index() {
 
 	const [isInstalled, setIsInstalled] = useState(true)
 
-	const memoizedDownloadIcon = useMemo(() => <MdDownload />, [])
+	const memoizedDownloadIcon = useMemo(() => <DownloadIcon />, [])
 
 	useEffect(() => {
 		const isTwa = document.referrer.startsWith("android-app://")
@@ -85,11 +86,27 @@ export default function Index() {
 
 	const menus = [
 		{
+			name: "marketHours",
+			component: () => (
+				<>
+					<h2 className="flex flex-row items-center gap-2 font-bold text-lg">
+						<ClockIcon />
+
+						Ouverture des marchés
+					</h2>
+
+					<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
+						<DisplayHours t={t} language={i18n.language} />
+					</div>
+				</>
+			)
+		},
+		{
 			name: "bestLosers",
 			component: () => (
 				<>
 					<h2 className="flex flex-row items-center gap-2 font-bold text-lg">
-						<MdBarChart />
+						<ChartSplineIcon />
 
 						{t("bestLosers")}
 					</h2>
@@ -105,7 +122,7 @@ export default function Index() {
 			component: () => (
 				<>
 					<h2 className="flex flex-row items-center gap-2 font-bold text-lg">
-						<MdBarChart />
+						<ChartSplineIcon />
 
 						{t("bestGainers")}
 					</h2>
@@ -121,7 +138,7 @@ export default function Index() {
 			component: () => (
 				<>
 					<h2 className="flex flex-row items-center gap-2 font-bold text-lg">
-						<MdNewspaper />
+						<NewspaperIcon />
 
 						{t("lastNews")}
 					</h2>
@@ -141,7 +158,7 @@ export default function Index() {
 			component: () => (
 				<>
 					<h2 className="flex flex-row items-center gap-2 font-bold text-lg">
-						<MdCalendarToday />
+						<CalendarDaysIcon />
 
 						{t("nextEvents")}
 					</h2>
@@ -201,18 +218,6 @@ export default function Index() {
 
 			{displayedMenu.map((menu) => (
 				<div className="flex max-w-full flex-col items-center gap-2 p-4" key={menu.name}>
-					<>
-						<h2 className="flex flex-row items-center gap-2 font-bold text-lg">
-							<MdCalendarToday />
-
-							Ouverture des marchés
-						</h2>
-
-						<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
-							<DisplayHours t={t} language={i18n.language} />
-						</div>
-					</>
-
 					{menu.component()}
 				</div>
 			))}
@@ -340,7 +345,7 @@ const DisplayBestLosers = memo(function DisplayBestLosers({
 								{loser.currency}
 							</span>
 							<Badge className="flex flex-row items-center bg-red-500 font-bold text-white hover:bg-red-500">
-								<MdArrowDropDown className="size-5" />
+								<TriangleDownIcon className="size-5" />
 								<span>{Number(loser.rawChange).toFixed(2)}%</span>
 							</Badge>
 						</p>
@@ -466,9 +471,9 @@ const DisplayBestGainers = memo(function DisplayBestGainers({
 								{gainer.close}
 								{gainer.currency}
 							</span>
-							<Badge className="flex flex-row items-center bg-green-500 font-bold text-white hover:bg-green-500">
-								<MdArrowDropUp className="size-5" />
-								<span>{Number(gainer.rawChange).toFixed(2)}%</span>
+							<Badge className="flex flex-row justify-center items-center bg-green-500 font-bold text-white hover:bg-green-500">
+								<TriangleUpIcon className="size-5" />
+								<span className="h-5">{Number(gainer.rawChange).toFixed(2)}%</span>
 							</Badge>
 						</p>
 						{gainer.recommendation_mark ?
@@ -734,7 +739,7 @@ const DisplayHours = memo(function DisplayHours({
 		marketTimezone: string
 	): string => {
 		const marketDateTimezone = fromZonedTime(marketDate, marketTimezone)
-		
+
 		// Formater la date
 		return format(marketDateTimezone, "HH:mm", {
 			timeZone: userTimezone

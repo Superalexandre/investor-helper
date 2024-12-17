@@ -1,5 +1,5 @@
-import { MdVisibility, MdVisibilityOff } from "react-icons/md"
 import { Button } from "../ui/button"
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 
 export function ShowButtonComponent({ show, setShow }: { show: boolean; setShow: (show: boolean) => void }) {
 	return (
@@ -10,8 +10,8 @@ export function ShowButtonComponent({ show, setShow }: { show: boolean; setShow:
 			className="absolute inset-y-0 right-0"
 			aria-label="Afficher le mot de passe"
 		>
-			<MdVisibility size={20} className={`${show ? "hidden" : "block"}`} />
-			<MdVisibilityOff size={20} className={`${show ? "block" : "hidden"}`} />
+			<EyeIcon className={`${show ? "hidden" : "block"} size-5`} />
+			<EyeOffIcon className={`${show ? "block" : "hidden"} size-5`} />
 		</Button>
 	)
 }

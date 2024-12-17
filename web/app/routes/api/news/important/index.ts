@@ -1,5 +1,5 @@
 import { getLastImportantNews } from "@/utils/news"
-import { json, type LoaderFunction, type LoaderFunctionArgs } from "@remix-run/node"
+import type { LoaderFunction, LoaderFunctionArgs } from "@remix-run/node"
 
 export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) => {
 	const url = new URL(request.url)
@@ -14,5 +14,5 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 
 	const news = await getLastImportantNews(fromNews, toNews, 150, parsedLimit)
 
-	return json(news)
+	return news
 }

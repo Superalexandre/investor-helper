@@ -1,4 +1,4 @@
-import { json, type LoaderFunction, type LoaderFunctionArgs } from "@remix-run/node"
+import type { LoaderFunction, LoaderFunctionArgs } from "@remix-run/node"
 import { getEvents } from "../../../../../utils/events"
 
 export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) => {
@@ -19,5 +19,5 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 	// Await fake delay
 	// await new Promise(resolve => setTimeout(resolve, 5000))
 
-	return json(events)
+	return events
 }

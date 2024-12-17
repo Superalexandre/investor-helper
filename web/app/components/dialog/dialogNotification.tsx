@@ -19,13 +19,23 @@ interface DialogNotificationProps {
 }
 
 export default memo(function DialogNotification({ open, setOpen }: DialogNotificationProps) {
-	const { subscribeToPush, isSubscribed } = usePush()
+	const { subscribeToPush, isSubscribed, requestPermission } = usePush()
 	// biome-ignore lint/suspicious/noExplicitAny: The error is an any type
 	const [error, setError] = useState<string | any>(null)
 
 	const subscribe = async () => {
 		if (isSubscribed) {
 			setOpen(false)
+
+			return
+		}
+
+		
+		// Check if the permission are blocked
+		if (Notification.permission === "denied") {
+			setError({
+				message: "Vous avez refusé les notifications"
+			})
 
 			return
 		}
