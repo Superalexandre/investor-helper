@@ -103,6 +103,39 @@ export async function action({ request }: ActionFunctionArgs) {
 			}
 		}
 
+		data.value = [
+			{
+				id: "marketHours",
+				title: "Market Hours",
+				position: 0,
+				visible: true
+			},
+			{
+				id: "bestLosers",
+				title: "Best Losers",
+				position: 0,
+				visible: true
+			},
+			{
+				id: "bestGainers",
+				title: "Best Gainers",
+				position: 0,
+				visible: true
+			},
+			{
+				id: "news",
+				title: "News",
+				position: 0,
+				visible: true
+			},
+			{
+				id: "events",
+				title: "Events",
+				position: 0,
+				visible: true
+			}
+		]
+
 		return setSession({
 			key: "homePreferences",
 			value: data.value,
@@ -395,7 +428,7 @@ const ChangeHomePreferences = memo(function ChangeHomePreferences({
 })
 
 function SortableItem({ item }: { item: HomePreferences /*changeVisibility: (id: string) => void*/ }) {
-	const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: item.id })
+	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id })
 
 	const style = {
 		transform: CSS.Transform.toString(transform),
@@ -408,7 +441,7 @@ function SortableItem({ item }: { item: HomePreferences /*changeVisibility: (id:
 			style={style}
 			{...attributes}
 			{...listeners}
-			className="flex w-full flex-row items-center justify-center gap-2"
+			className={`flex w-full flex-row items-center justify-center gap-2 ${isDragging ? "cursor-grabbing" : "hover:cursor-grab"}`}
 		>
 			<p>{item.title}</p>
 

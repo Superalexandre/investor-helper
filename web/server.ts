@@ -15,11 +15,9 @@ const app = new Hono()
 
 app.use(compress())
 app.use((c, next) => {
-	// biome-ignore lint/nursery/noSecrets: No secrets in this file
 	c.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 	c.header(
 		"Content-Security-Policy",
-		// biome-ignore lint/nursery/noSecrets: Only urls
 		"default-src 'self'; script-src 'self'; connect-src 'self' https://static.cloudflareinsights.com https://api.dicebear.com; object-src 'none'; style-src 'self'; img-src 'self';"
 	)
 	c.header("X-Frame-Options", "SAMEORIGIN")

@@ -21,6 +21,7 @@ import type { CheckedState } from "@radix-ui/react-checkbox"
 import getNewsPreferences from "../../../lib/getNewsPreferences"
 import { getSourceList } from "../../../../utils/news"
 import { ArrowLeftIcon, ArrowRightIcon, FilterIcon, GlobeIcon, RssIcon, StarIcon } from "lucide-react"
+import { DotSeparator } from "../../../components/ui/separator"
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const [t, newsPreferences] = await Promise.all([
@@ -262,13 +263,13 @@ const DisplayFilter = memo(function DisplayFilter({
 
 				<Button variant={opened === "sources" ? "default" : "outline"} onClick={handleOpen("sources")} className="flex flex-row items-center gap-2">
 					<RssIcon className="size-5" />
-					
+
 					Sources ({commonSources.length})
 				</Button>
 
 				<Button variant={opened === "importance" ? "default" : "outline"} onClick={handleOpen("importance")} className="flex flex-row items-center gap-2">
 					<StarIcon className="size-5" />
-					
+
 					Importance ({selectedImportance.length})
 				</Button>
 
@@ -494,10 +495,14 @@ const News = memo(function News({
 					<DisplaySymbols symbolList={item.relatedSymbols} hash={item.news.id} t={t} />
 				</CardContent>
 
-				<CardFooter>
-					<p className="flex flex-row flex-wrap items-center gap-1 text-muted-foreground">
-						
-						{item.news.source} - {" "}
+				<CardFooter className="flex flex-row flex-wrap items-center gap-2 text-muted-foreground">
+					<span>
+						{item.news.source}
+					</span>
+
+					<DotSeparator />
+
+					<span>
 						{new Date(item.news.published * 1000 || "").toLocaleDateString(language, {
 							hour: "numeric",
 							minute: "numeric",
@@ -507,7 +512,7 @@ const News = memo(function News({
 							timeZoneName: "shortOffset",
 							weekday: "long"
 						})}
-					</p>
+					</span>
 				</CardFooter>
 			</Card>
 		</div>

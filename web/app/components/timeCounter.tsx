@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { DotSeparator } from "./ui/separator";
 
 export default function TimeCounter({
 	date,
@@ -28,7 +29,7 @@ export default function TimeCounter({
 	if (diffBetween > -diffOngoing && diffBetween < 0) {
 		return (
 			<>
-				{separator ? <span className="hidden lg:block">-</span> : null}
+				{separator ? <DotSeparator className="hidden lg:block" /> : null}
 				<span className="text-center text-sky-500">Événement en cours</span>
 			</>
 		)
@@ -41,7 +42,7 @@ export default function TimeCounter({
 
 		return (
 			<>
-				{separator ? <span className="hidden lg:block">-</span> : null}
+				{separator ? <DotSeparator className="hidden lg:block" /> : null}
 				<span className="text-center" suppressHydrationWarning={true}>
 					Terminé depuis {prettyTime}
 				</span>
@@ -58,7 +59,7 @@ export default function TimeCounter({
 
 	return (
 		<>
-			{separator ? <span className="hidden lg:block">-</span> : null}
+			{separator ? <DotSeparator className="hidden lg:block" /> : null}
 			<span className="text-center" suppressHydrationWarning={true}>
 				Dans {prettyTime}
 			</span>

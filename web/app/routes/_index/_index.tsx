@@ -772,19 +772,53 @@ const DisplayHours = memo(function DisplayHours({
 				{hour.marketName}
 			</CardTitle>
 			<CardContent className="flex flex-col gap-4 p-4">
-				<p className="h-24 max-h-24 overflow-clip">{hour.open ? "ouvert" : `fermé ${hour.closeReason}`}</p>
+				<div className="flex flex-row items-center justify-center gap-2">
+
+					{hour.open ? <OpenIndicator /> : <CloseIndicator />}
+
+					<p>
+						{hour.open ? "Ouvert" : `Fermé ${hour.closeReason !== "close" ? hour.closeReason : ""}`}
+					</p>
+				</div>
 
 				{hour.open ? (
-					<p>
-						Prochaine fermeture : {getOpeningTimeInUserLocal(hour.nextCloseDate, hour.timezone)} pour {userTimezone} ({formatDecimalTime(hour.closeHour)}h pour {hour.timezone})
-					</p>
+					<div className="flex flex-col">
+						<p>
+							Fermeture à {getOpeningTimeInUserLocal(hour.nextCloseDate, hour.timezone)} ({formatDecimalTime(hour.closeHour)}h heure locale)
+						</p>
+						<p>
+							Dans {formatDistance(hour.nextCloseDate, hour.timezone)}
+						</p>
+					</div>
 				) : (
-					<p>
-						Prochaine ouverture : {getOpeningTimeInUserLocal(hour.nextOpenDate, hour.timezone)} pour {userTimezone} ({formatDecimalTime(hour.openHour)}h pour {hour.timezone})
-						{formatDistance(hour.nextOpenDate, hour.timezone)}
-					</p>
+					<div className="flex flex-col">
+						<p>
+							Ouverture à {getOpeningTimeInUserLocal(hour.nextOpenDate, hour.timezone)} ({formatDecimalTime(hour.openHour)}h heure locale)
+						</p>
+						<p>
+							Dans {formatDistance(hour.nextOpenDate, hour.timezone)}
+						</p>
+					</div>
 				)}
 			</CardContent>
 		</Card>
 	))
+})
+
+const OpenIndicator = memo(function OpenIndicator() {
+	return (
+		<div className="relative">
+			<div className="size-2 rounded-full bg-green-500" />
+			<div className="absolute top-0 size-2 animate-ping rounded-full bg-green-600 duration-1000" />
+		</div>
+	)
+})
+
+const CloseIndicator = memo(function CloseIndicator() {
+	return (
+		<div className="relative">
+			<div className="size-2 rounded-full bg-red-500" />
+			<div className="absolute top-0 size-2 animate-ping rounded-full bg-red-600 duration-1000" />
+		</div>
+	)
 })

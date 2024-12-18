@@ -13,6 +13,7 @@ import i18next from "../../../i18next.server"
 import type { TFunction } from "i18next"
 import { countries } from "../../../i18n"
 import ImportanceBadge from "../../../components/importanceBadge"
+import { DotSeparator } from "../../../components/ui/separator"
 // import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs"
 // import { useState } from "react"
 // import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
@@ -214,8 +215,12 @@ const EconomicCalendar = memo(function EconomicCalendar({
 						<CardContent>{event.comment}</CardContent>
 
 						<CardFooter className="flex flex-col items-center justify-start gap-1 lg:flex-row lg:gap-2 text-muted-foreground">
-							<span className="text-center">{countries[language][event.country]}</span>
-							<span className="hidden lg:block">-</span>
+							<span className="text-center">
+								{countries[language][event.country]}
+							</span>
+							
+							<DotSeparator />
+
 							<span className="text-center">
 								{new Date(event.date || "").toLocaleDateString(language, {
 									hour: "numeric",
@@ -227,6 +232,7 @@ const EconomicCalendar = memo(function EconomicCalendar({
 									weekday: "long"
 								})}
 							</span>
+							
 							<TimeCounter date={event.date} diff={20 * 60 * 1000} />
 						</CardFooter>
 					</Card>

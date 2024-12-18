@@ -95,7 +95,7 @@ export function Layout({ children }: { children: ReactNode }) {
 				<meta property="og:url" content="https://www.investor-helper.com" />
 				<meta property="og:type" content="website" />
 				<meta property="og:image" content="https://www.investor-helper.com/logo-512-512.png" />
-				<meta property="og:locale" content="fr_FR" />
+				<meta property="og:locale" content={locale} />
 
 				<meta name="mobile-web-app-capable" content="yes" />
 			</head>
