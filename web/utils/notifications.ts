@@ -6,13 +6,15 @@ import {
 	notificationSchema,
 	notificationSubscribedNewsSchema,
 	notificationSubscribedNewsKeywordsSchema,
-	notificationSubscribedNewsSymbolsSchema
+	notificationSubscribedNewsSymbolsSchema,
+	notificationListSchema
 } from "../../db/schema/notifications.js"
 import { and, eq, gte } from "drizzle-orm"
 import { sendNotifications } from "@remix-pwa/push"
 import type { User } from "../../db/schema/users.js"
 import { eventsSchema } from "../../db/schema/events.js"
 import type { NotificationSubscribedFullNews } from "../types/Notifications.js"
+import { v4 as uuidv4 } from "uuid"
 
 async function sendNotificationEvent() {
 	const actualEvent = await getEventsNow()
@@ -37,6 +39,20 @@ async function sendNotificationEvent() {
 			}
 
 			for (const notificationInfo of notificationInfos) {
+				const title = "Investor Helper"
+				const body = `L'événement ${event.title} est sur le point de commencer`
+				const url = `/calendar/${event.id}`
+
+				// Insert into the database
+				addNotificationList({
+					userId: notificationInfo.userId,
+					title: title,
+					body: body,
+					url: url,
+					type: "event",
+					notificationFromId: notificationEvent.eventId
+				})
+
 				sendNotification({
 					title: "Investor Helper",
 					body: `L'événement ${event.title} est sur le point de commencer`,
@@ -153,4 +169,58 @@ async function getUserNotifications(user: User) {
 	}
 }
 
-export { sendNotification, sendNotificationEvent, getUserNotifications }
+async function addNotificationList({
+	userId,
+	notificationFromId,
+	type,
+	title,
+	body,
+	url,
+	icon,
+	image
+}: {
+	userId: string
+	notificationFromId: string
+	type: "news" | "event"
+	title: string
+	body: string
+	url: string
+	icon?: string
+	image?: string
+}) {
+	const sqlite = new Database("../db/sqlite.db")
+	const db = drizzle(sqlite)
+
+	console.log(`Inserting ${title} in ${userId} notifications`)
+
+	// Create new uuid
+	const notificationId = uuidv4()
+
+	// Insert notification
+	await db.insert(notificationListSchema).values({
+		userId: userId,
+		notificationId,
+		notificationFromId,
+		type,
+		title,
+		body,
+		url,
+		icon,
+		image,
+		isRead: false
+	})
+}
+
+async function getNotificationList(userId: string) {
+	const sqlite = new Database("../db/sqlite.db")
+	const db = drizzle(sqlite)
+
+	const notifications = await db
+		.select()
+		.from(notificationListSchema)
+		.where(eq(notificationListSchema.userId, userId))
+
+	return notifications
+}
+
+export { sendNotification, sendNotificationEvent, getUserNotifications, addNotificationList, getNotificationList }

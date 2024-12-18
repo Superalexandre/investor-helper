@@ -12,7 +12,7 @@ import {
 	notificationSubscribedNewsKeywordsSchema,
 	notificationSubscribedNewsSymbolsSchema
 } from "../../db/schema/notifications.js"
-import { sendNotification } from "./notifications.js"
+import { addNotificationList, sendNotification } from "./notifications.js"
 import type { NewsSymbols, NewsSymbolsArticle } from "../types/News.js"
 import i18n, { newsUrl } from "../app/i18n.js"
 
@@ -75,7 +75,7 @@ async function getSourceList({
 
 	const sources = await db
 		.selectDistinct({
-			source: newsSchema.source,
+			source: newsSchema.source
 		})
 		.from(newsSchema)
 		.where(inArray(newsSchema.lang, languages))
@@ -158,7 +158,6 @@ async function fetchNews(lang = "fr-FR") {
 		const fullArticle = await fetch(url, {
 			headers: {
 				"User-Agent":
-					// biome-ignore lint/nursery/noSecrets: User agent
 					"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
 				// biome-ignore lint/style/useNamingConvention: Headers
 				Accept: "application/json, text/javascript, */*; q=0.01",
@@ -358,24 +357,9 @@ async function getNotificationNews(news: NewsSymbolsArticle) {
 
 	let longDescriptionWords: string[] = []
 	if (news.article?.jsonDescription) {
-		let articleText = ""
-		// biome-ignore lint/suspicious/noExplicitAny:
-		const flatten = (node: any) => {
-			// console.log(node)
-			if (typeof node === "string") {
-				articleText += node.toLowerCase()
+		const parsedJson = JSON.parse(news.article.jsonDescription)
 
-				return
-			}
-
-			if (node.children) {
-				for (const child of node.children) {
-					flatten(child)
-				}
-			}
-		}
-
-		flatten(JSON.parse(news.article.jsonDescription))
+		const articleText = flatten(parsedJson)
 
 		longDescriptionWords = articleText.split(" ")
 	}
@@ -495,6 +479,17 @@ async function reduceAndSendNotifications(notifications: NotificationToSend[] | 
 		}
 
 		for (const notificationInfo of notificationsInfo) {
+
+			// Insert into the database 
+			addNotificationList({
+				userId: notificationContent.userId,
+				title: notificationContent.title,
+				body: notificationContent.body,
+				url: notificationContent.data.url,
+				type: "news",
+				notificationFromId: notificationContent.notificationId
+			})
+
 			sendNotification({
 				title: notificationContent.title,
 				body: notificationContent.body,
@@ -525,22 +520,7 @@ function getNewsImportanceScore(
 	}
 
 	// Flatten the article tex
-	let articleText = ""
-	// biome-ignore lint/suspicious/noExplicitAny:
-	const flatten = (node: any) => {
-		// console.log(node)
-		if (typeof node === "string") {
-			articleText += node
-		}
-
-		if (node.children) {
-			for (const child of node.children) {
-				flatten(child)
-			}
-		}
-	}
-
-	flatten(article)
+	const articleText = flatten(article)
 
 	// biome-ignore lint/suspicious/noExplicitAny:
 	const getRelatedSymbols = (node: any) => {
@@ -582,6 +562,23 @@ function getNewsImportanceScore(
 
 	return score
 }
+
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+function flatten(nodes: any) {
+	let text = ""
+
+	for (const node of nodes) {
+		if (typeof node === "string") {
+			text += node
+		} else {
+			text += flatten(node.children)
+		}
+	}
+
+	return text
+}
+
+
 
 async function searchNews(search: string, limit = 10) {
 	const sqlite = new Database("../db/sqlite.db")

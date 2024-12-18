@@ -95,7 +95,7 @@ export default function Index() {
 						Ouverture des marchés
 					</h2>
 
-					<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
+					<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex w-full max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2 ">
 						<DisplayHours t={t} language={i18n.language} />
 					</div>
 				</>
@@ -217,7 +217,7 @@ export default function Index() {
 			)}
 
 			{displayedMenu.map((menu) => (
-				<div className="flex max-w-full flex-col items-center gap-2 p-4" key={menu.name}>
+				<div className="flex max-w-full flex-col items-center gap-2 p-4 w-full" key={menu.name}>
 					{menu.component()}
 				</div>
 			))}
@@ -754,6 +754,56 @@ const DisplayHours = memo(function DisplayHours({
 		// Formater avec deux chiffres pour les heures et minutes
 		return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
 	}
+
+	// return (
+	// 	<Card className="border-card-border w-full">
+	// 		<CardContent className="w-full flex flex-col items-center gap-4">
+	// 			{hours.map((hour) => (
+	// 				<div className="flex flex-row items-center gap-2" key={hour.marketId}>
+	// 					{hour.hasLogo ? (
+	// 						<img
+	// 							src={`/logo/${hour.marketId}.png`}
+	// 							alt={hour.marketName}
+	// 							className="rounded-full size-6"
+	// 							loading="lazy"
+	// 							width="48"
+	// 							height="48"
+	// 						/>
+	// 					) : null}
+
+	// 					{hour.marketName}
+
+	// 					{hour.open ? <OpenIndicator /> : <CloseIndicator />}
+
+	// 					<p>
+	// 						{hour.open ? "Ouvert" : `Fermé ${hour.closeReason !== "close" ? hour.closeReason : ""}`}
+	// 					</p>
+
+
+	// 					{hour.open ? (
+	// 						<div className="flex flex-col">
+	// 							<p>
+	// 								Fermeture à {getOpeningTimeInUserLocal(hour.nextCloseDate, hour.timezone)} ({formatDecimalTime(hour.closeHour)}h heure locale)
+	// 							</p>
+	// 							<p>
+	// 								Dans {formatDistance(hour.nextCloseDate, hour.timezone)}
+	// 							</p>
+	// 						</div>
+	// 					) : (
+	// 						<div className="flex flex-col">
+	// 							<p>
+	// 								Ouverture à {getOpeningTimeInUserLocal(hour.nextOpenDate, hour.timezone)} ({formatDecimalTime(hour.openHour)}h heure locale)
+	// 							</p>
+	// 							<p>
+	// 								Dans {formatDistance(hour.nextOpenDate, hour.timezone)}
+	// 							</p>
+	// 						</div>
+	// 					)}
+	// 				</div>
+	// 			))}
+	// 		</CardContent>
+	// 	</Card>
+	// )
 
 	return hours.map((hour) => (
 		<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={hour.marketId}>
