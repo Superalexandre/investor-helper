@@ -75,7 +75,7 @@ export default function Index() {
 			<div className="flex flex-col items-center justify-center gap-1">
 				<h2 className="font-bold text-xl">Vos notifications</h2>
 
-				<Link to="/profile/notifications">
+				<Link to="/profile/settings/notifications">
 					<Button>Voir mes notifications</Button>
 				</Link>
 			</div>

@@ -15,7 +15,8 @@ import {
 	navigationMenuTriggerStyle
 } from "./ui/navigation-menu"
 import { Trigger as NavigationMenuPrimitiveTrigger } from "@radix-ui/react-navigation-menu"
-import { CalendarDaysIcon, ChartCandlestickIcon, ChevronUpIcon, CircleUserRoundIcon, HomeIcon, LogInIcon, LogOutIcon, MenuIcon, NewspaperIcon, SearchIcon, SettingsIcon, UserRoundPlusIcon } from "lucide-react"
+import { BellIcon, CalendarDaysIcon, ChartCandlestickIcon, ChevronUpIcon, CircleUserRoundIcon, HomeIcon, LogInIcon, LogOutIcon, MenuIcon, NewspaperIcon, SearchIcon, SettingsIcon, UserRoundPlusIcon } from "lucide-react"
+import type { NotificationList } from "../../../db/schema/notifications"
 
 export const handle = {
 	i18n: "header"
@@ -24,11 +25,16 @@ export const handle = {
 export default function Header({
 	// logged,
 	user,
-	t
+	t,
+	notificationList
 }: {
 	// logged: boolean,
 	user: User | null
 	t: TFunction
+	notificationList: {
+		list: NotificationList[]
+		unread: NotificationList[]
+	}
 }) {
 	const [open, setOpen] = useState(false)
 
@@ -128,7 +134,9 @@ export default function Header({
 					aria-label="Ouvrir le menu déroulant"
 				>
 					<div className="relative size-6">
-						{/* <PingIndicator className="-top-[0.5px]"/> */}
+						{notificationList.unread.length > 0 ? (
+							<PingIndicator className="-top-[0.5px]" />
+						) : null}
 
 						<MenuIcon className="size-full" />
 					</div>
@@ -164,7 +172,7 @@ export default function Header({
 					</div>
 
 					{user ? (
-						<FooterLogged user={user} setOpen={setOpen} t={t} />
+						<FooterLogged user={user} setOpen={setOpen} t={t} notificationList={notificationList} />
 					) : (
 						<FooterNotLogged setOpen={setOpen} t={t} />
 					)}
@@ -230,24 +238,36 @@ const SeeMore = memo(function SeeMore({
 	)
 })
 
-// function PingIndicator({
-// 	className
-// }: {
-// 	className?: string
-// }) {
-// 	return (
-// 		<div className={cn("-top-0.5 -right-0.5 absolute size-2 rounded-full bg-red-500", className)} />
-// 	)
-// }
+function PingIndicator({
+	className
+}: {
+	className?: string
+}) {
+	return (
+		<div className={cn("-top-0.5 -right-0.5 absolute", className)}>
+			<div className="relative">
+				<div className=" size-2 rounded-full bg-red-500" />
+				<div className="size-2 rounded-full bg-red-600 absolute top-0 animate-ping" />
+
+			</div>
+
+		</div>
+	)
+}
 
 function FooterLogged({
 	user,
 	setOpen,
-	t
+	t,
+	notificationList
 }: {
 	user: User
 	setOpen: (open: boolean) => void
-	t: TFunction
+	t: TFunction,
+	notificationList: {
+		list: NotificationList[]
+		unread: NotificationList[]
+	}
 }) {
 	const [dropdownOpen, setDropdownOpen] = useState(false)
 
@@ -255,7 +275,9 @@ function FooterLogged({
 		<div className="w-full px-2">
 			<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
 				<DropdownMenuTrigger className="relative flex w-full flex-row items-center justify-between">
-					{/* <PingIndicator /> */}
+					{notificationList.unread.length > 0 ? (
+						<PingIndicator />
+					) : null}
 
 					<Button variant="outline" className="flex w-full flex-row items-center justify-between py-6">
 						<div className="flex flex-row items-center gap-2">
@@ -272,17 +294,19 @@ function FooterLogged({
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent className="w-[--radix-popper-anchor-width]">
-					{/* <DropdownMenuItem asChild={true} className="w-full p-0">
-						<Link to="/" className="w-full hover:cursor-pointer" onClick={() => setOpen(false)}>
+					<DropdownMenuItem asChild={true} className="w-full p-0">
+						<Link to="/profile/notifications" className="w-full hover:cursor-pointer" onClick={() => setOpen(false)}>
 							<Button variant="ghost" className="flex w-full flex-row justify-start gap-2 px-2">
-								<MdNotifications className="size-6" />
+								<BellIcon className="size-6" />
 
 								Notifications
 
-								<span className="ml-auto flex size-7 items-center justify-center rounded-full bg-red-500 text-white">10</span>
+								{notificationList.unread.length > 0 ? (
+									<span className="ml-auto flex size-7 items-center justify-center rounded-full bg-red-500 text-white">{notificationList.unread.length}</span>
+								) : null}
 							</Button>
 						</Link>
-					</DropdownMenuItem> */}
+					</DropdownMenuItem>
 
 					<DropdownMenuItem asChild={true} className="w-full p-0">
 						<Link to="/profile" className="w-full hover:cursor-pointer" onClick={() => setOpen(false)}>

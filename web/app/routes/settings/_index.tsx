@@ -220,7 +220,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 		{ name: "og:title", content: title },
 		{ name: "description", content: description },
 		{ name: "og:description", content: description },
-		{ name: "canonical", content: "https://www.investor-helper.com/settings" }
+		{ tagName: "link", rel: "canonical", href: "https://www.investor-helper.com/settings" }
 	]
 }
 
@@ -414,7 +414,7 @@ function SortableItem({ item }: { item: HomePreferences /*changeVisibility: (id:
 		>
 			<p>{item.title}</p>
 
-			<GripVerticalIcon className="ml-auto"/>
+			<GripVerticalIcon className="ml-auto" />
 			{/* <Button variant="ghost">
                 {item.visible ? (
                     <MdVisibility />
@@ -432,6 +432,6 @@ const ClearCache = memo(function ClearCache() {
 			<Button variant="destructive" type="submit">
 				Vider le cache
 			</Button>
-	</Form>
+		</Form>
 	)
 })

@@ -1,207 +1,109 @@
-import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
-import { Link, redirect, useFetcher, useLoaderData } from "@remix-run/react"
-import { getUser } from "@/session.server"
-import BackButton from "../../../components/button/backButton"
-import { getUserNotifications } from "../../../../utils/notifications"
+import { type LoaderFunctionArgs, redirect } from "@remix-run/node"
+import { getNotificationList } from "../../../../utils/notifications"
+import { getUser } from "../../../session.server"
+import { Link, useLoaderData } from "@remix-run/react"
+import { memo } from "react"
+import type { NotificationList } from "../../../../../db/schema/notifications"
+import { Card, CardContent, CardFooter, CardTitle } from "../../../components/ui/card"
 import { Button } from "../../../components/ui/button"
-import { MdAdd, MdDelete, MdEdit } from "react-icons/md"
-import { usePush } from "@remix-pwa/push/client"
-import { type Dispatch, type SetStateAction, useState } from "react"
-import DialogNotification from "../../../components/dialog/dialogNotification"
-import Loading from "../../../components/loading"
-import DialogNotificationNews from "../../../components/dialog/dialogNotificationNews"
-import DeleteNewsNotification from "../../../components/dialog/dialogDeleteNews"
-import type { NotificationSubscribedFullNews } from "../../../../types/Notifications"
+import { CheckCheckIcon, Trash2Icon } from "lucide-react"
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const user = await getUser(request)
+    const user = await getUser(request)
 
-	if (!user) {
-		return redirect("/login?redirect=/profile/notifications")
-	}
+    if (!user) {
+        return redirect("/login?redirect=/profile")
+    }
 
-	const { notifications, calendarNotifications, subscribedNews, fullSubscribedNews } =
-		await getUserNotifications(user)
-
-	// const { user, wallet, watchList } = await getUser({ id: "62d56f78-1b1b-411f-ba77-59d749e265ed" })
-
-	// if (!user) return redirect("/")
-
-	// return {
-	//     user: user,
-	//     wallet: wallet,
-	//     watchList: watchList
-	// }
-	return {
-		user,
-		notifications,
-		calendarNotifications,
-		subscribedNews,
-		fullSubscribedNews
-	}
+    const notificationList = await getNotificationList(user.id)
+    return {
+        user,
+        notificationList
+    }
 }
 
-export const meta: MetaFunction = () => {
-	return [
-		{ title: "Investor Helper - Vos notifications" }
-		// { name: "description", content: "Welcome to Remix!" },
-	]
+export function meta() {
+    return [
+        { title: "Investor Helper - Vos notifications" },
+        { name: "description", content: "Regardez vos notifications" }
+    ]
 }
+
 
 export default function Index() {
-	const { calendarNotifications, fullSubscribedNews } = useLoaderData<typeof loader>()
+    const { notificationList } = useLoaderData<typeof loader>()
 
-	const [notificationOpen, setNotificationOpen] = useState(false)
-	const [notificationNewsOpen, setNotificationNewsOpen] = useState(false)
+    return (
+        <div className="flex w-full flex-col items-center justify-center gap-10">
+            <div>
+                <h1 className="font-bold text-2xl">Vos notifications</h1>
+            </div>
 
-	return (
-		<div className="relative flex w-full flex-col items-center overflow-hidden">
-			<BackButton />
+            <div className="flex w-full flex-col items-center justify-center gap-2 p-4">
+                {notificationList.list.length > 0 ? (
+                    <div className="flex w-full flex-col items-center justify-center gap-2">
+                        <div className="flex w-full flex-row items-center gap-2">
+                            <Button variant="ghost" className="flex flex-row items-center justify-center gap-2" type="button">
+                                <CheckCheckIcon className="size-6" />
 
-			<DialogNotification open={notificationOpen} setOpen={setNotificationOpen} />
-			<DialogNotificationNews open={notificationNewsOpen} setOpen={setNotificationNewsOpen} type="create" />
+                                Tout marquer comme lu
+                            </Button>
+                            <Button variant="ghost" className="flex flex-row items-center justify-center gap-2" type="button">
+                                <Trash2Icon className="size-6" />
 
-			<div className="mt-4 flex w-full flex-col items-center justify-center gap-10">
-				<NewsNotifications
-					news={fullSubscribedNews}
-					setNotificationNewsOpen={setNotificationNewsOpen}
-					setNotificationOpen={setNotificationOpen}
-				/>
+                                Tout supprimer
+                            </Button>
 
-				<CalendarNotifications calendarNotifications={calendarNotifications} />
-			</div>
-		</div>
-	)
+                        </div>
+
+                        <DisplayNotificationList notificationList={notificationList.list} />
+                    </div>
+                ) : (
+                    <p>Vous n'avez pas de notification</p>
+                )}
+            </div>
+        </div>
+    )
 }
 
-function CalendarNotifications({
-	calendarNotifications
-}: {
-	calendarNotifications: { events: { id: string; title: string } }[]
-}) {
-	const fetcher = useFetcher()
-	const fetchState = fetcher.state
-	const fetchId = fetcher.formAction?.split("/").pop()
+const DisplayNotificationList = memo(function DisplayNotificationList({ notificationList }: { notificationList: NotificationList[] }) {
+    return notificationList.map((notification) => {
+        console.log(notification.url)
 
-	return (
-		<div className="flex flex-col items-center justify-center gap-4">
-			<h1 className="font-bold text-2xl">Notification calendrier</h1>
+        return (
+            <Card className="w-full border-card-border" key={notification.notificationId}>
+                <CardTitle className="p-4">
+                    <Link to={notification.url} className="w-full">
+                        {notification.title}
+                    </Link>
+                </CardTitle>
+                <CardContent className="p-4">
+                    <Link to={notification.url} className="w-full">
+                        {notification.body}
+                    </Link>
+                </CardContent>
+                <CardFooter className="gap-2 p-4 text-muted-foreground flex flex-col">
+                    <p>{new Date(notification.createdAt || "").toLocaleDateString("fr-FR", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "numeric"
+                    })}</p>
+                    <div className="flex flex-row items-center">
+                        <Button variant="ghost" className="flex flex-row items-center justify-center gap-2" type="button">
+                            <CheckCheckIcon className="size-6" />
 
-			<div className="flex flex-col items-center justify-center gap-2">
-				{calendarNotifications.length > 0 ? (
-					calendarNotifications.map(({ events }) => (
-						<div key={events.id} className="flex flex-row items-center justify-center gap-2">
-							<Link
-								to={`/calendar/${events.id}`}
-								state={{
-									redirect: "/profile/notifications"
-								}}
-							>
-								{events.title}
-							</Link>
+                            Marquer comme lu
+                        </Button>
+                        <Button variant="ghost" className="flex flex-row items-center justify-center gap-2" type="button">
+                            <Trash2Icon className="size-6" />
 
-							<fetcher.Form method="post" action={`/api/notifications/unsubscribe/calendar/${events.id}`}>
-								<Button
-									type="submit"
-									variant="destructive"
-									className="flex flex-row items-center justify-center gap-2"
-									disabled={
-										fetchId === events.id &&
-										(fetchState === "loading" || fetchState === "submitting")
-									}
-								>
-									Supprimer
-									{fetchId === events.id &&
-									(fetchState === "loading" || fetchState === "submitting") ? (
-										<Loading className="size-4 border-2" />
-									) : (
-										<MdDelete className="size-4" />
-									)}
-								</Button>
-							</fetcher.Form>
-						</div>
-					))
-				) : (
-					<p>Vous n'avez pas de notification de calendrier</p>
-				)}
-			</div>
-		</div>
-	)
-}
-
-function NewsNotifications({
-	news,
-	setNotificationNewsOpen,
-	setNotificationOpen
-}: {
-	news: NotificationSubscribedFullNews[]
-	setNotificationNewsOpen: Dispatch<SetStateAction<boolean>>
-	setNotificationOpen: Dispatch<SetStateAction<boolean>>
-}) {
-	const { isSubscribed } = usePush()
-	const [notificationUpdateOpen, setNotificationUpdateOpen] = useState<string | null>(null)
-
-	return (
-		<div className="flex flex-col items-center justify-center gap-4">
-			<h1 className="font-bold text-2xl">Notification actualités</h1>
-
-			<div className="flex flex-col items-center justify-center gap-8">
-				{news.length > 0 ? (
-					news.map((notification) => (
-						<div
-							key={notification.notificationId}
-							className="flex flex-col items-center justify-center gap-2"
-						>
-							<DialogNotificationNews
-								open={notification.notificationId === notificationUpdateOpen}
-								setOpen={(open) => {
-									setNotificationUpdateOpen(open ? notification.notificationId : null)
-								}}
-								type="update"
-								keywords={notification.keywords.map((word) => word.keyword)}
-								groupName={notification.name}
-								id={notification.notificationId}
-							/>
-
-							<h1 className="font-bold text-lg">{notification.name}</h1>
-							<p>{notification.keywords.map((word) => word.keyword).join(", ")}</p>
-							<p>{notification.symbols.map((symbol) => symbol.symbol).join(", ")}</p>
-
-							<div className="flex flex-row gap-2">
-								<DeleteNewsNotification notificationId={notification.notificationId} />
-
-								<Button
-									className="flex flex-row items-center justify-center gap-2"
-									onClick={() => {
-										setNotificationUpdateOpen(notification.notificationId)
-									}}
-								>
-									Modifier
-									<MdEdit />
-								</Button>
-							</div>
-						</div>
-					))
-				) : (
-					<p>Vous n'avez pas de notification pour les actualités</p>
-				)}
-			</div>
-
-			<div className="flex flex-col items-center justify-center gap-2">
-				<Button
-					className="flex flex-row items-center justify-center gap-2"
-					onClick={() => {
-						if (isSubscribed) {
-							setNotificationNewsOpen(true)
-						} else {
-							setNotificationOpen(true)
-						}
-					}}
-				>
-					Ajouter une notification
-					<MdAdd />
-				</Button>
-			</div>
-		</div>
-	)
-}
+                            Supprimer
+                        </Button>
+                    </div>
+                </CardFooter>
+            </Card>
+        )
+    })
+})

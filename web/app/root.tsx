@@ -28,9 +28,22 @@ import i18next from "./i18next.server"
 import { useTranslation } from "react-i18next"
 import { useChangeLanguage } from "remix-i18next/react"
 import { getTheme } from "./lib/getTheme"
+import { getNotificationList } from "../utils/notifications"
+import type { NotificationList } from "../../db/schema/notifications"
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const [user, theme, locale] = await Promise.all([getUser(request), getTheme(request), i18next.getLocale(request)])
+	
+	let notificationList: {
+		list: NotificationList[]
+		unread: NotificationList[]
+	} = {
+		list: [],
+		unread: []
+	}
+	if (user) {
+		notificationList = await getNotificationList(user.id)
+	}
 
 	const url = new URL(request.url)
 
@@ -49,7 +62,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		})
 	}
 
-	return { logged: user !== null, user, locale, theme: theme }
+	return { logged: user !== null, user, locale, theme: theme, notificationList }
 }
 
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: stylesheet, as: "style", type: "text/css" }]
@@ -100,7 +113,7 @@ export function Layout({ children }: { children: ReactNode }) {
 				<meta name="mobile-web-app-capable" content="yes" />
 			</head>
 			<body className="flex min-h-screen flex-col">
-				<Header user={data?.user ?? null} t={t} />
+				<Header user={data?.user ?? null} t={t} notificationList={data?.notificationList ?? { list: [], unread: [] }}/>
 
 				{children}
 

@@ -58,7 +58,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 		{ name: "og:title", content: title },
 		{ name: "description", content: description },
 		{ name: "og:description", content: description },
-		{ name: "canonical", content: "https://www.investor-helper.com/news" }
+		{ tagName: "link", rel: "canonical", href: "https://www.investor-helper.com/news" }
 	]
 }
 
@@ -495,14 +495,14 @@ const News = memo(function News({
 					<DisplaySymbols symbolList={item.relatedSymbols} hash={item.news.id} t={t} />
 				</CardContent>
 
-				<CardFooter className="flex flex-row flex-wrap items-center gap-2 text-muted-foreground">
-					<span>
+				<CardFooter className="flex flex-col flex-wrap justify-start gap-1 text-muted-foreground lg:flex-row lg:items-center lg:gap-2">
+					<span className="w-full lg:w-auto">
 						{item.news.source}
 					</span>
 
-					<DotSeparator />
+					<DotSeparator className="hidden lg:block" />
 
-					<span>
+					<span className="w-full lg:w-auto">
 						{new Date(item.news.published * 1000 || "").toLocaleDateString(language, {
 							hour: "numeric",
 							minute: "numeric",

@@ -214,14 +214,14 @@ const EconomicCalendar = memo(function EconomicCalendar({
 
 						<CardContent>{event.comment}</CardContent>
 
-						<CardFooter className="flex flex-col items-center justify-start gap-1 lg:flex-row lg:gap-2 text-muted-foreground">
-							<span className="text-center">
+						<CardFooter className="flex flex-col flex-wrap justify-start gap-1 text-muted-foreground lg:flex-row lg:items-center lg:gap-2">
+							<span className="w-full lg:w-auto">
 								{countries[language][event.country]}
 							</span>
-							
-							<DotSeparator />
 
-							<span className="text-center">
+							<DotSeparator className="hidden lg:block" />
+
+							<span className="w-full lg:w-auto">
 								{new Date(event.date || "").toLocaleDateString(language, {
 									hour: "numeric",
 									minute: "numeric",
@@ -232,7 +232,7 @@ const EconomicCalendar = memo(function EconomicCalendar({
 									weekday: "long"
 								})}
 							</span>
-							
+
 							<TimeCounter date={event.date} diff={20 * 60 * 1000} />
 						</CardFooter>
 					</Card>

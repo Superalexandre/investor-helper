@@ -7,7 +7,8 @@ import {
 	notificationSubscribedNewsSchema,
 	notificationSubscribedNewsKeywordsSchema,
 	notificationSubscribedNewsSymbolsSchema,
-	notificationListSchema
+	notificationListSchema,
+	type NotificationList
 } from "../../db/schema/notifications.js"
 import { and, eq, gte } from "drizzle-orm"
 import { sendNotifications } from "@remix-pwa/push"
@@ -220,7 +221,149 @@ async function getNotificationList(userId: string) {
 		.from(notificationListSchema)
 		.where(eq(notificationListSchema.userId, userId))
 
-	return notifications
+	console.log("Notification list", notifications)
+
+	/*
+	const fakeData: NotificationList[] = [
+		{
+			notificationId: "1",
+			notificationFromId: "1",
+			type: "news",
+			title: "Test",
+			body: "Test",
+			url: "/",
+			icon: "/",
+			image: "/",
+			isRead: true,
+			createdAt: new Date().toISOString(),
+			userId: userId
+		},
+		{
+			notificationId: "2",
+			notificationFromId: "2",
+			type: "news",
+			title: "Test",
+			body: "Test",
+			url: "/",
+			icon: "/",
+			image: "/",
+			isRead: true,
+			createdAt: new Date().toISOString(),
+			userId: userId
+		},
+		{
+			notificationId: "3",
+			notificationFromId: "3",
+			type: "news",
+			title: "Test",
+			body: "Test",
+			url: "/",
+			icon: "/",
+			image: "/",
+			isRead: true,
+			createdAt: new Date().toISOString(),
+			userId: userId
+		},
+		{
+			notificationId: "4",
+			notificationFromId: "4",
+			type: "news",
+			title: "Test",
+			body: "Test",
+			url: "/",
+			icon: "/",
+			image: "/",
+			isRead: false,
+			createdAt: new Date().toISOString(),
+			userId: userId
+		},
+		{
+			notificationId: "5",
+			notificationFromId: "5",
+			type: "news",
+			title: "Test",
+			body: "Test",
+			url: "/",
+			icon: "/",
+			image: "/",
+			isRead: false,
+			createdAt: new Date().toISOString(),
+			userId: userId
+		},
+		{
+			notificationId: "6",
+			notificationFromId: "6",
+			type: "news",
+			title: "Test",
+			body: "Test",
+			url: "/",
+			icon: "/",
+			image: "/",
+			isRead: false,
+			createdAt: new Date().toISOString(),
+			userId: userId
+		},
+		{
+			notificationId: "7",
+			notificationFromId: "7",
+			type: "news",
+			title: "Test",
+			body: "Test",
+			url: "/",
+			icon: "/",
+			image: "/",
+			isRead: false,
+			createdAt: new Date().toISOString(),
+			userId: userId
+		},
+		{
+			notificationId: "8",
+			notificationFromId: "8",
+			type: "news",
+			title: "Test",
+			body: "Test",
+			url: "/",
+			icon: "/",
+			image: "/",
+			isRead: false,
+			createdAt: new Date().toISOString(),
+			userId: userId
+		},
+		{
+			notificationId: "9",
+			notificationFromId: "9",
+			type: "news",
+			title: "Test",
+			body: "Test",
+			url: "/",
+			icon: "/",
+			image: "/",
+			isRead: false,
+			createdAt: new Date().toISOString(),
+			userId: userId
+		},
+		{
+			notificationId: "10",
+			notificationFromId: "10",
+			type: "news",
+			title: "Test",
+			body: "Test",
+			url: "/",
+			icon: "/",
+			image: "/",
+			isRead: false,
+			createdAt: new Date().toISOString(),
+			userId: userId
+		}
+	]
+
+	const fakeUnread = fakeData.filter((notification) => !notification.isRead)
+	*/
+
+	return {
+		list: [],
+		unread: []
+	}
 }
 
 export { sendNotification, sendNotificationEvent, getUserNotifications, addNotificationList, getNotificationList }

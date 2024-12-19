@@ -53,7 +53,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 		{ name: "og:title", content: title },
 		{ name: "description", content: description },
 		{ name: "og:description", content: description },
-		{ name: "canonical", content: "https://www.investor-helper.com/search" }
+		{ tagName: "link", rel: "canonical", href: "https://www.investor-helper.com/search" }
 	]
 }
 

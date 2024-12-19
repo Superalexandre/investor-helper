@@ -37,8 +37,7 @@ export const meta: MetaFunction<typeof loader> = ({ data, params }) => {
 		{ name: "description", content: description },
 		{ name: "og:description", content: description },
 		{
-			name: "canonical",
-			content: `https://www.investor-helper.com/focus/${params.id}`
+			tagName: "link", rel: "canonical", href: `https://www.investor-helper.com/focus/${params.id}`
 		},
 		{ name: "robots", content: "noindex" }
 	]
@@ -111,7 +110,7 @@ export default function Index() {
 						<div className="relative" key={news.news.id} id={news.news.id}>
 							{news.news.importanceScore > 50 ? (
 								<ImportanceBadge
-									importance={news.news.importanceScore}
+									starNumber={Math.floor(news.news.importanceScore / 50)}
 									className="-right-[10px] -top-[10px] absolute"
 								/>
 							) : null}
@@ -144,7 +143,7 @@ export default function Index() {
 									<p className="text-muted-foreground">
 										{formatDate(news.news.published * 1000, {
 											locale: i18n.language
-										})} 
+										})}
 										- {news.news.source}
 									</p>
 								</CardFooter>
