@@ -360,9 +360,11 @@ async function getNotificationList(userId: string) {
 	const fakeUnread = fakeData.filter((notification) => !notification.isRead)
 	*/
 
+	const unread = notifications.filter((notification) => !notification.isRead)
+
 	return {
-		list: [],
-		unread: []
+		list: notifications,
+		unread: unread
 	}
 }
 
