@@ -566,12 +566,31 @@ function getNewsImportanceScore(
 function flatten(nodes: any) {
 	let text = ""
 
-	for (const node of nodes) {
+	if (!nodes || !nodes.children) {
+		return text
+	}
+
+	if (nodes.type === "p") {
+		text += nodes.content.toLowerCase()
+	}
+
+	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+	const flattenNode = (node: any) => {
 		if (typeof node === "string") {
-			text += node
-		} else {
-			text += flatten(node.children)
+			text += node.toLowerCase()
+
+			return
 		}
+
+		if (node.children) {
+			for (const child of node.children) {
+				flattenNode(child)
+			}
+		}
+	}
+
+	for (const node of nodes.children) {
+		flattenNode(node)
 	}
 
 	return text
