@@ -210,7 +210,7 @@ export function ErrorBoundary() {
 
 	return (
 		<div className="flex flex-grow flex-col items-center justify-center gap-4">
-			<h1 className="font-bold text-3xl">{t("error.errorTtile")}</h1>
+			<h1 className="font-bold text-3xl">{t("error.errorTitle")}</h1>
 
 			<Link to="/">
 				<Button type="button" variant="default">

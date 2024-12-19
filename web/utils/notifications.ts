@@ -28,31 +28,31 @@ async function sendNotificationEvent() {
 			.from(notificationEventSchema)
 			.where(eq(notificationEventSchema.eventId, event.id))
 
+		const title = "Investor Helper"
+		const body = `L'événement ${event.title} est sur le point de commencer`
+		const url = `/calendar/${event.id}`
+
 		for (const notificationEvent of notificationsFromEvent) {
 			const notificationInfos = await db
 				.select()
 				.from(notificationSchema)
 				.where(eq(notificationSchema.userId, notificationEvent.userId))
 
+			// Insert into the database
+			addNotificationList({
+				userId: notificationEvent.userId,
+				title: title,
+				body: body,
+				url: url,
+				type: "event",
+				notificationFromId: notificationEvent.eventId
+			})
+
 			if (notificationInfos.length === 0) {
 				continue
 			}
 
 			for (const notificationInfo of notificationInfos) {
-				const title = "Investor Helper"
-				const body = `L'événement ${event.title} est sur le point de commencer`
-				const url = `/calendar/${event.id}`
-
-				// Insert into the database
-				addNotificationList({
-					userId: notificationInfo.userId,
-					title: title,
-					body: body,
-					url: url,
-					type: "event",
-					notificationFromId: notificationEvent.eventId
-				})
-
 				sendNotification({
 					title: "Investor Helper",
 					body: `L'événement ${event.title} est sur le point de commencer`,

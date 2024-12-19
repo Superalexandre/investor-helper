@@ -478,18 +478,17 @@ async function reduceAndSendNotifications(notifications: NotificationToSend[] | 
 			notificationContent.data.url = `/news/focus/${newsIdsBase64}?utm_source=notification`
 		}
 
+		// Insert into the database
+		addNotificationList({
+			userId: notificationContent.userId,
+			title: notificationContent.title,
+			body: notificationContent.body,
+			url: notificationContent.data.url,
+			type: "news",
+			notificationFromId: notificationContent.notificationId
+		})
+
 		for (const notificationInfo of notificationsInfo) {
-
-			// Insert into the database 
-			addNotificationList({
-				userId: notificationContent.userId,
-				title: notificationContent.title,
-				body: notificationContent.body,
-				url: notificationContent.data.url,
-				type: "news",
-				notificationFromId: notificationContent.notificationId
-			})
-
 			sendNotification({
 				title: notificationContent.title,
 				body: notificationContent.body,
@@ -577,8 +576,6 @@ function flatten(nodes: any) {
 
 	return text
 }
-
-
 
 async function searchNews(search: string, limit = 10) {
 	const sqlite = new Database("../db/sqlite.db")

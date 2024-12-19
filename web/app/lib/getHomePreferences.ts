@@ -39,19 +39,41 @@ async function getHomePreferences(request: Request) {
 	const sessionPreferences = await getHomePreferencesFromSession(request)
 	if (!hasChanged && sessionPreferences) {
 		hasChanged = true
-		const mergedPreferences = {
-			...preferences,
-			...sessionPreferences
-		}
-
-		preferences = Object.values(mergedPreferences)
+		preferences = sessionPreferences
 	}
 
-	const uniquePreferences = ensureUniquePositions(preferences)
+	// const uniquePreferences = ensureUniquePositions(preferences)
 
-	return uniquePreferences
+	return preferences
 }
 
+/*
+function mergePreferences(
+	defaultPreferences: HomePreferences[],
+	userPreferences: HomePreferences[]
+): HomePreferences[] {
+	// Créer une map des préférences par ID pour faciliter la fusion
+	const defaultMap = new Map(defaultPreferences.map((pref) => [pref.id, pref]))
+
+	// Itérer sur les préférences utilisateur pour fusionner les données
+	for (const userPref of userPreferences) {
+		if (defaultMap.has(userPref.id)) {
+			// Mettre à jour les propriétés existantes avec celles de l'utilisateur
+			const existingPref = defaultMap.get(userPref.id)
+			if (existingPref) {
+				defaultMap.set(userPref.id, { ...existingPref, ...userPref })
+			}
+		} else {
+			// Ajouter les nouvelles préférences
+			defaultMap.set(userPref.id, userPref)
+		}
+	}
+
+	// Retourner les préférences sous forme d'un tableau
+	return Array.from(defaultMap.values())
+}
+*/
+/*
 function ensureUniquePositions(preferences: HomePreferences[]) {
 	// Utiliser un Map pour détecter les doublons
 	const positionMap = new Map()
@@ -94,6 +116,7 @@ function ensureUniquePositions(preferences: HomePreferences[]) {
 	// Retourner les préférences triées par position
 	return preferences.sort((a, b) => a.position - b.position)
 }
+*/
 
 async function getHomePreferencesFromSession(request: Request, key = "homePreferences") {
 	const session = await getSession(request)

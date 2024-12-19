@@ -103,38 +103,7 @@ export async function action({ request }: ActionFunctionArgs) {
 			}
 		}
 
-		data.value = [
-			{
-				id: "marketHours",
-				title: "Market Hours",
-				position: 0,
-				visible: true
-			},
-			{
-				id: "bestLosers",
-				title: "Best Losers",
-				position: 0,
-				visible: true
-			},
-			{
-				id: "bestGainers",
-				title: "Best Gainers",
-				position: 0,
-				visible: true
-			},
-			{
-				id: "news",
-				title: "News",
-				position: 0,
-				visible: true
-			},
-			{
-				id: "events",
-				title: "Events",
-				position: 0,
-				visible: true
-			}
-		]
+		console.log(data.value)
 
 		return setSession({
 			key: "homePreferences",
@@ -403,7 +372,7 @@ const ChangeHomePreferences = memo(function ChangeHomePreferences({
 			{
 				method: "POST",
 				action: "/settings",
-				encType: "application/json"
+				encType: "application/json",
 			}
 		)
 	}
