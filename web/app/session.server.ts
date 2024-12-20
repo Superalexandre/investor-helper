@@ -8,6 +8,8 @@ import "dotenv/config"
 
 const SESSION_KEY = "token"
 
+const COOKIE_EXPIRE_NEVER = 60 * 60 * 24 * 365 * 10
+
 const sessionStorage = createCookieSessionStorage({
 	cookie: {
 		name: "__session",
@@ -15,7 +17,8 @@ const sessionStorage = createCookieSessionStorage({
 		path: "/",
 		sameSite: "lax",
 		secrets: [process.env.SESSION_SECRET as string],
-		secure: process.env.NODE_ENV === "production"
+		secure: process.env.NODE_ENV === "production",
+		maxAge: COOKIE_EXPIRE_NEVER
 	}
 })
 
@@ -27,7 +30,7 @@ export async function getSession(request: Request) {
 
 export async function logout(request: Request, redirectUrl = "/") {
 	const session = await getSession(request)
-	session.set(SESSION_KEY, "")
+	session.unset(SESSION_KEY)
 
 	return redirect(redirectUrl, {
 		headers: {

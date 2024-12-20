@@ -24,8 +24,8 @@ export default async function login({
 	const cipher = crypto.createCipheriv(algorithm, key, iv)
 
 	// Decrypt the mail
-	let encrypted = cipher.update(emailOrUsername.toLowerCase(), "utf8", "hex")
-	encrypted += cipher.final("hex")
+	let encryptedEmail = cipher.update(emailOrUsername.toLowerCase(), "utf8", "hex")
+	encryptedEmail += cipher.final("hex")
 
 	const users = await db
 		.select()
@@ -33,7 +33,7 @@ export default async function login({
 		.where(
 			or(
 				eq(sql<string>`lower(${usersSchema.username})`, emailOrUsername.toLowerCase()),
-				eq(usersSchema.email, encrypted)
+				eq(usersSchema.email, encryptedEmail)
 			)
 		)
 
@@ -69,7 +69,7 @@ export default async function login({
 	// Check if the url have a redirect parameter
 	const url = new URL(request.url)
 	const redirectUrl = url.searchParams.get("redirect")
-	const redirectUrlString = redirectUrl ? redirectUrl : "/"
+	const redirectUrlString = redirectUrl ? redirectUrl : "/profile"
 
 	const [theme, language] = await Promise.all([getTheme(request), getLanguage(request)])
 
