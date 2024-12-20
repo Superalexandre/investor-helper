@@ -137,6 +137,7 @@ export default function Index() {
 							pathname: "/news",
 							search: `?page=${previousPage}`
 						}}
+						rel="prev"
 					>
 						<ArrowLeftIcon className="size-5" />
 						{memoT("previousPage")}
@@ -153,6 +154,7 @@ export default function Index() {
 							pathname: "/news",
 							search: `?page=${nextPage}`
 						}}
+						rel="next"
 					>
 						{memoT("nextPage")}
 						<ArrowRightIcon className="size-5" />

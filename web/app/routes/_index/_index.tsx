@@ -24,6 +24,7 @@ import { format, toDate, fromZonedTime, } from "date-fns-tz"
 import type { MarketStatus } from "../../../types/Hours"
 import { CalendarDaysIcon, ChartSplineIcon, ClockIcon, DownloadIcon, NewspaperIcon } from "lucide-react"
 import { TriangleDownIcon, TriangleUpIcon } from "@radix-ui/react-icons"
+import { Footer } from "../../components/footer"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
 	if (!data) {
@@ -185,42 +186,47 @@ export default function Index() {
 		.filter((menu) => menu !== undefined)
 
 	return (
-		<div className="flex flex-col items-center justify-center gap-8">
-			<div className="mt-4 flex flex-col items-center justify-center">
-				<img
-					src="/logo-128-128.webp"
-					loading="eager"
-					alt="Investor Helper"
-					className="mx-auto size-32"
-					height="128"
-					width="128"
-					onDoubleClick={() => {
-						navigate("/testing")
-					}}
-				/>
+		<div>
 
-				<h1 className="font-bold text-xl">{t("welcome")}</h1>
+			<div className="flex flex-col items-center justify-center gap-8">
+				<div className="mt-4 flex flex-col items-center justify-center">
+					<img
+						src="/logo-128-128.webp"
+						loading="eager"
+						alt="Investor Helper"
+						className="mx-auto size-32"
+						height="128"
+						width="128"
+						onDoubleClick={() => {
+							navigate("/testing")
+						}}
+					/>
+
+					<h1 className="font-bold text-xl">{t("welcome")}</h1>
+				</div>
+
+				{isInstalled ? null : (
+					<div className="flex flex-col items-center justify-start gap-2">
+						<Label className="text-bold text-xl">{t("downloadApp")}</Label>
+						<Button
+							type="button"
+							onClick={() => promptInstall()}
+							className="flex items-center justify-center gap-2"
+						>
+							{t("download")}
+							{memoizedDownloadIcon}
+						</Button>
+					</div>
+				)}
+
+				{displayedMenu.map((menu) => (
+					<div className="flex max-w-full flex-col items-center gap-2 p-4 w-full" key={menu.name}>
+						{menu.component()}
+					</div>
+				))}
 			</div>
-
-			{isInstalled ? null : (
-				<div className="flex flex-col items-center justify-start gap-2">
-					<Label className="text-bold text-xl">{t("downloadApp")}</Label>
-					<Button
-						type="button"
-						onClick={() => promptInstall()}
-						className="flex items-center justify-center gap-2"
-					>
-						{t("download")}
-						{memoizedDownloadIcon}
-					</Button>
-				</div>
-			)}
-
-			{displayedMenu.map((menu) => (
-				<div className="flex max-w-full flex-col items-center gap-2 p-4 w-full" key={menu.name}>
-					{menu.component()}
-				</div>
-			))}
+			
+			<Footer />
 		</div>
 	)
 }
@@ -837,7 +843,7 @@ const DisplayHours = memo(function DisplayHours({
 							{t("closingAt")} {getOpeningTimeInUserLocal(hour.nextCloseDate, hour.timezone)} ({formatDecimalTime(hour.closeHour)}{t("hourIndicator")} {t("localTime")})
 						</p>
 						<p>
-						{t("in")} {formatDistance(hour.nextCloseDate, hour.timezone)}
+							{t("in")} {formatDistance(hour.nextCloseDate, hour.timezone)}
 						</p>
 					</div>
 				) : (

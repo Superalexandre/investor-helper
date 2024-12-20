@@ -16,7 +16,6 @@ import {
 } from "./ui/navigation-menu"
 import { Trigger as NavigationMenuPrimitiveTrigger } from "@radix-ui/react-navigation-menu"
 import { BellIcon, CalendarDaysIcon, ChartCandlestickIcon, ChevronUpIcon, CircleUserRoundIcon, HomeIcon, LogInIcon, LogOutIcon, MenuIcon, NewspaperIcon, SearchIcon, SettingsIcon, UserRoundPlusIcon } from "lucide-react"
-import type { NotificationList } from "../../../db/schema/notifications"
 
 export const handle = {
 	i18n: "header"
@@ -177,7 +176,7 @@ export default function Header({
 			</Sheet>
 			<div className="block xl:hidden">
 				<Link to="/search" className="absolute inset-y-0 right-0 mr-3 flex flex-row items-center">
-					<Button className="px-8 flex flex-row items-center justify-center gap-2">
+					<Button className="flex flex-row items-center justify-center gap-2 px-8">
 						<SearchIcon className="size-5" />
 						{t("header.search")}
 					</Button>
@@ -244,7 +243,7 @@ function PingIndicator({
 		<div className={cn("-top-0.5 -right-0.5 absolute", className)}>
 			<div className="relative">
 				<div className=" size-2 rounded-full bg-red-500" />
-				<div className="size-2 rounded-full bg-red-600 absolute top-0 animate-ping" />
+				<div className="absolute top-0 size-2 animate-ping rounded-full bg-red-600" />
 
 			</div>
 
