@@ -92,7 +92,7 @@ export default function Index() {
 					<h2 className="flex flex-row items-center gap-2 font-bold text-lg">
 						<ClockIcon />
 
-						Ouverture des marchés
+						{t("marketHours")}
 					</h2>
 
 					<div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex w-full max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2 ">
@@ -697,7 +697,7 @@ const DisplayHours = memo(function DisplayHours({
 	}
 
 	if (!hours || hours?.length <= 0) {
-		return <p>{t("errors.emptyNews")}</p>
+		return <p>{t("errors.emptyHours")}</p>
 	}
 
 	const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -827,26 +827,26 @@ const DisplayHours = memo(function DisplayHours({
 					{hour.open ? <OpenIndicator /> : <CloseIndicator />}
 
 					<p>
-						{hour.open ? "Ouvert" : `Fermé ${hour.closeReason !== "close" ? hour.closeReason : ""}`}
+						{hour.open ? t("open") : `${t("closed")} ${hour.closeReason !== "close" ? hour.closeReason : ""}`}
 					</p>
 				</div>
 
 				{hour.open ? (
 					<div className="flex flex-col">
 						<p>
-							Fermeture à {getOpeningTimeInUserLocal(hour.nextCloseDate, hour.timezone)} ({formatDecimalTime(hour.closeHour)}h heure locale)
+							{t("closingAt")} {getOpeningTimeInUserLocal(hour.nextCloseDate, hour.timezone)} ({formatDecimalTime(hour.closeHour)}{t("hourIndicator")} {t("localTime")})
 						</p>
 						<p>
-							Dans {formatDistance(hour.nextCloseDate, hour.timezone)}
+						{t("in")} {formatDistance(hour.nextCloseDate, hour.timezone)}
 						</p>
 					</div>
 				) : (
 					<div className="flex flex-col">
 						<p>
-							Ouverture à {getOpeningTimeInUserLocal(hour.nextOpenDate, hour.timezone)} ({formatDecimalTime(hour.openHour)}h heure locale)
+							{t("openingAt")} {getOpeningTimeInUserLocal(hour.nextOpenDate, hour.timezone)} ({formatDecimalTime(hour.openHour)}{t("hourIndicator")} {t("localTime")})
 						</p>
 						<p>
-							Dans {formatDistance(hour.nextOpenDate, hour.timezone)}
+							{t("in")} {formatDistance(hour.nextOpenDate, hour.timezone)}
 						</p>
 					</div>
 				)}

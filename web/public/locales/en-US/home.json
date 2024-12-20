@@ -27,5 +27,13 @@
         "hold": "Hold",
         "sell": "Sell",
         "strongSell": "Strong sell"
-    }
+    },
+    "marketHours": "Market hours",
+    "open": "Open",
+    "closed": "Closed",
+    "closingAt": "Closing at",
+    "openingAt": "Opening at",
+    "localTime": "Local time",
+    "in": "In",
+    "hourIndicator": "h"
 }

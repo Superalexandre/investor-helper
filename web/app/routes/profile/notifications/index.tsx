@@ -68,8 +68,6 @@ export default function Index() {
 
 const DisplayNotificationList = memo(function DisplayNotificationList({ notificationList }: { notificationList: NotificationList[] }) {
     return notificationList.map((notification) => {
-        console.log(notification.url)
-
         return (
             <Card className="w-full border-card-border" key={notification.notificationId}>
                 <CardTitle className="p-4">

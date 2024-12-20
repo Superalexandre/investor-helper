@@ -16,7 +16,8 @@
         "loading": "Erreur lors du chargement des données",
         "emptyNews": "Aucune actualité importante",
         "emptyEvents": "Aucun événement important",
-        "emptyGainers": "Aucune meilleure hausse"
+        "emptyGainers": "Aucune meilleure hausse",
+        "emptyHours": "Aucune heure d'ouverture ou de fermeture"
     },
     "low": "faible",
     "medium": "moyenne",
@@ -27,5 +28,13 @@
         "hold": "Conserver",
         "sell": "Vendre",
         "strongSell": "Vente forte"
-    }
+    },
+    "marketHours": "Heures des marchés",
+    "open": "Ouvert",
+    "closed": "Fermé",
+    "closingAt": "Fermeture à",
+    "openingAt": "Ouverture à",
+    "localTime": "Heure locale",
+    "in": "Dans",
+    "hourIndicator": "h"
 }
