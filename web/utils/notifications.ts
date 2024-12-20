@@ -238,7 +238,7 @@ async function getNotificationList(userId: string, limit: number, offset: number
 		.offset(offset)
 		.orderBy(desc(notificationListSchema.createdAt))
 
-	console.log("Notification list", notifications)
+	//console.log("Notification list", notifications)
 
 	/*
 	const fakeData: NotificationList[] = [
