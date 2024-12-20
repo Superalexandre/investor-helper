@@ -10,7 +10,7 @@ import {
 	notificationListSchema,
 	type NotificationList
 } from "../../db/schema/notifications.js"
-import { and, eq, gte } from "drizzle-orm"
+import { and, count, desc, eq, gte } from "drizzle-orm"
 import { sendNotifications } from "@remix-pwa/push"
 import type { User } from "../../db/schema/users.js"
 import { eventsSchema } from "../../db/schema/events.js"
@@ -212,7 +212,21 @@ async function addNotificationList({
 	})
 }
 
-async function getNotificationList(userId: string) {
+async function getNotificationListNumber(userId: string) {
+	const sqlite = new Database("../db/sqlite.db")
+	const db = drizzle(sqlite)
+
+	const notificationsNumber = await db
+		.select({
+			count: count()
+		})
+		.from(notificationListSchema)
+		.where(eq(notificationListSchema.userId, userId))
+
+	return notificationsNumber[0].count
+}
+
+async function getNotificationList(userId: string, limit: number, offset: number) {
 	const sqlite = new Database("../db/sqlite.db")
 	const db = drizzle(sqlite)
 
@@ -220,6 +234,9 @@ async function getNotificationList(userId: string) {
 		.select()
 		.from(notificationListSchema)
 		.where(eq(notificationListSchema.userId, userId))
+		.limit(limit)
+		.offset(offset)
+		.orderBy(desc(notificationListSchema.createdAt))
 
 	console.log("Notification list", notifications)
 
@@ -368,4 +385,4 @@ async function getNotificationList(userId: string) {
 	}
 }
 
-export { sendNotification, sendNotificationEvent, getUserNotifications, addNotificationList, getNotificationList }
+export { sendNotification, sendNotificationEvent, getUserNotifications, addNotificationList, getNotificationList, getNotificationListNumber }

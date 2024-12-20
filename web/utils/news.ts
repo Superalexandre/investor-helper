@@ -571,6 +571,8 @@ function flatten(nodes: any) {
 	}
 
 	if (nodes.type === "p") {
+		console.log("nodes type p", nodes)
+
 		text += nodes.content.toLowerCase()
 	}
 

@@ -26,15 +26,12 @@ export default function Header({
 	// logged,
 	user,
 	t,
-	notificationList
+	notificationNumber
 }: {
 	// logged: boolean,
 	user: User | null
 	t: TFunction
-	notificationList: {
-		list: NotificationList[]
-		unread: NotificationList[]
-	}
+	notificationNumber: number
 }) {
 	const [open, setOpen] = useState(false)
 
@@ -134,7 +131,7 @@ export default function Header({
 					aria-label="Ouvrir le menu déroulant"
 				>
 					<div className="relative size-6">
-						{notificationList.unread.length > 0 ? (
+						{notificationNumber > 0 ? (
 							<PingIndicator className="-top-[0.5px]" />
 						) : null}
 
@@ -172,7 +169,7 @@ export default function Header({
 					</div>
 
 					{user ? (
-						<FooterLogged user={user} setOpen={setOpen} t={t} notificationList={notificationList} />
+						<FooterLogged user={user} setOpen={setOpen} t={t} notificationNumber={notificationNumber} />
 					) : (
 						<FooterNotLogged setOpen={setOpen} t={t} />
 					)}
@@ -259,15 +256,12 @@ function FooterLogged({
 	user,
 	setOpen,
 	t,
-	notificationList
+	notificationNumber
 }: {
 	user: User
 	setOpen: (open: boolean) => void
 	t: TFunction,
-	notificationList: {
-		list: NotificationList[]
-		unread: NotificationList[]
-	}
+	notificationNumber: number
 }) {
 	const [dropdownOpen, setDropdownOpen] = useState(false)
 
@@ -275,7 +269,7 @@ function FooterLogged({
 		<div className="w-full px-2">
 			<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
 				<DropdownMenuTrigger className="relative flex w-full flex-row items-center justify-between">
-					{notificationList.unread.length > 0 ? (
+					{notificationNumber > 0 ? (
 						<PingIndicator />
 					) : null}
 
@@ -301,8 +295,8 @@ function FooterLogged({
 
 								Notifications
 
-								{notificationList.unread.length > 0 ? (
-									<span className="ml-auto flex size-7 items-center justify-center rounded-full bg-red-500 text-white">{notificationList.unread.length}</span>
+								{notificationNumber > 0 ? (
+									<span className="ml-auto flex size-7 items-center justify-center rounded-full bg-red-500 text-white">{notificationNumber > 99 ? "99+" : notificationNumber}</span>
 								) : null}
 							</Button>
 						</Link>

@@ -15,7 +15,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         return redirect("/login?redirect=/profile")
     }
 
-    const notificationList = await getNotificationList(user.id)
+    const notificationList = await getNotificationList(user.id, 10, 0)
     return {
         user,
         notificationList
