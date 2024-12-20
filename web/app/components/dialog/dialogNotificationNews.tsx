@@ -13,8 +13,7 @@ import { Input } from "../ui/input"
 import { Button } from "../ui/button"
 import { type FormEvent, useRef, useState } from "react"
 import { usePush } from "@remix-pwa/push/client"
-import { useSubmit } from "@remix-run/react"
-import { useFetcher } from "react-router-dom"
+import { useSubmit, useFetcher } from "@remix-run/react"
 
 export default function DialogNotificationNews({
 	open,
