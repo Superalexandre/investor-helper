@@ -42,7 +42,7 @@ export default function Index() {
             <div className="flex w-full flex-col items-center justify-center gap-2 p-4">
                 {notificationList.list.length > 0 ? (
                     <div className="flex w-full flex-col items-center justify-center gap-2">
-                        <div className="flex w-full flex-row items-center gap-2">
+                        <div className="flex w-full flex-row items-center gap-2 overflow-scroll">
                             <Button variant="ghost" className="flex flex-row items-center justify-center gap-2" type="button">
                                 <CheckCheckIcon className="size-6" />
 
