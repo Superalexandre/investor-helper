@@ -30,7 +30,7 @@ export default function TimeCounter({
 		return (
 			<>
 				{separator ? <DotSeparator className="hidden lg:block" /> : null}
-				<span className="text-center text-sky-500">Événement en cours</span>
+				<span className="w-full lg:w-auto lg:text-center text-sky-500">Événement en cours</span>
 			</>
 		)
 	}
@@ -43,7 +43,7 @@ export default function TimeCounter({
 		return (
 			<>
 				{separator ? <DotSeparator className="hidden lg:block" /> : null}
-				<span className="text-center" suppressHydrationWarning={true}>
+				<span className="w-full lg:w-auto lg:text-center" suppressHydrationWarning={true}>
 					Terminé depuis {prettyTime}
 				</span>
 			</>
@@ -60,7 +60,7 @@ export default function TimeCounter({
 	return (
 		<>
 			{separator ? <DotSeparator className="hidden lg:block" /> : null}
-			<span className="text-center" suppressHydrationWarning={true}>
+			<span className="w-full lg:w-auto lg:text-center" suppressHydrationWarning={true}>
 				Dans {prettyTime}
 			</span>
 		</>

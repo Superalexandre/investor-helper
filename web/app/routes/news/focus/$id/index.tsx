@@ -11,6 +11,7 @@ import BackButton from "../../../../components/button/backButton"
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { useTranslation } from "react-i18next"
 import i18next from "../../../../i18next.server"
+import { DotSeparator } from "../../../../components/ui/separator"
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const t = await i18next.getFixedT(request, "newsFocus")
@@ -139,14 +140,35 @@ export default function Index() {
 									/>
 								</CardContent>
 
-								<CardFooter>
+
+								<CardFooter className="flex flex-col flex-wrap justify-start gap-1 text-muted-foreground lg:flex-row lg:items-center lg:gap-2">
+									<span className="w-full lg:w-auto">
+										{news.news.source}
+									</span>
+
+									<DotSeparator className="hidden lg:block" />
+
+									<span className="w-full lg:w-auto">
+										{new Date(news.news.published * 1000 * 1000 || "").toLocaleDateString(i18n.language, {
+											hour: "numeric",
+											minute: "numeric",
+											year: "numeric",
+											month: "long",
+											day: "numeric",
+											timeZoneName: "shortOffset",
+											weekday: "long"
+										})}
+									</span>
+								</CardFooter>
+
+								{/* <CardFooter>
 									<p className="text-muted-foreground">
 										{formatDate(news.news.published * 1000, {
 											locale: i18n.language
 										})}
 										- {news.news.source}
 									</p>
-								</CardFooter>
+								</CardFooter> */}
 							</Card>
 						</div>
 					))
