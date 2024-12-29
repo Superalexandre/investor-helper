@@ -5,6 +5,7 @@ import { saveFetchNews } from "./utils/news.js"
 import { saveFetchEvents } from "./utils/events.js"
 import { sendNotificationEvent } from "./utils/notifications.js"
 // import { sendMail } from "./utils/newsLetter.js"
+import logger from "../log/index.js"
 
 function startServer() {
 	serve(
@@ -13,7 +14,8 @@ function startServer() {
 			port: Number(process.env.PORT) || 3000
 		},
 		(info) => {
-			console.log(`Server listening on port ${info.port}`)
+			// console.log(`Server listening on port ${info.port}`)
+			logger.info(`Server listening on port ${info.port}`)
 		}
 	)
 }
@@ -44,9 +46,11 @@ function main() {
 try {
 	main()
 } catch (err) {
-	console.error("Error starting server", err)
+	// console.error("Error starting server", err)
+	logger.error("Error starting server", err)
 }
 
 process.on("uncaughtException", (err) => {
-	console.error("Erreur non capturée :", err)
+	// console.error("Erreur non capturée :", err)
+	logger.error("Erreur non capturée :", err)
 })

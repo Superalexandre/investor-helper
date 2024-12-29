@@ -26,7 +26,8 @@
 			"@/utils/*": ["./utils/*"],
 			"@/*": ["./app/*"],
 			"@/schema/*": ["../db/schema/*"],
-			"@/lang/*": ["../lang/*"]
+			"@/lang/*": ["../lang/*"],
+			"@/log/*": ["../log/*"],
 		},
 		// Vite takes care of building everything, not tsc.
 		"noEmit": true

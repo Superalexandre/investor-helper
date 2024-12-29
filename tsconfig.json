@@ -13,7 +13,9 @@
 		"allowJs": true,
 		"baseUrl": ".",
 		"paths": {
-			"@/countries/*": ["lang/*"]
+			"@/countries/*": ["lang/*"],
+			"@/db/*": ["db/*"],
+			"@/log/*": ["log/*"],
 		}
 	},
 	"include": ["db/schema/**/*.ts"],
