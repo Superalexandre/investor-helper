@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import { usersSchema, type User } from "../../db/schema/users"
 import "dotenv/config"
+import logger from "../../log"
 
 const SESSION_KEY = "token"
 
@@ -50,6 +51,8 @@ export async function createUserSession({
 }) {
 	const session = await getSession(request)
 	session.set(SESSION_KEY, token)
+
+	logger.info(`Creating session for token: ${token}`)
 
 	return redirect(redirectUrl, {
 		headers: {
@@ -119,6 +122,8 @@ export async function getUser(request: Request): Promise<User | null> {
 
 	const user = users[0]
 
+	logger.success(`User found: ${user.username} (${user.id})`)
+
 	return user as User
 }
 
@@ -133,6 +138,8 @@ export async function getUserByToken(token: string): Promise<User | null> {
 	}
 
 	const user = users[0]
+
+	logger.success(`User found by token: ${user.username} (${user.id})`)
 
 	return user as User
 }

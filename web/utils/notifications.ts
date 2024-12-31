@@ -16,6 +16,7 @@ import type { User } from "../../db/schema/users.js"
 import { eventsSchema } from "../../db/schema/events.js"
 import type { NotificationSubscribedFullNews } from "../types/Notifications.js"
 import { v4 as uuidv4 } from "uuid"
+import logger from "../../log/index.js"
 
 async function sendNotificationEvent() {
 	const actualEvent = await getEventsNow()
@@ -121,7 +122,7 @@ function sendNotification({
 			options: {}
 		})
 	} catch (error) {
-		console.error("Error while sending notification", error)
+		logger.error("Error while sending notification", error)
 	}
 }
 
@@ -192,7 +193,7 @@ async function addNotificationList({
 	const sqlite = new Database("../db/sqlite.db")
 	const db = drizzle(sqlite)
 
-	console.log(`Inserting ${title} in ${userId} notifications`)
+	logger.info(`Inserting ${title} in ${userId} notifications`)
 
 	// Create new uuid
 	const notificationId = uuidv4()
@@ -237,145 +238,6 @@ async function getNotificationList(userId: string, limit: number, offset: number
 		.limit(limit)
 		.offset(offset)
 		.orderBy(desc(notificationListSchema.createdAt))
-
-	//console.log("Notification list", notifications)
-
-	/*
-	const fakeData: NotificationList[] = [
-		{
-			notificationId: "1",
-			notificationFromId: "1",
-			type: "news",
-			title: "Test",
-			body: "Test",
-			url: "/",
-			icon: "/",
-			image: "/",
-			isRead: true,
-			createdAt: new Date().toISOString(),
-			userId: userId
-		},
-		{
-			notificationId: "2",
-			notificationFromId: "2",
-			type: "news",
-			title: "Test",
-			body: "Test",
-			url: "/",
-			icon: "/",
-			image: "/",
-			isRead: true,
-			createdAt: new Date().toISOString(),
-			userId: userId
-		},
-		{
-			notificationId: "3",
-			notificationFromId: "3",
-			type: "news",
-			title: "Test",
-			body: "Test",
-			url: "/",
-			icon: "/",
-			image: "/",
-			isRead: true,
-			createdAt: new Date().toISOString(),
-			userId: userId
-		},
-		{
-			notificationId: "4",
-			notificationFromId: "4",
-			type: "news",
-			title: "Test",
-			body: "Test",
-			url: "/",
-			icon: "/",
-			image: "/",
-			isRead: false,
-			createdAt: new Date().toISOString(),
-			userId: userId
-		},
-		{
-			notificationId: "5",
-			notificationFromId: "5",
-			type: "news",
-			title: "Test",
-			body: "Test",
-			url: "/",
-			icon: "/",
-			image: "/",
-			isRead: false,
-			createdAt: new Date().toISOString(),
-			userId: userId
-		},
-		{
-			notificationId: "6",
-			notificationFromId: "6",
-			type: "news",
-			title: "Test",
-			body: "Test",
-			url: "/",
-			icon: "/",
-			image: "/",
-			isRead: false,
-			createdAt: new Date().toISOString(),
-			userId: userId
-		},
-		{
-			notificationId: "7",
-			notificationFromId: "7",
-			type: "news",
-			title: "Test",
-			body: "Test",
-			url: "/",
-			icon: "/",
-			image: "/",
-			isRead: false,
-			createdAt: new Date().toISOString(),
-			userId: userId
-		},
-		{
-			notificationId: "8",
-			notificationFromId: "8",
-			type: "news",
-			title: "Test",
-			body: "Test",
-			url: "/",
-			icon: "/",
-			image: "/",
-			isRead: false,
-			createdAt: new Date().toISOString(),
-			userId: userId
-		},
-		{
-			notificationId: "9",
-			notificationFromId: "9",
-			type: "news",
-			title: "Test",
-			body: "Test",
-			url: "/",
-			icon: "/",
-			image: "/",
-			isRead: false,
-			createdAt: new Date().toISOString(),
-			userId: userId
-		},
-		{
-			notificationId: "10",
-			notificationFromId: "10",
-			type: "news",
-			title: "Test",
-			body: "Test",
-			url: "/",
-			icon: "/",
-			image: "/",
-			isRead: false,
-			createdAt: new Date().toISOString(),
-			userId: userId
-		}
-	]
-
-	const fakeUnread = fakeData.filter((notification) => !notification.isRead)
-	*/
 
 	const unread = notifications.filter((notification) => !notification.isRead)
 

@@ -2,6 +2,7 @@ import type { LoaderFunction } from "@remix-run/node"
 import { addDays, formatISO, getDay, isWithinInterval, set } from "date-fns"
 import { toZonedTime } from "date-fns-tz"
 import type { MarketHolidays, MarketHours, MarketsHours, MarketStatus } from "../../../../types/Hours"
+import logger from "../../../../../log"
 
 export const loader: LoaderFunction = () => {
 	const marketsHours: MarketsHours = {
@@ -96,7 +97,7 @@ export const loader: LoaderFunction = () => {
 
 	const status = Object.values(marketsHours).map((market) => getMarketStatus(market, marketHolidays))
 
-	console.log(status)
+	// logger.info(status)
 
 	return status
 }

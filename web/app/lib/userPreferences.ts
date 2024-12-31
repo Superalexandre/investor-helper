@@ -3,6 +3,7 @@ import type { User } from "../../../db/schema/users"
 import { usersPreferencesSchema } from "../../../db/schema/preferences"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
+import logger from "../../../log"
 
 async function getUserPreferences({
 	user
@@ -40,7 +41,7 @@ async function createPreferences({
 		return preferences
 	}
 
-	console.log("Creating preferences for user", user)
+	logger.info(`Creating preferences for user (${user.username} ${user.id})`)
 
 	const newPreferences = await db.insert(usersPreferencesSchema).values({
 		userId: user.id

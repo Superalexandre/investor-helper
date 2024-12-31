@@ -15,7 +15,7 @@ function startServer() {
 		},
 		(info) => {
 			// console.log(`Server listening on port ${info.port}`)
-			logger.info(`Server listening on port ${info.port}`)
+			logger.success(`Server listening on port ${info.port}`)
 		}
 	)
 }

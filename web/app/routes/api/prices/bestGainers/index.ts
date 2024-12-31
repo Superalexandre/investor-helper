@@ -1,3 +1,4 @@
+import logger from "../../../../../../log"
 import type { BestGainer } from "../../../../../types/Prices"
 import getPrices, { closeClient, type Period } from "../../../../../utils/getPrices"
 import { fetchData } from "../../../../../utils/tradingview/request"
@@ -49,6 +50,7 @@ export async function loader() {
 					rawChange: rawChangeNumber,
 					prices: cached.prices
 				})
+
 				continue
 			}
 
@@ -57,9 +59,16 @@ export async function loader() {
 			toFetch.push(symbol)
 		}
 	}
+	
+	if (toFetch.length === 0) {
+		logger.info("bestGainers: no need to fetch prices")
 
-	console.log("toFetch (gainers)", toFetch)
-
+		return {
+			result: result
+		}
+	}
+	
+	logger.info(`toFetch (gainers) ${toFetch.join(", ")}`)
 	await Promise.all(
 		toFetch.map(async (symbol) => {
 			const prices = await getPrices(symbol, {

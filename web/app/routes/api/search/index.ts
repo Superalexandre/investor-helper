@@ -4,6 +4,7 @@ import type { News } from "../../../../../db/schema/news"
 import type { RawSearchResult } from "../../../../types/Search"
 import type { Events } from "../../../../../db/schema/events"
 import { searchEvents } from "../../../../utils/events"
+import logger from "../../../../../log"
 
 export async function searchSymbol(search: string, searching = "undefined") {
 	const url = new URL(
@@ -71,7 +72,7 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 
 		eventsResult.push(...events)
 	} else {
-		console.error("Unknown searching parameter", searching)
+		logger.warn(`Unknown searching parameter ${searching}`)
 	}
 
 	return {

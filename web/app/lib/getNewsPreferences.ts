@@ -1,3 +1,4 @@
+import logger from "../../../log"
 import { getSourceList } from "../../utils/news"
 import { getSession } from "../session.server"
 import getLanguage from "./getLanguage"
@@ -28,7 +29,7 @@ async function getNewsPreferences(request: Request) {
 	// 	languages: newsPreferences.languages
 	// })
 
-		console.log("Preferences language", preferences.languages)
+		logger.info(`Preferences language ${preferences.languages}`)
 	}
 
 	return preferences

@@ -3,6 +3,7 @@ import { sendNotifications } from "@remix-pwa/push"
 import type { LoaderFunctionArgs } from "@remix-run/node"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
+import logger from "../../../../../../log"
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const isProduction = process.env.NODE_ENV === "production"
@@ -54,7 +55,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 				options: {}
 			})
 		} catch (error) {
-			console.error("Error while sending notification", error)
+			logger.error("Error while sending notification", error)
 		}
 	}
 

@@ -62,7 +62,7 @@ export default function Index() {
 			const req = await fetch(`/api/news/multiple?id=${id}`)
 			const json = await req.json()
 
-			console.log(json)
+			// console.log(json)
 
 			return json
 		},

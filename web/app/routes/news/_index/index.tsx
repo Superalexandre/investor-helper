@@ -29,7 +29,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		getNewsPreferences(request)
 	])
 
-	console.log(newsPreferences)
+	// console.log(newsPreferences)
 
 	const allSources = await getSourceList({
 		languages: newsPreferences.languages

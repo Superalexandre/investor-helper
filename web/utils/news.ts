@@ -15,6 +15,7 @@ import {
 import { addNotificationList, sendNotification } from "./notifications.js"
 import type { NewsSymbols, NewsSymbolsArticle } from "../types/News.js"
 import i18n, { newsUrl } from "../app/i18n.js"
+import logger from "../../log/index.js"
 
 async function getNews({
 	page = 1,
@@ -125,7 +126,9 @@ async function fetchNews(lang = "fr-FR") {
 	const rawNews = root.querySelector("div[data-id='react-root'] script[type='application/prs.init-data+json']")?.text
 
 	if (!rawNews) {
-		return console.error("No news found")
+		logger.error("No news found")
+
+		return []
 	}
 
 	const jsonNews = JSON.parse(rawNews)
@@ -134,13 +137,17 @@ async function fetchNews(lang = "fr-FR") {
 	const json = jsonNews[dynamicKey]
 
 	if (!json) {
-		return console.error("No news found")
+		logger.error("No news found (json)")
+
+		return []
 	}
 
 	const news = json.blocks[0].news.items
 
 	if (!news || news.length === 0) {
-		return console.error("No news found")
+		logger.error("No news found (news empty)")
+
+		return []
 	}
 
 	// Make a deep copy of the news array
@@ -180,7 +187,9 @@ async function fetchNews(lang = "fr-FR") {
 		)?.text
 
 		if (!article) {
-			return console.error("No article found")
+			logger.error("No article found")
+
+			return []
 		}
 
 		const articleJson = JSON.parse(article)
@@ -189,7 +198,9 @@ async function fetchNews(lang = "fr-FR") {
 		const jsonArticle = articleJson[dynamicKeyArticle]
 
 		if (!jsonArticle) {
-			return console.error("No article found (jsonArticle)")
+			logger.error("No article found (jsonArticle)")
+
+			return []
 		}
 
 		const jsonDescription = JSON.stringify(jsonArticle.story.astDescription)
@@ -217,7 +228,7 @@ async function fetchNews(lang = "fr-FR") {
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: TODO: Refactor this function
 async function saveFetchNews() {
-	console.log("Fetching news")
+	logger.info("Fetching news")
 
 	// const sqlite = new Database("./db/sqlite.db")
 	const sqlite = new Database("../db/sqlite.db")
@@ -323,7 +334,7 @@ async function saveFetchNews() {
 		reduceAndSendNotifications(allNotifications)
 	}
 
-	console.log(
+	logger.success(
 		`Inserted ${newsValues.length} news, ${newsRelatedSymbolsValues.length} related symbols and ${newsArticleValues.length} articles`
 	)
 }
@@ -557,8 +568,6 @@ function getNewsImportanceScore(
 	// Add 5 points for each related symbol
 	score += relatedSymbols ? relatedSymbols.length * 5 : 0
 
-	// console.log(`Score: ${score}, word count: ${wordCount}, symbol count: ${symbolCount}, related symbols: ${relatedSymbols ? relatedSymbols.length : 0}`)
-
 	return score
 }
 
@@ -571,7 +580,7 @@ function flatten(nodes: any) {
 	}
 
 	if (nodes.type === "p") {
-		console.log("nodes type p", nodes)
+		logger.info("nodes type p", nodes)
 
 		text += nodes.content.toLowerCase()
 	}

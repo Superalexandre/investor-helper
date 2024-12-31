@@ -1,6 +1,7 @@
+import logger from "../../../../../../log"
 import type { BestLoser } from "../../../../../types/Prices"
 import getPrices, { closeClient, type Period } from "../../../../../utils/getPrices"
-import { fetchData } from "../../../../../utils/tradingview/request";
+import { fetchData } from "../../../../../utils/tradingview/request"
 import { columns, filter } from "../parameters"
 
 const cachedPrice = new Map<string, { prices: Period[]; lastUpdate: number }>()
@@ -62,7 +63,17 @@ export async function loader() {
 	}
 	const endParsing = Date.now()
 
+	if (toFetch.length === 0) {
+		logger.info("bestLosers: no need to fetch prices")
+
+		return {
+			result: result
+		}
+	}
+
 	const startPrices = Date.now()
+
+	logger.info(`toFetch (losers) ${toFetch.join(", ")}`)
 	await Promise.all(
 		toFetch.map(async (symbol) => {
 			const prices = await getPrices(symbol, {
@@ -94,10 +105,17 @@ export async function loader() {
 		closeClient()
 	}
 
-	console.log("Fetch time:", endFetch - startFetch)
-	console.log("Parsing time:", endParsing - startParsing)
-	console.log("Prices time:", endPrices - startPrices)
-	console.log("Total time:", endPrices - startFetch)
+	logger.info({
+		level: "info",
+		message: `Losers times, fetch time: ${endFetch - startFetch}ms, parsing time: ${endParsing - startParsing}ms, prices time: ${endPrices - startPrices}ms, total time: ${endPrices - startFetch}ms`,
+		data: {
+			toFetch: toFetch,
+			fetchTime: endFetch - startFetch,
+			parsingTime: endParsing - startParsing,
+			pricesTime: endPrices - startPrices,
+			totalTime: endPrices - startFetch
+		}
+	})
 
 	return {
 		result: result

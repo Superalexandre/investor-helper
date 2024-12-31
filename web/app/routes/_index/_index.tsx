@@ -178,7 +178,7 @@ export default function Index() {
 
 
 
-	console.log(homePreferences)
+	// console.log(homePreferences)
 
 	const sortedPreferences = homePreferences.filter((pref) => pref.visible).sort((a, b) => a.position - b.position)
 	const displayedMenu = sortedPreferences
@@ -226,7 +226,7 @@ export default function Index() {
 				))}
 			</div>
 			
-			<Footer />
+			{/* <Footer /> */}
 		</div>
 	)
 }

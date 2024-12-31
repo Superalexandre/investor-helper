@@ -8,6 +8,7 @@ import { createUserSession } from "@/session.server"
 import { updateUserPreferences } from "../../lib/userPreferences"
 import { getTheme } from "../../lib/getTheme"
 import getLanguage from "../../lib/getLanguage"
+import logger from "../../../../log"
 
 export default async function login({
 	request,
@@ -54,7 +55,7 @@ export default async function login({
 
 	const match = await bcrypt.compare(password, user.password)
 	if (!match) {
-		console.log("Password incorrect")
+		logger.log("Password incorrect")
 
 		return {
 			success: false,
@@ -72,6 +73,8 @@ export default async function login({
 	const redirectUrlString = redirectUrl ? redirectUrl : "/profile"
 
 	const [theme, language] = await Promise.all([getTheme(request), getLanguage(request)])
+
+	logger.success(`User ${user.username} logged in`)
 
 	await updateUserPreferences({
 		user,

@@ -5,6 +5,7 @@ import { startOfWeek, formatISO, addDays } from "date-fns"
 import { type Events, eventsSchema } from "../../db/schema/events.js"
 import { and, asc, desc, eq, gte, isNotNull, like, lte, or } from "drizzle-orm"
 import type { EventRaw } from "../types/Events.js"
+import logger from "../../log/index.js"
 
 // interface EconomicEvent {
 //     id: number,
@@ -232,19 +233,25 @@ async function fetchEvents() {
 
 		// if (!response.ok) return { success: false, error: true, message: "Error fetching agenda (trading view error)", status: response.status }
 		if (!response.ok) {
-			return console.error("Error fetching agenda (trading view error)", response.status)
+			logger.error(`Error fetching agenda (trading view error) ${response.status}`)
+		
+			return []
 		}
 
 		const json = await response.json()
 		const events = json.result
 
 		if (!events || events.length === 0) {
-			return console.error("No events found")
+			logger.error("No events found")
+		
+			return []
 		}
 
 		return events as EventRaw[]
 	} catch (error) {
-		return console.error("Error fetching agenda (can't fetch)", error)
+		logger.error("Error fetching agenda (can't fetch)", error)
+	
+		return []
 	}
 }
 
@@ -252,7 +259,8 @@ async function saveFetchEvents() {
 	const events = await fetchEvents()
 
 	if (!events || events.length === 0) {
-		return console.error("No events found")
+		logger.error("No events found")
+		return []
 	}
 
 	await saveEvents(events)
@@ -286,7 +294,7 @@ async function saveEvents(events: EventRaw[]) {
 		await db.insert(eventsSchema).values(eventsValues)
 	}
 
-	console.log(`Inserted ${eventsValues.length} events`)
+	logger.success(`Inserted ${eventsValues.length} events`)
 }
 
 // Make a function to get the events that are happening rn
