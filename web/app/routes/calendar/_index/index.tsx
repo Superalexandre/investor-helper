@@ -176,6 +176,12 @@ const EconomicCalendar = memo(function EconomicCalendar({
 		throw error
 	}
 
+	if (!events || events.length === 0) {
+		return (
+			<p className="text-center text-lg">{t("noEvents")}</p>
+		)
+	}
+
 	return (
 		<div className="flex flex-col space-y-6">
 			{events.map((event) => (
