@@ -1,17 +1,12 @@
 {
     "title": "Investor Helper - Create an Account",
     "description": "Create an account on Investor Helper to access exclusive features. Track your investments, favorite stocks, and cryptocurrencies. Stay informed about the latest financial and economic news.",
-
     "createAccount": "Create an Account",
-
     "accept": "I accept the",
     "and": "and the",
-
     "terms": "terms of service",
     "privacy": "privacy policy",
-
     "haveAccount": "Already have an account? Log in",
-
     "placeholders": {
         "name": "Name",
         "firstName": "First Name",
@@ -19,5 +14,23 @@
         "email": "Email",
         "password": "Password",
         "confirmPassword": "Confirm Password"
+    },
+    "errors": {
+        "terms": "You must accept the terms of service and the privacy policy",
+        "nameMinLength": "Name must be at least 3 characters long",
+        "nameMaxLength": "Name must be at most 32 characters long",
+        "firstNameMinLength": "First name must be at least 3 characters long",
+        "firstNameMaxLength": "First name must be at most 32 characters long",
+        "usernameMinLength": "Username must be at least 3 characters long",
+        "usernameMaxLength": "Username must be at most 32 characters long",
+        "usernameInvalid": "Username can only contain letters, numbers, and dashes",
+        "emailInvalid": "Email is not valid",
+        "passwordMinLength": "Password must be at least 8 characters long",
+        "passwordMaxLength": "Password must be at most 32 characters long",
+        "passwordInvalid": "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+        "confirmPassword": "Passwords do not match",
+        "usernameExists": "This username is already taken",
+        "emailExists": "This email is already in use",
+        "errorOccurred": "An error occurred while creating the account!"
     }
 }

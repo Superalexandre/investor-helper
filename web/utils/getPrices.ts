@@ -169,4 +169,35 @@ export function closeClient() {
 	}
 }
 
+export function formatPrices(prices: Period[]): Period[] {
+	if (prices.length <= 1) {
+		return prices
+	}
+
+	const interval = prices[1].time - prices[0].time
+
+	const DAY_IN_MS = 24 * 60 * 60 * 1000
+	const HOUR_IN_MS = 60 * 60 * 1000
+
+    let filteredPrices: Period[];
+
+    if (interval >= DAY_IN_MS) {
+        filteredPrices = prices;
+    } else if (interval < DAY_IN_MS && interval >= HOUR_IN_MS) {
+        filteredPrices = prices.filter((_, index) => index % 2 === 0);
+    } else {
+        filteredPrices = prices.filter((_, index) => index % 5 === 0);
+    }
+
+    // Ajouter le dernier prix (le plus ancien) s'il n'est pas déjà dans la liste
+    if (filteredPrices.at(-1) !== prices.at(-1)) {
+		const lastPrice = prices.at(-1);
+		if (lastPrice) {
+			filteredPrices.push(lastPrice);
+		}
+    }
+
+	return filteredPrices
+}
+
 export type { Period, PeriodInfo }

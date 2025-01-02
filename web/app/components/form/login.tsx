@@ -9,15 +9,23 @@ import { ShowButtonComponent } from "../button/showHideButton"
 import Loading from "../loading"
 import { useTranslation } from "react-i18next"
 import { LockKeyholeIcon, LogInIcon, UserIcon } from "lucide-react"
+import { Separator } from "../ui/separator"
 
 const schema = zod.object({
-	emailOrUsername: zod.string().trim().min(3).max(255),
+	emailOrUsername: zod
+		.string({
+			required_error: "errors.emailOrUsernameRequired",
+		})
+		.trim()
+		.min(3, "errors.emailOrUsernameMinLength")
+		.max(255, "errors.emailOrUsernameMaxLength"),
 	password: zod
 		.string({
-			coerce: true
+			coerce: true,
+			required_error: "passwordRequired",
 		})
-		.min(8)
-		.max(255)
+		.min(8, "errors.passwordMinLength")
+		.max(255, "errors.passwordMaxLength")
 })
 type FormData = zod.infer<typeof schema>
 
@@ -47,7 +55,7 @@ export default function Login({ redirect, callback }: LoginProps) {
 	const {
 		handleSubmit,
 		formState: { errors, isSubmitting, isSubmitSuccessful },
-		register
+		register,
 	} = useRemixForm<FormData>({
 		mode: "onSubmit",
 		submitConfig: {
@@ -79,6 +87,7 @@ export default function Login({ redirect, callback }: LoginProps) {
 				errors={errors as FieldErrors}
 				register={register}
 				Icon={UserIcon}
+				t={t}
 			/>
 
 			<InputForm
@@ -91,6 +100,7 @@ export default function Login({ redirect, callback }: LoginProps) {
 				register={register}
 				Icon={LockKeyholeIcon}
 				ShowButton={<ShowButtonComponent show={showPassword} setShow={setShowPassword} />}
+				t={t}
 			/>
 
 			<Link
@@ -110,10 +120,18 @@ export default function Login({ redirect, callback }: LoginProps) {
 				className="flex flex-row items-center justify-center gap-2"
 				disabled={isSubmitting}
 			>
-				{isSubmitting ? <Loading className="size-5 border-2 dark:text-black" /> : <LogInIcon className="size-5" />}
+				{isSubmitting ? <Loading className="size-5 border-2 text-secondary" /> : <LogInIcon className="size-5" />}
 
 				{t("connect")}
 			</Button>
+			{/* 
+			<Separator className="w-full h-[2px] bg-primary" />
+
+			<Button variant="ghost" asChild={true} type="button">
+				<Link to="#">
+					Connexion avec Google
+				</Link>
+			</Button> */}
 		</Form>
 	)
 }

@@ -1,13 +1,20 @@
 {
     "title": "Investor Helper - Login",
     "description": "Log in to your Investor Helper account",
-
     "connexion": "Login",
     "notRegistered": "Not registered yet? Create an account!",
     "connect": "Log in",
-
     "placeholders": {
         "emailOrUsername": "Username or email address",
         "password": "Password"
+    },
+    "errors": {
+        "passwordRequired": "Password is required",
+        "passwordMinLength": "Password must be at least 8 characters long",
+        "passwordMaxLength": "Password must be at most 255 characters long",
+        "emailOrUsernameRequired": "Username or email address is required",
+        "emailOrUsernameMinLength": "Username or email address must be at least 3 characters long",
+        "emailOrUsernameMaxLength": "Username or email address must be at most 255 characters long",
+        "invalidCredentials": "Incorrect username or password"
     }
 }

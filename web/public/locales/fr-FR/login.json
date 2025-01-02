@@ -1,13 +1,20 @@
 {
     "title": "Investor Helper - Connexion",
     "description": "Connectez-vous à votre compte Investor Helper",
-
     "connexion": "Connexion",
     "notRegistered": "Pas encore inscrit ? Créez un compte !",
     "connect": "Se connecter",
-
     "placeholders": {
         "emailOrUsername": "Nom d'utilisateur ou adresse mail",
         "password": "Mot de passe"
+    },
+    "errors": {
+        "passwordRequired": "Le mot de passe est requis",
+        "passwordMinLength": "Le mot de passe doit contenir au moins 8 caractères",
+        "passwordMaxLength": "Le mot de passe doit contenir au plus 255 caractères",
+        "emailOrUsernameRequired": "Le nom d'utilisateur ou l'adresse mail est requis",
+        "emailOrUsernameMinLength": "Le nom d'utilisateur ou l'adresse mail doit contenir au moins 3 caractères",
+        "emailOrUsernameMaxLength": "Le nom d'utilisateur ou l'adresse mail doit contenir au plus 255 caractères",
+        "invalidCredentials": "Nom d'utilisateur ou mot de passe incorrect"
     }
 }

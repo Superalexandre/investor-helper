@@ -13,17 +13,18 @@ import { useTranslation } from "react-i18next"
 import { IdCardIcon, LockKeyholeIcon, MailIcon, PlusIcon } from "lucide-react"
 
 const schema = zod.object({
-	name: zod.string().min(3).max(32).trim(),
-	firstName: zod.string().min(3).max(32).trim(),
+	name: zod.string({
+	}).min(3, "errors.nameMinLength").max(32, "errors.nameMaxLength").trim(),
+	firstName: zod.string().min(3, "errors.firstNameMinLength").max(32, "errors.firstNameMaxLength").trim(),
 	username: zod
 		.string()
-		.min(3)
-		.max(32)
+		.min(3, "errors.usernameMinLength")
+		.max(32, "errors.usernameMaxLength")
 		.trim()
-		.regex(/^[a-zA-Z0-9_]+$/),
-	email: zod.string().email().trim().toLowerCase(),
-	password: zod.string().min(8).max(255),
-	passwordConfirmation: zod.string().min(8).max(255),
+		.regex(/^[a-zA-Z0-9_]+$/, "errors.usernameInvalid"),
+	email: zod.string().email("errors.emailInvalid").trim().toLowerCase(),
+	password: zod.string().min(8, "errors.passwordMinLength").max(255, "errors.passwordMaxLength"),
+	passwordConfirmation: zod.string().min(8, "errors.passwordMinLength").max(255, "errors.passwordMaxLength"),
 	terms: zod.boolean().refine((value) => value === true, "You must agree to the terms and conditions")
 })
 
@@ -87,6 +88,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				errors={errors as FieldErrors}
 				register={register}
 				Icon={IdCardIcon}
+				t={t}
 			/>
 
 			<InputForm
@@ -98,6 +100,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				errors={errors as FieldErrors}
 				register={register}
 				Icon={IdCardIcon}
+				t={t}
 			/>
 
 			<InputForm
@@ -109,6 +112,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				errors={errors as FieldErrors}
 				register={register}
 				Icon={IdCardIcon}
+				t={t}
 			/>
 
 			<InputForm
@@ -120,6 +124,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				errors={errors as FieldErrors}
 				register={register}
 				Icon={MailIcon}
+				t={t}
 			/>
 
 			<InputForm
@@ -132,6 +137,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				register={register}
 				Icon={LockKeyholeIcon}
 				ShowButton={<ShowButtonComponent show={showPassword} setShow={setShowPassword} />}
+				t={t}
 			/>
 
 			<InputForm
@@ -146,6 +152,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				ShowButton={
 					<ShowButtonComponent show={showPasswordConfirmation} setShow={setShowPasswordConfirmation} />
 				}
+				t={t}
 			/>
 
 			<div className="flex flex-col items-center">
@@ -197,7 +204,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				// className={`${isSubmitting ? "opacity-50" : "hover:bg-green-700"} flex flex-row items-center justify-center gap-2 rounded bg-green-500 p-4 text-white`}
 				disabled={isSubmitting}
 			>
-				{isSubmitting ? <Loading className="size-5 border-2 dark:text-black" /> : <PlusIcon className="size-5" />}
+				{isSubmitting ? <Loading className="size-5 border-2 text-secondary" /> : <PlusIcon className="size-5" />}
 
 				{t("createAccount")}
 			</Button>

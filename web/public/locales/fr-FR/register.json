@@ -1,17 +1,12 @@
 {
     "title": "Investor Helper - Créer un compte",
     "description": "Créez un compte sur Investor Helper pour accéder à des fonctionnalités exclusives. Suivez vos investissements, vos actions et vos cryptomonnaies préférées. Restez informé des dernières actualités financières et économiques.",
-
     "createAccount": "Créer un compte",
-
     "accept": "J'accepte les",
     "and": "et la",
-
     "terms": "conditions d'utilisation",
     "privacy": "politique de confidentialité",
-
     "haveAccount": "Vous avez déjà un compte ? Connectez-vous",
-
     "placeholders": {
         "name": "Nom",
         "firstName": "Prénom",
@@ -19,5 +14,23 @@
         "email": "Email",
         "password": "Mot de passe",
         "confirmPassword": "Confirmer le mot de passe"
+    },
+    "errors": {
+        "terms": "Vous devez accepter les conditions d'utilisation et la politique de confidentialité",
+        "nameMinLength": "Le nom doit contenir au moins 3 caractères",
+        "nameMaxLength": "Le nom doit contenir au maximum 32 caractères",
+        "firstNameMinLength": "Le prénom doit contenir au moins 3 caractères",
+        "firstNameMaxLength": "Le prénom doit contenir au maximum 32 caractères",
+        "usernameMinLength": "Le nom d'utilisateur doit contenir au moins 3 caractères",
+        "usernameMaxLength": "Le nom d'utilisateur doit contenir au maximum 32 caractères",
+        "usernameInvalid": "Le nom d'utilisateur ne peut contenir que des lettres, des chiffres et des tirets",
+        "emailInvalid": "L'email n'est pas valide",
+        "passwordMinLength": "Le mot de passe doit contenir au moins 8 caractères",
+        "passwordMaxLength": "Le mot de passe doit contenir au maximum 32 caractères",
+        "passwordInvalid": "Le mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial",
+        "confirmPassword": "Les mots de passe ne correspondent pas",
+        "usernameExists": "Ce nom d'utilisateur est déjà pris",
+        "emailExists": "Cet email est déjà utilisé",
+        "errorOccurred": "Une erreur est survenue lors de la création du compte !"
     }
 }

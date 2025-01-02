@@ -34,7 +34,7 @@ export async function action({ request }: ActionFunctionArgs) {
 	}
 
 	// Await 5s to simulate a slow request
-	await new Promise((resolve) => setTimeout(resolve, 5000))
+	// await new Promise((resolve) => setTimeout(resolve, 5000))
 
 	const result = await login({ request, ...data })
 

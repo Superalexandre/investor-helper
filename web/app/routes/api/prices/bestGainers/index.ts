@@ -1,6 +1,6 @@
 import logger from "../../../../../../log"
 import type { BestGainer } from "../../../../../types/Prices"
-import getPrices, { closeClient, type Period } from "../../../../../utils/getPrices"
+import getPrices, { closeClient, formatPrices, type Period } from "../../../../../utils/getPrices"
 import { fetchData } from "../../../../../utils/tradingview/request"
 import { columns, filter } from "../parameters"
 
@@ -76,7 +76,7 @@ export async function loader() {
 				timeframe: "1"
 			})
 
-			const reversed = prices.period.reverse()
+			const reversed = formatPrices(prices.period).reverse()
 
 			cachedPrice.set(symbol, { prices: reversed, lastUpdate: Date.now() })
 

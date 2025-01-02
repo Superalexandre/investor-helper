@@ -477,9 +477,9 @@ const DisplayBestGainers = memo(function DisplayBestGainers({
 								{gainer.close}
 								{gainer.currency}
 							</span>
-							<Badge className="flex flex-row justify-center items-center bg-green-500 font-bold text-white hover:bg-green-500">
+							<Badge className="flex flex-row items-center justify-center bg-green-500 font-bold text-white hover:bg-green-500">
 								<TriangleUpIcon className="size-5" />
-								<span className="h-5">{Number(gainer.rawChange).toFixed(2)}%</span>
+								<span>{Number(gainer.rawChange).toFixed(2)}%</span>
 							</Badge>
 						</p>
 						{gainer.recommendation_mark ?

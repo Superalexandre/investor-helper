@@ -9,12 +9,14 @@ import { updateUserPreferences } from "../../lib/userPreferences"
 import { getTheme } from "../../lib/getTheme"
 import getLanguage from "../../lib/getLanguage"
 import logger from "../../../../log"
+import i18next from "../../i18next.server"
 
 export default async function login({
 	request,
 	emailOrUsername,
 	password
 }: { request: Request; emailOrUsername: string; password: string }) {
+	const t = await i18next.getFixedT(request, "login")
 	const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
 	const db = drizzle(sqlite)
 
@@ -23,6 +25,7 @@ export default async function login({
 	const iv = crypto.randomBytes(16)
 
 	const cipher = crypto.createCipheriv(algorithm, key, iv)
+
 
 	// Decrypt the mail
 	let encryptedEmail = cipher.update(emailOrUsername.toLowerCase(), "utf8", "hex")
@@ -44,10 +47,11 @@ export default async function login({
 			error: true,
 			errors: {
 				emailOrUsername: {
-					message: "Nom d'utilisateur ou email introuvable"
-				}
+					message: t("errors.invalidCredentials")
+				},
+				password: { message: t("errors.invalidCredentials") }
 			},
-			message: "Nom d'utilisateur ou email introuvable"
+			message: t("errors.invalidCredentials")
 		}
 	}
 
@@ -55,15 +59,18 @@ export default async function login({
 
 	const match = await bcrypt.compare(password, user.password)
 	if (!match) {
-		logger.log("Password incorrect")
+		logger.info("Password incorrect")
 
 		return {
 			success: false,
 			error: true,
 			errors: {
-				password: { message: "Mot de passe incorrect" }
+				emailOrUsername: {
+					message: t("errors.invalidCredentials")
+				},
+				password: { message: t("errors.invalidCredentials") }
 			},
-			message: "Mot de passe incorrect"
+			message: t("errors.invalidCredentials")
 		}
 	}
 

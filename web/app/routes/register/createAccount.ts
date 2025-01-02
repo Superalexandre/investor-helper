@@ -6,6 +6,8 @@ import { eq, sql } from "drizzle-orm"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import { usersSchema } from "@/schema/users"
 import { createUserSession } from "../../session.server"
+import i18next from "../../i18next.server"
+import logger from "../../../../log"
 
 interface FormData {
 	request: Request
@@ -18,8 +20,6 @@ interface FormData {
 	terms: boolean
 }
 
-const uniqueRegex = /UNIQUE constraint failed: accounts\.(\w+)/
-
 export default async function createAccount({
 	request,
 	name,
@@ -30,6 +30,8 @@ export default async function createAccount({
 	passwordConfirmation,
 	terms
 }: FormData) {
+	const t = await i18next.getFixedT(request, "register")
+
 	const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
 	const db = drizzle(sqlite)
 
@@ -64,13 +66,13 @@ export default async function createAccount({
 
 		if (mailExists.length > 0) {
 			errors.email = {
-				message: "Un utilisateur possède deja cette adresse mail"
+				message: t("errors.emailExists")
 			}
 		}
 
 		if (usernameExists.length > 0) {
 			errors.username = {
-				message: "Un utilisateur possède deja ce nom d'utilisateur"
+				message: t("errors.usernameExists")
 			}
 		}
 
@@ -78,7 +80,7 @@ export default async function createAccount({
 			success: false,
 			error: true,
 			errors,
-			message: "Une erreur est survenue lors de la création du compte !"
+			message: t("errors.errorOccured")
 		}
 	}
 
@@ -88,13 +90,13 @@ export default async function createAccount({
 			error: true,
 			errors: {
 				password: {
-					message: "Les mots de passe ne correspondent pas"
+					message: t("errors.confirmPassword")
 				},
 				passwordConfirmation: {
-					message: "Les mots de passe ne correspondent pas"
+					message: t("errors.confirmPassword")
 				}
 			},
-			message: "Une erreur est survenue lors de la création du compte !"
+			message: t("errors.errorOccured")
 		}
 	}
 
@@ -104,71 +106,49 @@ export default async function createAccount({
 			error: true,
 			errors: {
 				terms: {
-					message: "Vous devez accepter les conditions d'utilisation"
+					message: t("errors.terms")
 				}
 			},
-			message: "Une erreur est survenue lors de la création du compte !"
+			message: t("errors.errorOccured")
 		}
 	}
 
 	try {
+		// Insertion du nouvel utilisateur
 		const newUser = await db
 			.insert(usersSchema)
 			.values({
-				firstName: firstName,
-				lastName: name,
+				firstName: firstName.trim(),
+				lastName: name.trim(),
 				username: lowerUsername,
 				displayName: username,
 				password: hashedPassword,
 				salt: salt,
 				email: mailEncrypted
 			})
-			.returning({
-				token: usersSchema.token
-			})
+			.returning({ token: usersSchema.token })
 
-		// Check if the url have a redirect parameter
+		// Redirection
 		const url = new URL(request.url)
-		const redirectUrl = url.searchParams.get("redirect")
-
-		const redirectUrlString = redirectUrl ? redirectUrl : "/profile"
+		const redirectUrl = url.searchParams.get("redirect") || "/profile"
 
 		return createUserSession({
 			request,
 			token: newUser[0].token,
-			redirectUrl: redirectUrlString
+			redirectUrl
 		})
 	} catch (error) {
-		const defaultError = {
-			success: false,
-			error: true,
-			errors: {
-				root: {
-					message: "Une erreur est survenue lors de la création du compte !"
-				}
-			},
-			message: "Une erreur est survenue lors de la création du compte !"
-		}
-
-		if (!(error instanceof Error)) {
-			return defaultError
-		}
-
-		const match = error.message.match(uniqueRegex)
-		if (!match) {
-			return defaultError
-		}
+		logger.error("Erreur lors de la création du compte :", { error })
 
 		return {
 			success: false,
 			error: true,
 			errors: {
-				// mail: { message: "Une erreur est survenue lors de la création du compte !" },
-				[match[1]]: {
-					message: `Un utilisateur possède deja ce ${match[1]}`
+				root: {
+					message: t("errors.errorOccured")
 				}
 			},
-			message: "Une erreur est survenue lors de la création du compte !"
+			message: t("errors.errorOccured")
 		}
 	}
 }
