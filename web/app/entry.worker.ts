@@ -140,7 +140,7 @@ new PushManager({
 			data: {
 				url: data.options?.data?.url || "/"
 			},
-			// requireInteraction: true,
+			requireInteraction: true,
 			silent: false,
 			// @ts-ignore
 			actions: [
