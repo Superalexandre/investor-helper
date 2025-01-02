@@ -31,7 +31,10 @@ const DotSeparator = React.forwardRef<
     React.ComponentPropsWithoutRef<typeof SeparatorPrimitive.Root>
 >(
     ({ className, ...props }, ref) => (
-        <div className={cn("size-1 rounded-full bg-muted-foreground", className)} ref={ref} {...props}>
+        // <div className={cn("size-1 rounded-full bg-muted-foreground", className)} ref={ref} {...props}>
+        // </div>
+        <div className={cn("text-muted-foreground", className)} ref={ref} {...props}>
+            •
         </div>
     )
 )

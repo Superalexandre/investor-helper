@@ -19,6 +19,7 @@ import { Button } from "../../components/ui/button"
 import { restrictToParentElement } from '@dnd-kit/modifiers'
 import { getSourceList } from "../../../utils/news"
 import { GripVerticalIcon } from "lucide-react"
+import logger from "../../../../log"
 
 export async function action({ request }: ActionFunctionArgs) {
 	// Get url parameters
@@ -103,8 +104,6 @@ export async function action({ request }: ActionFunctionArgs) {
 			}
 		}
 
-		console.log(data.value)
-
 		return setSession({
 			key: "homePreferences",
 			value: data.value,
@@ -120,9 +119,11 @@ export async function action({ request }: ActionFunctionArgs) {
 			!Array.isArray(data.languages) &&
 			!data.importances &&
 			!Array.isArray(data.importances) &&
-			!data.sources
+			(!data.sources && data.sources !== "")
 		) {
-			console.log("Invalid preferences", data.languages, data.importances)
+			logger.warn(`Invalid preferences ${data.languages} ${data.importances}`, {
+				data
+			})
 
 			return {
 				success: false,
@@ -156,7 +157,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 		if (data.sources && data.sources !== "") {
 			newSources = data.sources.split(",")
-		} else if (data.sources && data.sources === "") {
+		} else if (data.sources === "") {
 			newSources = []
 		} else if (newsPreferences) {
 			newSources = newsPreferences.sources

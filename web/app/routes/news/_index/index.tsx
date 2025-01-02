@@ -235,7 +235,7 @@ const DisplayFilter = memo(function DisplayFilter({
 
 	return (
 		<>
-			{renderFilterComponent(true, "language", selectedLanguage, setSelectedLanguage, languageItems, languageLabels)}
+			{renderFilterComponent(true, "languages", selectedLanguage, setSelectedLanguage, languageItems, languageLabels)}
 			{renderFilterComponent(true, "importance", selectedImportance, setSelectedImportance, importanceItems, importanceLabels)}
 			{renderFilterComponent(true, "sources", selectedSource, setSelectedSource, allSources, sourceLabels)}
 
@@ -257,7 +257,7 @@ const DisplayFilter = memo(function DisplayFilter({
 			</PopupFilter>
 
 			<div className="flex flex-row items-center gap-2 overflow-x-auto">
-				<Button variant={opened === "language" ? "default" : "outline"} onClick={handleOpen("language")} className="flex flex-row items-center gap-2">
+				<Button variant={opened === "languages" ? "default" : "outline"} onClick={handleOpen("languages")} className="flex flex-row items-center gap-2">
 					<GlobeIcon className="size-5" />
 
 					Langue ({selectedLanguage.length})
