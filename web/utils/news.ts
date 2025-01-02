@@ -514,7 +514,7 @@ async function reduceAndSendNotifications(notifications: NotificationToSend[] | 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getNewsImportanceScore(
-	description: string,
+	description: string | undefined,
 	// biome-ignore lint/suspicious/noExplicitAny:
 	article: any,
 	relatedSymbols: unknown[]
@@ -524,7 +524,7 @@ function getNewsImportanceScore(
 	const importantKeywords = ["annonce", "décision", "plan", "changement", "crise"]
 
 	for (const keyword of importantKeywords) {
-		if (description.toLowerCase().includes(keyword)) {
+		if (description?.toLowerCase().includes(keyword)) {
 			score += 10
 		}
 	}
