@@ -146,11 +146,15 @@ function ConvertHtmlToReact({
 	relatedSymbols,
 	newsId
 }: { json: string; relatedSymbols: FullSymbol[]; newsId: string }): (string | JSX.Element)[] {
+	if (!json) {
+		return []
+	}
+
 	const convertedJson = JSON.parse(json)
 
 	const Component: (string | JSX.Element)[] = []
 
-	if (convertedJson.children) {
+	if (convertedJson?.children) {
 		const result = GetDeepComponent(convertedJson.children, relatedSymbols, newsId)
 
 		Component.push(...result)
@@ -185,6 +189,10 @@ function GetDeepComponent(
 		bold: "font-bold",
 		italic: "italic",
 		parent: "inline-block"
+	}
+
+	if (!children) {
+		return []
 	}
 
 	for (const child of children) {
@@ -264,7 +272,7 @@ function GetDeepComponent(
 
 				Component.push(
 					<div
-						key={`${child.type}-${Component.length}-${child.children.length}`}
+						key={`${child.type}-${Component.length}-${child?.children?.length}`}
 						id={`section-${Component.length}`}
 						className={cn(className?.parent)}
 					>
@@ -279,7 +287,7 @@ function GetDeepComponent(
 
 				Component.push(
 					<blockquote
-						key={`${child.type}-${Component.length}-${child.children.length}`}
+						key={`${child.type}-${Component.length}-${child.children?.length}`}
 						className="border-muted-foreground border-l-2 pl-4"
 					>
 						{ComponentResult}
@@ -302,17 +310,17 @@ function GetDeepComponent(
 				})
 
 				Component.push(
-					<ul key={`${child.type}-${Component.length}-${child.children.length}`}>{ComponentResult}</ul>
+					<ul key={`${child.type}-${Component.length}-${child.children?.length}`}>{ComponentResult}</ul>
 				)
 			} else if (["*"].includes(child?.type)) {
-				const ComponentResult = GetDeepComponent(child.children, relatedSymbols, newsId, {
+				const ComponentResult = GetDeepComponent(child?.children, relatedSymbols, newsId, {
 					className: configClassName,
 					rawText: true
 				})
 
 				Component.push(
 					<li
-						key={`${child.type}-${Component.length}-${child.children.length}`}
+						key={`${child.type}-${Component.length}-${child.children?.length}`}
 						className="flex flex-row items-center"
 					>
 						{ComponentResult}
@@ -325,7 +333,7 @@ function GetDeepComponent(
 				})
 
 				Component.push(
-					<Table key={`${child.type}-${Component.length}-${child.children.length}`} className="table-auto">
+					<Table key={`${child.type}-${Component.length}-${child.children?.length}`} className="table-auto">
 						{ComponentResult}
 					</Table>
 				)
@@ -336,7 +344,7 @@ function GetDeepComponent(
 				})
 
 				Component.push(
-					<TableBody key={`${child.type}-${Component.length}-${child.children.length}`}>
+					<TableBody key={`${child.type}-${Component.length}-${child.children?.length}`}>
 						{ComponentResult}
 					</TableBody>
 				)
@@ -347,7 +355,7 @@ function GetDeepComponent(
 				})
 
 				Component.push(
-					<TableHeader key={`${child.type}-${Component.length}-${child.children.length}`}>
+					<TableHeader key={`${child.type}-${Component.length}-${child.children?.length}`}>
 						{ComponentResult}
 					</TableHeader>
 				)
@@ -358,7 +366,7 @@ function GetDeepComponent(
 				})
 
 				Component.push(
-					<TableHead key={`${child.type}-${Component.length}-${child.children.length}`}>
+					<TableHead key={`${child.type}-${Component.length}-${child.children?.length}`}>
 						{ComponentResult}
 					</TableHead>
 				)
@@ -369,7 +377,7 @@ function GetDeepComponent(
 				})
 
 				Component.push(
-					<TableRow key={`${child.type}-${Component.length}-${child.children.length}`}>
+					<TableRow key={`${child.type}-${Component.length}-${child.children?.length}`}>
 						{ComponentResult}
 					</TableRow>
 				)
@@ -380,7 +388,7 @@ function GetDeepComponent(
 				})
 
 				Component.push(
-					<TableCell key={`${child.type}-${Component.length}-${child.children.length}`}>
+					<TableCell key={`${child.type}-${Component.length}-${child.children?.length}`}>
 						{ComponentResult}
 					</TableCell>
 				)

@@ -303,7 +303,7 @@ async function saveFetchNews() {
 			newsArticleValues.push({
 				newsId: news.id,
 				date: news.published,
-				jsonDescription: news.article.jsonDescription,
+				jsonDescription: news.article.jsonDescription || "",
 				shortDescription: news.article.shortDescription,
 				copyright: news.article.copyright
 			})
@@ -534,17 +534,19 @@ function getNewsImportanceScore(
 
 	// biome-ignore lint/suspicious/noExplicitAny:
 	const getRelatedSymbols = (node: any) => {
-		if (node.type === "symbol") {
+		if (node && node.type === "symbol") {
 			score += 5
 
 			// symbolCount++
 		}
 
-		if (node.children) {
+		if (node?.children) {
 			for (const child of node.children) {
 				getRelatedSymbols(child)
 			}
 		}
+
+		return
 	}
 
 	getRelatedSymbols(article)
