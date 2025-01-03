@@ -40,9 +40,9 @@ function parseTradingViewResponse<
 
 	return response.data.map((item) => {
 		const reduced = columns.reduce(
-			(acc, column) => {
-				// @ts-expect-error: TS doesn't know that column is a valid key of item
-				acc[column] = item.d[column] as TMapping[typeof column] // Use TMapping to infer the correct type
+			(acc, column, index) => {
+				// @ts-ignore
+				acc[column] = item.d[index] as TMapping[typeof column]
 				return acc
 			},
 			{} as { [K in TColumns[number]]: TMapping[K & keyof TMapping] } & { symbol: string }
