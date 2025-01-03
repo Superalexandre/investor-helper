@@ -1,69 +1,51 @@
 import { z } from "zod"
 import {
-	type ColumnsArray,
-	ColumnSchema,
-	type ColumnType,
-	type ColumnTypeMappingType,
+	type ColumnsArrayScreener,
+	type ColumnTypeScreener,
+	type ColumnScreenerMappingType,
+	ColumnScreenerSchema,
 	FilterOperationSchemaNested,
 	LangSchema,
 	MarketsSchema,
 	SortBySchema,
-	SortOrderSchema
+	SortOrderSchema,
+	ColumnStockSchema,
+	type ColumnsArrayStock,
+	type ColumnStockMappingType,
+	type ColumnTypeStock,
+	ColumnStockMapping
 } from "./filter"
 
-// biome-ignore lint/style/useNamingConvention: <explanation>
-type TradingViewDataItemDynamic<TColumns extends readonly ColumnType[]> = {
+type TradingViewDataItemDynamic<TColumns extends readonly ColumnTypeScreener[] | readonly ColumnTypeStock[]> = {
 	s: string // Symbol with exchange
 	d: { [K in TColumns[number]]: unknown } // Map each column to its type
 }
 
-// biome-ignore lint/style/useNamingConvention: <explanation>
-interface TradingViewResponseDynamic<TColumns extends ColumnsArray> {
+interface TradingViewResponseDynamic<TColumns extends ColumnsArrayScreener | ColumnsArrayStock> {
 	totalCount: number
-	data: TradingViewDataItemDynamic<TColumns>[]
+	data: TradingViewDataItemDynamic<TColumns>[] // Dynamically typed based on TColumns
 }
 
-// function parseTradingViewResponse<TColumns extends ColumnsArray>(
-// 	columns: TColumns | null,
-// 	response: TradingViewResponseDynamic<TColumns>
-// ): Record<TColumns[number], unknown>[] {
-// 	if (!columns) {
-// 		return []
-// 	}
-
-// 	return response.data.map((item) => {
-// 		const reduced = columns.reduce(
-// 			(acc, column, index) => {
-// 				// @ts-expect-error: TS doesn't know that column is a valid key of item
-// 				acc[column] = item.d[index]
-// 				return acc
-// 			},
-// 			{} as Record<TColumns[number], unknown> & { symbol: string }
-// 		)
-
-// 		reduced.symbol = item.s
-
-// 		return reduced
-// 	})
-// }
-
-// biome-ignore lint/style/useNamingConvention: <explanation>
-function parseTradingViewResponse<TColumns extends ColumnsArray>(
+// This function will need to adapt to the two possibilities (Screener or Stock)
+function parseTradingViewResponse<
+	TColumns extends ColumnsArrayScreener | ColumnsArrayStock,
+	TMapping extends ColumnScreenerMappingType | ColumnStockMappingType
+>(
 	columns: TColumns | null,
 	response: TradingViewResponseDynamic<TColumns>
-): { [K in TColumns[number]]: ColumnTypeMappingType[K] }[] {
+): { [K in TColumns[number]]: TMapping[K & keyof TMapping] }[] {
 	if (!columns) {
 		return []
 	}
 
 	return response.data.map((item) => {
 		const reduced = columns.reduce(
-			(acc, column, index) => {
+			(acc, column) => {
 				// @ts-expect-error: TS doesn't know that column is a valid key of item
-				acc[column] = item.d[index] as ColumnTypeMappingType[typeof column]
+				acc[column] = item.d[column] as TMapping[typeof column] // Use TMapping to infer the correct type
 				return acc
 			},
-			{} as { [K in TColumns[number]]: ColumnTypeMappingType[K] } & { symbol: string }
+			{} as { [K in TColumns[number]]: TMapping[K & keyof TMapping] } & { symbol: string }
 		)
 
 		reduced.symbol = item.s
@@ -71,10 +53,9 @@ function parseTradingViewResponse<TColumns extends ColumnsArray>(
 		return reduced
 	})
 }
-
 // Request structure
 const TradingViewRequestSchema = z.object({
-	columns: z.array(ColumnSchema),
+	columns: z.array(ColumnScreenerSchema),
 	filter2: FilterOperationSchemaNested.optional(),
 	// biome-ignore lint/style/useNamingConvention: <explanation>
 	ignore_unknown_fields: z.boolean().optional(),
@@ -91,9 +72,9 @@ const TradingViewRequestSchema = z.object({
 })
 type TradingViewRequest = z.infer<typeof TradingViewRequestSchema>
 
-const FetchParamsSchema = z.object({
+const FetchScreenerParamsSchema = z.object({
 	country: z.string(),
-	columns: z.array(ColumnSchema),
+	columns: z.array(ColumnScreenerSchema),
 	filter: FilterOperationSchemaNested.optional(),
 	range: z.tuple([z.number(), z.number()]).optional(),
 	options: z
@@ -110,10 +91,10 @@ const FetchParamsSchema = z.object({
 	symbols: z.record(z.unknown()).optional(),
 	markets: MarketsSchema.optional()
 })
-type FetchParams = z.infer<typeof FetchParamsSchema>
+type FetchParams = z.infer<typeof FetchScreenerParamsSchema>
 
 // biome-ignore lint/style/useNamingConvention: <explanation>
-const fetchData = async <TColumns extends ColumnsArray>({
+const fetchScreener = async <TColumns extends ColumnsArrayScreener>({
 	country,
 	columns,
 	filter,
@@ -125,7 +106,7 @@ const fetchData = async <TColumns extends ColumnsArray>({
 	success: boolean
 	message: string
 	result: TradingViewResponseDynamic<TColumns> | null
-	parsedResult: { [K in TColumns[number]]: ColumnTypeMappingType[K] }[] | null;
+	parsedResult: { [K in TColumns[number]]: ColumnScreenerMappingType[K] }[] | null
 }> => {
 	const url = `https://scanner.tradingview.com/${country}/scan?label-product=screener-stock`
 
@@ -163,14 +144,65 @@ const fetchData = async <TColumns extends ColumnsArray>({
 	}
 
 	const result: TradingViewResponseDynamic<TColumns> = await response.json()
-	const parsed = parseTradingViewResponse(columns as TColumns, result)
+	const parsed = parseTradingViewResponse(columns as TColumns, result as TradingViewResponseDynamic<TColumns>)
 
 	return {
 		success: true,
 		message: "Data fetched successfully",
 		result,
-		parsedResult: parsed
+		parsedResult: parsed as { [K in TColumns[number]]: ColumnScreenerMappingType[K] }[]
 	}
 }
 
-export { fetchData }
+const FetchSymbolParamsSchema = z.object({
+	symbol: z.string(),
+	// Fields is "all" or a list of columns
+	fields: z.union([z.literal("all"), z.array(ColumnStockSchema)])
+})
+type FetchSymbolParams = z.infer<typeof FetchSymbolParamsSchema>
+
+const fetchSymbol = async <TColumns extends ColumnsArrayStock>({
+	symbol,
+	fields
+}: FetchSymbolParams): Promise<{
+	success: boolean
+	message: string
+	result: TradingViewResponseDynamic<TColumns> | null
+	parsedResult: { [K in TColumns[number]]: ColumnStockMappingType[K] }[] | null
+}> => {
+
+	if (fields === "all") {
+		fields = Object.keys(ColumnStockMapping) as TColumns
+	}
+
+	const url = `https://scanner.tradingview.com/symbol?symbol=${symbol}&fields=${fields}&no_404=true`
+
+	const response = await fetch(url, {
+		headers: {
+			"Content-Type": "application/json"
+		}
+	})
+
+	if (!response.ok) {
+		return {
+			success: false,
+			message: response.statusText,
+			result: null,
+			parsedResult: null
+		}
+	}
+
+	const result: TradingViewResponseDynamic<TColumns> = await response.json()
+
+	// Parse the response based on stock column types
+	const parsed = parseTradingViewResponse(fields as TColumns, result as TradingViewResponseDynamic<TColumns>)
+
+	return {
+		success: true,
+		message: "Data fetched successfully",
+		result,
+		parsedResult: parsed as { [K in TColumns[number]]: ColumnStockMappingType[K] }[]
+	}
+}
+
+export { fetchScreener, fetchSymbol }

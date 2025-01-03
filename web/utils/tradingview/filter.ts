@@ -1,54 +1,103 @@
-
 import { z } from "zod"
 
-const ColumnTypeMapping = {
+const ColumnGlobalMapping = {} as const
+
+const ColumnScreenerMapping = {
+	...ColumnGlobalMapping,
+
 	symbol: z.string(),
-    name: z.string(),
-    description: z.string(),
-    logoid: z.string(),
-    update_mode: z.string(),
-    type: z.string(),
-    typespecs: z.string(),
-    close: z.number(),
-    pricescale: z.number(),
-    minmov: z.number(),
-    fractional: z.boolean(),
-    minmove2: z.number(),
-    currency: z.string(),
-    change: z.number(),
-    volume: z.number(),
-    relative_volume_10d_calc: z.number(),
-    market_cap_basic: z.number(),
-    fundamental_currency_code: z.string(),
-    price_earnings_ttm: z.number(),
-    earnings_per_share_diluted_ttm: z.number(),
-    earnings_per_share_diluted_yoy_growth_ttm: z.number(),
-    dividends_yield_current: z.number(),
-    "sector.tr": z.string(),
-    market: z.string(),
-    sector: z.string(),
-    recommendation_mark: z.number(),
-    exchange: z.string(),
-    enterprise_value_current: z.number(),
-    "country.tr": z.string(),
-    country_code_fund: z.string(),
-    float_shares_percent_current: z.number()
-} as const;
+	name: z.string(),
+	description: z.string(),
+	logoid: z.string(),
+	update_mode: z.string(),
+	type: z.string(),
+	typespecs: z.string(),
+	close: z.number(),
+	pricescale: z.number(),
+	minmov: z.number(),
+	fractional: z.boolean(),
+	minmove2: z.number(),
+	currency: z.string(),
+	change: z.number(),
+	volume: z.number(),
+	relative_volume_10d_calc: z.number(),
+	market_cap_basic: z.number(),
+	fundamental_currency_code: z.string(),
+	price_earnings_ttm: z.number(),
+	earnings_per_share_diluted_ttm: z.number(),
+	earnings_per_share_diluted_yoy_growth_ttm: z.number(),
+	dividends_yield_current: z.number(),
+	"sector.tr": z.string(),
+	market: z.string(),
+	sector: z.string(),
+	recommendation_mark: z.number(),
+	exchange: z.string(),
+	enterprise_value_current: z.number(),
+	"country.tr": z.string(),
+	country_code_fund: z.string(),
+	float_shares_percent_current: z.number()
+} as const
 
-const ColumnSchema = z.enum(Object.keys(ColumnTypeMapping) as [keyof typeof ColumnTypeMapping, ...Array<keyof typeof ColumnTypeMapping>]);
+const ColumnStockMapping = {
+	...ColumnGlobalMapping,
+	"High.1M": z.number(),
+	"Low.1M": z.number(),
+	"Perf.1M": z.number(),
+	"Perf.3M": z.number(),
+	"Perf.6M": z.number(),
+	"Perf.W": z.number(),
+	"Perf.Y": z.number(),
+	"Perf.YTD": z.number(),
+	"Recommend.All": z.number(),
+	average_volume_10d_calc: z.number(),
+	average_volume_30d_calc: z.number(),
+	country: z.string(),
+	country_code_fund: z.string(),
+	market: z.string(),
+	nav_discount_premium: z.number(),
+	open_interest: z.number(),
+	price_52_week_high: z.number(),
+	price_52_week_low: z.number(),
+	sector: z.string(),
+	logoid: z.string(),
+	name: z.string(),
+	description: z.string(),
+	base_currency_logoid: z.string(),
+	currency: z.string(),
+	exchange: z.string(),
+	isin: z.string()
+} as const
 
-type ColumnType = z.infer<typeof ColumnSchema>
-type ColumnsArray = ColumnType[]
+const ColumnScreenerSchema = z.enum(
+	Object.keys(ColumnScreenerMapping) as [
+		keyof typeof ColumnScreenerMapping,
+		...Array<keyof typeof ColumnScreenerMapping>
+	]
+)
 
-type ColumnTypeMappingType = {
-    [Key in ColumnType]: z.infer<(typeof ColumnTypeMapping)[Key]>
-};
+const ColumnStockSchema = z.enum(
+	Object.keys(ColumnStockMapping) as [keyof typeof ColumnStockMapping, ...Array<keyof typeof ColumnStockMapping>]
+)
+
+type ColumnTypeScreener = z.infer<typeof ColumnScreenerSchema>
+type ColumnsArrayScreener = ColumnTypeScreener[]
+
+type ColumnTypeStock = z.infer<typeof ColumnStockSchema>
+type ColumnsArrayStock = ColumnTypeStock[]
+
+type ColumnScreenerMappingType = {
+	[Key in ColumnTypeScreener]: z.infer<(typeof ColumnScreenerMapping)[Key]>
+}
+
+type ColumnStockMappingType = {
+	[Key in ColumnTypeStock]: z.infer<(typeof ColumnStockMapping)[Key]>
+}
 
 // Define supported filter operations
 const FilterOperationSchema = z.enum(["and", "or"])
 type FilterOperationType = z.infer<typeof FilterOperationSchema>
 
-type FilterFieldType = z.infer<typeof ColumnSchema>
+type FilterFieldType = z.infer<typeof ColumnScreenerSchema> | z.infer<typeof ColumnStockSchema>
 
 // Define supported operations for expressions
 const ExpressionOperationSchema = z.enum(["equal", "greater", "has", "has_none_of"])
@@ -56,11 +105,11 @@ type ExpressionOperationType = z.infer<typeof ExpressionOperationSchema>
 
 // Define FilterExpression schema
 const FilterExpressionSchema = z.object({
-    expression: z.object({
-        left: ColumnSchema,
-        operation: ExpressionOperationSchema,
-        right: z.any()
-    })
+	expression: z.object({
+		left: z.union([ColumnScreenerSchema, ColumnStockSchema]),
+		operation: ExpressionOperationSchema,
+		right: z.any()
+	})
 })
 
 type FilterExpression = z.infer<typeof FilterExpressionSchema>
@@ -69,12 +118,7 @@ type FilterExpression = z.infer<typeof FilterExpressionSchema>
 const FilterOperationSchemaNested: z.ZodType<any> = z.object({
 	operation: z.object({
 		operator: FilterOperationSchema,
-		operands: z.array(
-			z.union([
-				FilterExpressionSchema,
-				z.lazy(() => FilterOperationSchemaNested)
-			])
-		)
+		operands: z.array(z.union([FilterExpressionSchema, z.lazy(() => FilterOperationSchemaNested)]))
 	})
 })
 type FilterOperation = z.infer<typeof FilterOperationSchemaNested>
@@ -125,8 +169,10 @@ const or = (...operands: (FilterExpression | FilterOperation)[]): FilterOperatio
 })
 
 export {
-	ColumnSchema,
-	ColumnTypeMapping,
+	ColumnScreenerSchema,
+	ColumnStockSchema,
+	ColumnScreenerMapping,
+	ColumnStockMapping,
 	FilterOperationSchema,
 	ExpressionOperationSchema,
 	FilterExpressionSchema,
@@ -141,9 +187,12 @@ export {
 }
 
 export type {
-	ColumnType,
-	ColumnsArray,
-	ColumnTypeMappingType,
+	ColumnTypeScreener,
+	ColumnsArrayScreener,
+	ColumnTypeStock,
+	ColumnsArrayStock,
+	ColumnScreenerMappingType,
+	ColumnStockMappingType,
 	FilterOperationType,
 	FilterFieldType,
 	ExpressionOperationType,

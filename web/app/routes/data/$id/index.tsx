@@ -24,13 +24,14 @@ import { useWindowSize } from "usehooks-ts"
 import BackButton from "@/components/button/backButton"
 
 function differences(prices: Period[]) {
-	const differencePrice = prices[0].close - prices[prices.length - 1].close
+	const lastItem = prices.at(-1) as Period
+	const differencePrice = prices[0].close - lastItem.close
 
 	// Difference in percent can be up to 100% (double the price)
 	const differencePercent = (differencePrice / prices[0].close) * 100
 
 	const from = prices[0].time * 1000
-	const to = prices[prices.length - 1].time * 1000
+	const to = lastItem.time * 1000
 
 	const differenceTime = formatDistanceStrict(from, to, {
 		locale: fr

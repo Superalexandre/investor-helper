@@ -1,7 +1,7 @@
 import logger from "../../../../../../log"
 import type { BestGainer } from "../../../../../types/Prices"
 import getPrices, { closeClient, formatPrices, type Period } from "../../../../../utils/getPrices"
-import { fetchData } from "../../../../../utils/tradingview/request"
+import { fetchScreener } from "../../../../../utils/tradingview/request"
 import { columns, filter } from "../parameters"
 
 const cachedPrice = new Map<string, { prices: Period[]; lastUpdate: number }>()
@@ -10,7 +10,7 @@ const CACHE_TIME = 1000 * 60 * 60 // 1 hour
 export async function loader() {
 	const country = "france"
 
-	const { parsedResult } = await fetchData({
+	const { parsedResult } = await fetchScreener({
 		country: country,
 		columns: columns,
 		filter: filter,
