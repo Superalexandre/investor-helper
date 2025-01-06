@@ -21,8 +21,8 @@ export default async function login({
 	const db = drizzle(sqlite)
 
 	const algorithm = "aes-256-cbc"
-	const key = crypto.randomBytes(32)
-	const iv = crypto.randomBytes(16)
+	const key = Buffer.from(process.env.CRYPTO_KEY as string, "hex")
+	const iv = Buffer.from(process.env.CRYPTO_IV as string, "hex")
 
 	const cipher = crypto.createCipheriv(algorithm, key, iv)
 

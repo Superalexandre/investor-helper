@@ -323,8 +323,8 @@ function FilterComponent({
 }) {
 	const fetcher = useFetcher()
 
-	const onChange = (checked: CheckedState, value: string) => {
-		let newItems = []
+	const onChange = (checked: CheckedState, value: string): void => {
+		let newItems: string[] = []
 
 		if (checked) {
 			newItems = [...selectedItems, value]

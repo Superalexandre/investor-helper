@@ -24,6 +24,11 @@ export const usersSchema = sqliteTable("user", {
 	firstName: text("first_name").notNull(),
 	lastName: text("last_name").notNull(),
 	email: text("email").unique(),
+	emailVerified: int("email_verified", {
+		mode: "boolean"
+	})
+		.default(false)
+		.notNull(),
 	password: text("password").notNull(),
 	salt: text("salt").notNull(),
 	createdAt: text("created_at")
