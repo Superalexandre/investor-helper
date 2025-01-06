@@ -236,7 +236,7 @@ const DisplayFilter = memo(function DisplayFilter({
 	return (
 		<>
 			{renderFilterComponent(true, "languages", selectedLanguage, setSelectedLanguage, languageItems, languageLabels)}
-			{renderFilterComponent(true, "importance", selectedImportance, setSelectedImportance, importanceItems, importanceLabels)}
+			{renderFilterComponent(true, "importances", selectedImportance, setSelectedImportance, importanceItems, importanceLabels)}
 			{renderFilterComponent(true, "sources", selectedSource, setSelectedSource, allSources, sourceLabels)}
 
 			<PopupFilter open={opened === "all"} onClose={handleClose}>
@@ -269,7 +269,7 @@ const DisplayFilter = memo(function DisplayFilter({
 					Sources ({commonSources.length})
 				</Button>
 
-				<Button variant={opened === "importance" ? "default" : "outline"} onClick={handleOpen("importance")} className="flex flex-row items-center gap-2">
+				<Button variant={opened === "importances" ? "default" : "outline"} onClick={handleOpen("importances")} className="flex flex-row items-center gap-2">
 					<StarIcon className="size-5" />
 
 					Importance ({selectedImportance.length})
