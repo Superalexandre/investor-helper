@@ -8,6 +8,7 @@ import { usersSchema } from "@/schema/users"
 import { createUserSession } from "../../session.server"
 import i18next from "../../i18next.server"
 import logger from "../../../../log"
+import { sendAccountActivationEmail } from "../../../utils/email/email"
 
 interface FormData {
 	request: Request
@@ -80,7 +81,7 @@ export default async function createAccount({
 			success: false,
 			error: true,
 			errors,
-			message: t("errors.errorOccured")
+			message: t("errors.errorOccurred")
 		}
 	}
 
@@ -96,7 +97,7 @@ export default async function createAccount({
 					message: t("errors.confirmPassword")
 				}
 			},
-			message: t("errors.errorOccured")
+			message: t("errors.errorOccurred")
 		}
 	}
 
@@ -109,7 +110,7 @@ export default async function createAccount({
 					message: t("errors.terms")
 				}
 			},
-			message: t("errors.errorOccured")
+			message: t("errors.errorOccurred")
 		}
 	}
 
@@ -124,13 +125,18 @@ export default async function createAccount({
 				displayName: username,
 				password: hashedPassword,
 				salt: salt,
-				email: mailEncrypted
+				email: mailEncrypted,
+				emailVerified: false,
+				consentRgpd: true,
+				loggedWithGoogle: false
 			})
 			.returning({ token: usersSchema.token })
 
 		// Redirection
 		const url = new URL(request.url)
 		const redirectUrl = url.searchParams.get("redirect") || "/profile"
+
+		sendAccountActivationEmail(email)
 
 		return createUserSession({
 			request,
@@ -145,10 +151,10 @@ export default async function createAccount({
 			error: true,
 			errors: {
 				root: {
-					message: t("errors.errorOccured")
+					message: t("errors.errorOccurred")
 				}
 			},
-			message: t("errors.errorOccured")
+			message: t("errors.errorOccurred")
 		}
 	}
 }

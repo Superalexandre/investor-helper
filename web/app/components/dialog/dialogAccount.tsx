@@ -15,7 +15,7 @@ interface DialogAccountProps {
 export default function DialogAccount({ open, setOpen, redirect, callback }: DialogAccountProps) {
 	return (
 		<Dialog open={open} onOpenChange={(newOpen) => setOpen(newOpen)}>
-			<DialogContent className="max-h-full w-11/12 overflow-auto">
+			<DialogContent className="max-h-full w-11/12 max-w-fit overflow-auto">
 				<DialogHeader>
 					<DialogTitle>Créer un compte ou se connecter</DialogTitle>
 					<DialogDescription>

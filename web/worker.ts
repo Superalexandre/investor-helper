@@ -52,10 +52,10 @@ try {
 
 process.on("uncaughtException", (err) => {
 	// console.error("Erreur non capturée :", err)
-	logger.error("Erreur non capturée :", err)
+	logger.critical("Erreur non capturée :", err)
 })
 
 process.on("unhandledRejection", (err) => {
 	// console.error("Erreur non gérée :", err)
-	logger.error("Erreur non gérée :", err)
+	logger.critical("Erreur non gérée :", err)
 })

@@ -3,7 +3,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remi
 import { logout } from "../../session.server"
 // import i18next from "../../i18next.server"
 
-const redirectUrl = "/login"
+// const redirectUrl = "/login"
 
 export const meta: MetaFunction = () => {
 	const title = "Investor Helper - Déconnexion"
@@ -20,11 +20,21 @@ export const meta: MetaFunction = () => {
 	]
 }
 export function action({ request }: ActionFunctionArgs) {
+	const defaultRedirect = "/login"
+
+	const url = new URL(request.url)
+	const redirectUrl = url.searchParams.get("redirect") || defaultRedirect
+
 	return logout(request, redirectUrl)
 }
 
 export function loader({ request }: LoaderFunctionArgs) {
 	// const t = i18next.getFixedT(request, "logout")
+
+	const defaultRedirect = "/login"
+
+	const url = new URL(request.url)
+	const redirectUrl = url.searchParams.get("redirect") || defaultRedirect
 
 	return logout(request, redirectUrl)
 }

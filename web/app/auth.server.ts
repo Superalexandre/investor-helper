@@ -1,6 +1,6 @@
 import { GoogleStrategy } from "remix-auth-google"
 import { Authenticator } from "remix-auth"
-import { createUserSession, sessionStorage } from "./session.server"
+import { createUserSession, getSession, sessionStorage } from "./session.server"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import crypto from "node:crypto"
@@ -8,6 +8,9 @@ import { usersSchema } from "../../db/schema/users"
 import { eq, or } from "drizzle-orm"
 import { redirect } from "@remix-run/node"
 import logger from "../../log"
+import getLanguage from "./lib/getLanguage"
+import { getTheme } from "./lib/getTheme"
+import { updateUserPreferences } from "./lib/userPreferences"
 
 export const authenticator = new Authenticator(sessionStorage)
 
@@ -19,19 +22,29 @@ const googleStrategy = new GoogleStrategy(
 		// biome-ignore lint/style/useNamingConvention: <explanation>
 		callbackURL: process.env.GOOGLE_CALLBACK_URL || ""
 	},
-	async ({ accessToken, refreshToken, extraParams, profile, request }) => {
+	async ({ accessToken, refreshToken, extraParams, profile, request, context }) => {
 		console.log({
 			accessToken,
 			refreshToken,
 			extraParams,
-			profile
+			profile,
+			context
 		})
 
-		// Check if the profile._json.email is in the database
-		// If it is, return the user
-		// If it is not, create a new user and return it
-		const url = new URL(request.url)
-		const redirectUrl = url.searchParams.get("redirect") || "/profile"
+		let redirectUrl = "/profile"
+
+		const session = await getSession(request)
+		const sessionRedirect = session.get("redirect")
+
+		console.log(session.data)
+
+		if (sessionRedirect) {
+			redirectUrl = sessionRedirect
+
+			session.unset("redirect")
+		}
+
+		console.log(`Redirecting to ${redirectUrl}`)
 
 		const googleEmail = profile._json.email
 		const googleVerifiedEmail = profile._json.email_verified
@@ -55,7 +68,7 @@ const googleStrategy = new GoogleStrategy(
 		let encryptedEmail = cipher.update(googleEmail.toLowerCase(), "utf8", "hex")
 		encryptedEmail += cipher.final("hex")
 
-		console.log(`Encrypted email: ${encryptedEmail} for ${googleEmail}`)
+		// console.log(`Encrypted email: ${encryptedEmail} for ${googleEmail}`)
 
 		const users = await db
 			.select()
@@ -64,8 +77,17 @@ const googleStrategy = new GoogleStrategy(
 
 		if (users && users.length > 0) {
 			const user = users[0]
+			const [theme, language] = await Promise.all([getTheme(request), getLanguage(request)])
 
 			logger.success(`User ${user.username} logged in with Google`)
+
+			await updateUserPreferences({
+				user,
+				preferences: {
+					theme: theme,
+					language: language
+				}
+			})
 
 			// Login the user
 			return createUserSession({
@@ -78,26 +100,46 @@ const googleStrategy = new GoogleStrategy(
 		// Create the user
 		logger.info(`User with email ${googleEmail} not found, creating a new user`)
 
-		/*
+
+		const name = profile.name.familyName
+		const firstName = profile.name.givenName
+
+		let username = sanitizeUsername(profile.displayName)
+		let usernameLower = username.toLowerCase()
+
+		// Find a username that does not exist
+		const usersUsername = await db.select().from(usersSchema).where(eq(usersSchema.username, username))
+
+		if (usersUsername && usersUsername.length > 0) {
+			const newUsername = await findUsername(username, usernameLower)
+
+			if (!newUsername) {
+				logger.error(`Could not find a new username for ${username}`)
+
+				return null
+			}
+
+			username = newUsername.username
+			usernameLower = newUsername.usernameLower
+		}
+
 		try {
-
-
 			const newUser = await db
 				.insert(usersSchema)
 				.values({
 					firstName: firstName.trim(),
 					lastName: name.trim(),
-					username: lowerUsername,
+					username: usernameLower,
 					displayName: username,
 					// password: hashedPassword,
 					// salt: salt,
-					email: mailEncrypted
+					email: encryptedEmail,
+					emailVerified: true,
+					loggedWithGoogle: true
 				})
 				.returning({ token: usersSchema.token })
 
 			// Redirection
-			const url = new URL(request.url)
-			const redirectUrl = url.searchParams.get("redirect") || "/profile"
 
 			return createUserSession({
 				request,
@@ -109,9 +151,15 @@ const googleStrategy = new GoogleStrategy(
 
 			return redirect("/")
 		}
-        */
 	}
 )
+
+function sanitizeUsername(username: string): string {
+	const usernameSanitized = username
+		.replace(" ", "_")
+
+	return usernameSanitized
+}
 
 async function findUsername(
 	username: string,

@@ -13,7 +13,7 @@ import {
 	notificationSubscribedNewsSymbolsSchema
 } from "../../db/schema/notifications.js"
 import { addNotificationList, sendNotification } from "./notifications.js"
-import type { NewsSymbols, NewsSymbolsArticle } from "../types/News.js"
+import type { NewsFull, NewsSymbols, NewsSymbolsArticle } from "../types/News.js"
 import i18n, { newsUrl } from "../app/i18n.js"
 import logger from "../../log/index.js"
 
@@ -32,6 +32,7 @@ async function getNews({
 	const allNews = await db
 		.select()
 		.from(newsSchema)
+		.innerJoin(newsArticleSchema, eq(newsSchema.id, newsArticleSchema.newsId))
 		.where(
 			and(
 				language ? inArray(newsSchema.lang, language) : undefined,
@@ -49,16 +50,17 @@ async function getNews({
 		.offset(limit * (page - 1))
 		.orderBy(desc(newsSchema.published))
 
-	const news: NewsSymbols[] = []
+	const news: NewsFull[] = []
 	for (const newsItem of allNews) {
 		const relatedSymbols = await db
 			.select()
 			.from(newsRelatedSymbolsSchema)
 			.innerJoin(symbolsSchema, eq(newsRelatedSymbolsSchema.symbol, symbolsSchema.symbolId))
-			.where(eq(newsRelatedSymbolsSchema.newsId, newsItem.id))
+			.where(eq(newsRelatedSymbolsSchema.newsId, newsItem.news.id))
 
 		news.push({
-			news: newsItem,
+			news: newsItem.news,
+			news_article: newsItem.news_article,
 			relatedSymbols: relatedSymbols
 		})
 	}

@@ -10,7 +10,9 @@ import { Label } from "../ui/label"
 import { Checkbox } from "../ui/checkbox"
 import Loading from "../loading"
 import { useTranslation } from "react-i18next"
-import { IdCardIcon, LockKeyholeIcon, MailIcon, PlusIcon } from "lucide-react"
+import { IdCardIcon, LockKeyholeIcon, LogInIcon, MailIcon, PlusIcon } from "lucide-react"
+import { Separator } from "../ui/separator"
+import { GoogleIcon } from "../svg/GoogleIcon"
 
 const schema = zod.object({
 	name: zod.string({
@@ -26,6 +28,9 @@ const schema = zod.object({
 	password: zod.string().min(8, "errors.passwordMinLength").max(255, "errors.passwordMaxLength"),
 	passwordConfirmation: zod.string().min(8, "errors.passwordMinLength").max(255, "errors.passwordMaxLength"),
 	terms: zod.boolean().refine((value) => value === true, "You must agree to the terms and conditions")
+}).refine(data => data.password === data.passwordConfirmation, {
+	message: "errors.confirmPassword",
+	path: ["passwordConfirmation"]
 })
 
 type FormData = zod.infer<typeof schema>
@@ -156,7 +161,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 			/>
 
 			<div className="flex flex-col items-center">
-				<div className="flex flex-row items-center gap-2">
+				<div className="flex flex-row items-center gap-4">
 					<Checkbox
 						id="terms"
 						required={true}
@@ -166,15 +171,22 @@ export default function Register({ redirect, callback }: RegisterProps) {
 						})}
 					/>
 
-					<Label htmlFor="terms" className="space-x-1 dark:text-white">
-						<span>{t("accept")}</span>
-						<Link to="/terms" className="underline hover:text-slate-400 dark:text-white">
-							{t("terms")}
-						</Link>
-						<span>{t("and")}</span>
-						<Link to="/privacy" className="underline hover:text-slate-400 dark:text-white">
-							{t("privacy")}
-						</Link>
+					<Label htmlFor="terms" className="flex w-full flex-row flex-wrap items-center gap-1 dark:text-white">
+						<span className="">{t("accept")}</span>
+
+						<Button variant="link" asChild={true} className="inline-block h-auto p-0 underline hover:no-underline">
+							<Link to="/terms">
+								{t("terms")}
+							</Link>
+						</Button>
+
+						<span className="">{t("and")}</span>
+
+						<Button variant="link" asChild={true} className="inline-block h-auto p-0 underline hover:no-underline">
+							<Link to="/privacy">
+								{t("privacy")}
+							</Link>
+						</Button>
 					</Label>
 				</div>
 
@@ -185,7 +197,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				) : null}
 			</div>
 
-			<Link
+			{/* <Link
 				to={{
 					pathname: "/login",
 					search: preferredRedirect !== "" ? `?redirect=${preferredRedirect}` : ""
@@ -193,21 +205,46 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				className="text-center underline hover:text-slate-400 dark:text-white"
 			>
 				{t("haveAccount")}
-			</Link>
+			</Link> */}
 
 			{/* <Link to="/forgot-password" className="text-white underline hover:text-slate-400 text-center">Mot de passe oublié ?</Link> */}
 
 			<Button
 				variant="default"
 				type="submit"
-				className="flex flex-row items-center justify-center gap-2"
-				// className={`${isSubmitting ? "opacity-50" : "hover:bg-green-700"} flex flex-row items-center justify-center gap-2 rounded bg-green-500 p-4 text-white`}
+				className="flex w-full flex-row items-center justify-center gap-2"
 				disabled={isSubmitting}
 			>
 				{isSubmitting ? <Loading className="size-5 border-2 text-secondary" /> : <PlusIcon className="size-5" />}
 
 				{t("createAccount")}
 			</Button>
+
+			<Separator className="w-full bg-primary" />
+
+			<div className="flex w-full flex-col items-center justify-center gap-2 lg:flex-row lg:justify-between">
+
+				<Button size="lg" variant="outline" type="button" asChild={true} className="flex w-full flex-row items-center justify-center gap-2">
+					<Link
+						to={{
+							pathname: "/login",
+							search: preferredRedirect !== "" ? `?redirect=${preferredRedirect}` : ""
+						}}
+					>
+						<LogInIcon className="size-5" />
+
+						Connexion
+					</Link>
+				</Button>
+
+				<Button size="lg" variant="outline" type="button" asChild={true} className="flex w-full flex-row items-center justify-center gap-2">
+					<Link to={`/login/auth/google?redirect=${preferredRedirect}`}>
+						<GoogleIcon className="fill-primary" />
+
+						Créer un compte avec Google
+					</Link>
+				</Button>
+			</div>
 		</Form>
 	)
 }

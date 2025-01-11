@@ -1,4 +1,4 @@
-import { Form, Link, useSearchParams } from "@remix-run/react"
+import { Form, Link, useLocation, useSearchParams } from "@remix-run/react"
 import InputForm, { type FieldErrors } from "./inputForm"
 import { useEffect, useState } from "react"
 import { useRemixForm } from "remix-hook-form"
@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button"
 import { ShowButtonComponent } from "../button/showHideButton"
 import Loading from "../loading"
 import { useTranslation } from "react-i18next"
-import { LockKeyholeIcon, LogInIcon, UserIcon } from "lucide-react"
+import { LockKeyholeIcon, LogInIcon, UserIcon, UserRoundPlusIcon } from "lucide-react"
 import { Separator } from "../ui/separator"
+import { GoogleIcon } from "../svg/GoogleIcon"
 
 const schema = zod.object({
 	emailOrUsername: zod
@@ -37,6 +38,7 @@ interface LoginProps {
 }
 
 export default function Login({ redirect, callback }: LoginProps) {
+	const location = useLocation()
 	const { t } = useTranslation("login", {
 		useSuspense: false
 	})
@@ -90,40 +92,66 @@ export default function Login({ redirect, callback }: LoginProps) {
 				t={t}
 			/>
 
-			<InputForm
-				type={showPassword ? "text" : "password"}
-				name="password"
-				id="password"
-				placeholder={t("placeholders.password")}
-				autoComplete="current-password"
-				errors={errors as FieldErrors}
-				register={register}
-				Icon={LockKeyholeIcon}
-				ShowButton={<ShowButtonComponent show={showPassword} setShow={setShowPassword} />}
-				t={t}
-			/>
-
-			<Link
-				to={{
-					pathname: "/register",
-					search: preferredRedirect !== "" ? `?redirect=${preferredRedirect}` : ""
-				}}
-				className="text-center underline hover:text-slate-400 dark:text-white"
-			>
-				{t("notRegistered")}
-			</Link>
-			{/* <Link to="/forgot-password" className="text-white underline hover:text-slate-400 text-center">Mot de passe oublié ?</Link> */}
+			<div className="flex flex-col items-start w-full">
+				<InputForm
+					type={showPassword ? "text" : "password"}
+					name="password"
+					id="password"
+					placeholder={t("placeholders.password")}
+					autoComplete="current-password"
+					errors={errors as FieldErrors}
+					register={register}
+					Icon={LockKeyholeIcon}
+					ShowButton={<ShowButtonComponent show={showPassword} setShow={setShowPassword} />}
+					t={t}
+				/>
+				<Button variant="link" asChild={true} className="p-0">
+					<Link
+						to="/forgot-password"
+					>
+						Mot de passe oublié ?
+					</Link>
+				</Button>
+			</div>
 
 			<Button
 				variant="default"
 				type="submit"
-				className="flex flex-row items-center justify-center gap-2"
+				className="flex flex-row items-center justify-center gap-2 w-full"
 				disabled={isSubmitting}
 			>
 				{isSubmitting ? <Loading className="size-5 border-2 text-secondary" /> : <LogInIcon className="size-5" />}
 
 				{t("connect")}
 			</Button>
+
+			<Separator className="w-full bg-primary" />
+
+			<div className="flex w-full flex-col items-center justify-center gap-2 lg:flex-row lg:justify-between">
+				<Button size="lg" variant="outline" type="button" asChild={true} className="flex w-full flex-row items-center justify-center gap-2">
+					<Link
+						to={{
+							pathname: "/register",
+							search: preferredRedirect !== "" ? `?redirect=${preferredRedirect}` : ""
+						}}
+						className="flex flex-row items-center justify-center gap-2"
+					>
+						<UserRoundPlusIcon className="size-5" />
+
+						Créer un compte
+					</Link>
+				</Button>
+
+				<Button size="lg" variant="outline" type="button" asChild={true} className="flex w-full flex-row items-center justify-center gap-2">
+					<Link to={`/login/auth/google?redirect=${preferredRedirect}`}>
+						<GoogleIcon className="fill-primary" />
+
+						Connexion avec Google
+					</Link>
+				</Button>
+			</div>
+
+
 			{/* 
 			<Separator className="w-full h-[2px] bg-primary" />
 

@@ -280,7 +280,7 @@ const ChangeLanguage = memo(function ChangeLanguage({
 		<Form
 			method="POST"
 			action="/settings"
-			className="flex w-2/3 flex-col items-center justify-center gap-2 lg:w-1/2"
+			className="flex w-3/4 flex-col items-center justify-center gap-2 lg:w-1/2"
 		>
 			<Label htmlFor="language">{t("language")}</Label>
 			<Select name="language" defaultValue={language} onValueChange={handleChange}>
@@ -320,7 +320,7 @@ const ChangeTheme = memo(function ChangeTheme({
 	}
 
 	return (
-		<Form className="flex w-2/3 flex-col items-center justify-center gap-2 lg:w-1/2">
+		<Form className="flex w-3/4 flex-col items-center justify-center gap-2 lg:w-1/2">
 			<Label htmlFor="theme">{t("theme")}</Label>
 			<Select name="theme" defaultValue={theme} onValueChange={(value) => handleChange(value)}>
 				<SelectTrigger>
@@ -381,7 +381,7 @@ const ChangeHomePreferences = memo(function ChangeHomePreferences({
 	const sensors = useSensors(useSensor(PointerSensor))
 
 	return (
-		<Form className="flex w-2/3 flex-col items-center justify-center gap-2 lg:w-1/2 touch-pan-x">
+		<Form className="flex w-3/4 flex-col items-center justify-center gap-2 lg:w-1/2 touch-pan-x">
 			<Label className="text-center">Préférences de la page d'accueil</Label>
 			<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleChangePosition} modifiers={[restrictToParentElement]}>
 				<SortableContext
@@ -429,7 +429,7 @@ function SortableItem({ item }: { item: HomePreferences /*changeVisibility: (id:
 
 const ClearCache = memo(function ClearCache() {
 	return (
-		<Form method="POST" action="/settings?type=emptyCache" className="flex w-2/3 flex-col items-center justify-center gap-2 lg:w-1/2">
+		<Form method="POST" action="/settings?type=emptyCache" className="flex w-3/4 flex-col items-center justify-center gap-2 lg:w-1/2">
 			<Button variant="destructive" type="submit">
 				Vider le cache
 			</Button>

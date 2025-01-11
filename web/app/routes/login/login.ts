@@ -57,7 +57,20 @@ export default async function login({
 
 	const user = users[0]
 
-	const match = await bcrypt.compare(password, user.password)
+	if (user.loggedWithGoogle) {
+		return {
+			success: false,
+			error: true,
+			errors: {
+				emailOrUsername: {
+					message: "You have logged in with Google. Please use the Google login."
+				},
+			},
+			message: t("errors.invalidCredentials")
+		}
+	}
+
+	const match = await bcrypt.compare(password, user.password as string)
 	if (!match) {
 		logger.info("Password incorrect")
 

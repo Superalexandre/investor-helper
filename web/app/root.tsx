@@ -1,3 +1,4 @@
+import { Monitoring } from "react-scan/monitoring/remix"
 import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node"
 import {
 	isRouteErrorResponse,
@@ -33,7 +34,7 @@ import type { NotificationList } from "../../db/schema/notifications"
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const [user, theme, locale] = await Promise.all([getUser(request), getTheme(request), i18next.getLocale(request)])
-	
+
 	let notificationNumber = 0
 	if (user) {
 		notificationNumber = await getNotificationListNumber(user.id)
@@ -107,7 +108,12 @@ export function Layout({ children }: { children: ReactNode }) {
 				<meta name="mobile-web-app-capable" content="yes" />
 			</head>
 			<body className="flex min-h-screen flex-col">
-				<Header user={data?.user ?? null} t={t} notificationNumber={data?.notificationNumber ?? 0}/>
+				{/* <Monitoring
+					apiKey="hv4UcoTdsZZxibgbmuoXgWzcgN5BKuGv" // Safe to expose publically
+					url="https://monitoring.react-scan.com/api/v1/ingest"
+				/> */}
+
+				<Header user={data?.user ?? null} t={t} notificationNumber={data?.notificationNumber ?? 0} />
 
 				{children}
 

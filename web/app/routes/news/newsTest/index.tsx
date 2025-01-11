@@ -21,7 +21,7 @@ import type { CheckedState } from "@radix-ui/react-checkbox"
 import getNewsPreferences from "../../../lib/getNewsPreferences"
 import { getSourceList } from "../../../../utils/news"
 import { ArrowLeftIcon, ArrowRightIcon, FilterIcon, GlobeIcon, RssIcon, StarIcon } from "lucide-react"
-import { DotSeparator } from "../../../components/ui/separator"
+import { DotSeparator, Separator } from "../../../components/ui/separator"
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const [t, newsPreferences] = await Promise.all([
@@ -280,6 +280,7 @@ const DisplayFilter = memo(function DisplayFilter({
 
 					Tous les filtres
 				</Button>
+
 			</div>
 		</>
 	)
@@ -296,7 +297,7 @@ function PopupFilter({
 }) {
 	return (
 		<Dialog open={open} onOpenChange={(newOpen) => (newOpen ? null : onClose())}>
-			<DialogContent className="w-11/12 max-h-full overflow-auto">
+			<DialogContent className="max-h-full w-11/12 overflow-auto">
 				<DialogHeader>
 					<DialogTitle>Filtrez les actualités</DialogTitle>
 					<DialogDescription>Affinez les actualités en fonction de vos préférences</DialogDescription>
@@ -338,7 +339,7 @@ function FilterComponent({
 			{
 				type: "newsPreferences",
 				[type]: newItems.join(","),
-				redirect: "/news"
+				redirect: "/news/newsTest"
 			},
 			{
 				method: "POST",
@@ -459,21 +460,52 @@ const News = memo(function News({
 
 	return news.map((item) => (
 		<div
-			className="relative"
+			className="flex flex-col gap-4"
 			key={item.news.id}
 			id={item.news.id}
-			ref={(element) => {
-				newsRefs.current[item.news.id] = element
-			}}
 		>
-			{item.news.importanceScore > 50 ? (
-				<ImportanceBadge
-					starNumber={Math.floor(item.news.importanceScore / 50)}
-					className="-right-[10px] -top-[10px] absolute"
-				/>
-			) : null}
+			<Link to={`/news/${item.news.id}`}>
+				<h1 className="flex flex-row items-center gap-2 font-bold text-lg">
+					<img src={flags[item.news.lang]} alt={item.news.lang} className="size-5" />
 
-			<Card className="border-card-border">
+					{item.news.title}
+				</h1>
+			</Link>
+
+			<p>
+				{item.news_article.shortDescription}
+			</p>
+
+			<DisplaySymbols symbolList={item.relatedSymbols} hash={item.news.id} t={t} />
+
+			<div className="flex flex-col flex-wrap justify-start gap-1 text-muted-foreground lg:flex-row lg:items-center lg:gap-2">
+				<p className="w-full lg:w-auto">
+					{item.news.source}
+				</p>
+
+				<DotSeparator className="hidden lg:block" />
+
+				<p className="w-full lg:w-auto">
+					{new Date(item.news.published * 1000 || "").toLocaleDateString(language, {
+						hour: "numeric",
+						minute: "numeric",
+						year: "numeric",
+						month: "long",
+						day: "numeric",
+						timeZoneName: "shortOffset",
+						weekday: "long"
+					})}
+				</p>
+			</div>
+
+			<Separator className="bg-white h-[0.5px]" />
+		</div>
+	))
+})
+
+/*
+
+			{/* <Card className="border-card-border">
 				<Link
 					to={{
 						pathname: `/news/${item.news.id}`
@@ -485,7 +517,7 @@ const News = memo(function News({
 					}}
 				>
 					<CardHeader>
-						<CardTitle className="flex flex-row items-center gap-2 font-bold">
+						<CardTitle className="flex flex-row items-center gap-2">
 							<img src={flags[item.news.lang]} alt={item.news.lang} className="size-5" />
 
 							{item.news.title}
@@ -493,9 +525,7 @@ const News = memo(function News({
 					</CardHeader>
 				</Link>
 
-				<CardContent className="flex flex-col gap-6">
-					<p>{item.news_article.shortDescription}</p>
-
+				<CardContent>
 					<DisplaySymbols symbolList={item.relatedSymbols} hash={item.news.id} t={t} />
 				</CardContent>
 
@@ -519,6 +549,4 @@ const News = memo(function News({
 					</span>
 				</CardFooter>
 			</Card>
-		</div>
-	))
-})
+			*/

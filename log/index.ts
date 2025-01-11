@@ -11,10 +11,17 @@ const __dirname = path.dirname(__filename)
 const logDir = `${__dirname}/logs`
 
 interface CustomLogger extends Logger {
-	success: (message: string) => void
+	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+	critical: (message: string, ...meta: any[]) => void
+	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+	success: (message: string, ...meta: any[]) => void
 }
 
 function colorizeLevel(level: string): string {
+	if (level.toLowerCase() === "critical") {
+		return chalk.magenta(level)
+	}
+
 	if (level.toLowerCase() === "error") {
 		return chalk.red(level)
 	}
@@ -44,29 +51,43 @@ const dateFormat = "DD/MM/YYYY HH:mm:ss"
 
 const logger = winston.createLogger({
 	levels: {
-		error: 0,
-		warn: 1,
-		success: 2,
-		info: 3,
-		http: 4,
-		debug: 5
+		critical: 0,
+		error: 1,
+		warn: 2,
+		success: 3,
+		info: 4,
+		http: 5,
+		debug: 6
 	},
 	level: "info",
 	format: winston.format.combine(winston.format.timestamp({ format: dateFormat }), winston.format.json()),
 	defaultMeta: { service: "user-service" },
 	transports: [
+		new winston.transports.Console({ level: 'critical' }),
 		new winston.transports.File({ filename: `${logDir}/error.log`, level: "error" }),
 		new winston.transports.File({ filename: `${logDir}/combined.log` }),
 		new winston.transports.Console({
 			format: winston.format.combine(winston.format.timestamp({ format: dateFormat }), consoleFormat)
 		})
-	]
+	],
+
 }) as CustomLogger
 
-logger.success = (message: string): void => {
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+logger.success = (message: string, ...meta: any[]): void => {
 	logger.log({
 		level: "success",
-		message
+		message,
+		meta
+	})
+}
+
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+logger.critical = (message: string, ...meta: any[]): void => {
+	logger.log({
+		level: "error",
+		message,
+		meta
 	})
 }
 

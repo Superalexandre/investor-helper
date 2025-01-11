@@ -106,7 +106,7 @@ export default function Index() {
 				</div>
 			</div>
 
-			<div className="w-full px-4 lg:w-3/4">
+			<div className="w-full px-4 md:w-1/2">
 				<div className="flex flex-col items-center justify-center pb-8">
 					<h1 className="pt-4 text-center font-bold text-2xl">{news.news.title}</h1>
 
