@@ -66,6 +66,7 @@
         "i18next-fs-backend": "^2.3.2",
         "i18next-http-backend": "^3.0.0",
         "ical-generator": "^8.0.0",
+        "input-otp": "^1.4.2",
         "intl-parse-accept-language": "^1.0.0",
         "isbot": "^5.0.0",
         "konva": "^9.3.16",

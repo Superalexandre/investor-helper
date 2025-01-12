@@ -24,10 +24,14 @@ async function sendAccountActivationEmail(email: string) {
 	let emailEncrypted = cipher.update(email, "utf8", "hex")
 	emailEncrypted += cipher.final("hex")
 
+	// Generate a four digit code
+	const code = Math.floor(1000 + Math.random() * 9000).toString()
+
 	try {
 		await db.insert(verificationEmailSchema).values({
 			email: emailEncrypted,
-			token
+			token,
+			code
 		})
 	} catch (error) {
 		logger.error(error?.toString() || "Error inserting verification email", {
@@ -38,7 +42,7 @@ async function sendAccountActivationEmail(email: string) {
 	}
 
 	const subject = "Activate your account"
-	const text = `Click here to activate your account: ${process.env.CLIENT_URL}/profile/verify?token=${token}`
+	const text = `Click here to activate your account: ${process.env.CLIENT_URL}/profile/verify?token=${token}\n\nCode: ${code}`
 	sendEmail(email, subject, text)
 }
 
