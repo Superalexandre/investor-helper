@@ -6,6 +6,9 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 	const limit = url.searchParams.get("limit")
 	const page = url.searchParams.get("page")
 
+	const month = url.searchParams.get("month")
+	const year = url.searchParams.get("year")
+
 	// Convert the limit and page to numbers
 	const limitResult = limit ? Number.parseInt(limit) : 60
 	const pageResult = page ? Number.parseInt(page) : 1
@@ -13,11 +16,13 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 	const events = await getEvents({
 		limit: limitResult,
 		page: pageResult,
-		order: "asc"
+		order: "asc",
+		month: month ? Number.parseInt(month) : undefined,
+		year: year ? Number.parseInt(year) : undefined
 	})
 
 	// Await fake delay
-	// await new Promise(resolve => setTimeout(resolve, 5000))
+	// await new Promise(resolve => setTimeout(resolve, 10_000))
 
 	return events
 }

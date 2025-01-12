@@ -6,7 +6,7 @@ import { ScrollTop } from "@/components/scrollTop"
 import TimeCounter from "../../../components/timeCounter"
 import { useQuery } from "@tanstack/react-query"
 import type { Events } from "../../../../../db/schema/events"
-import { memo, useEffect, useRef } from "react"
+import { memo, type ReactNode, useEffect, useRef, useState } from "react"
 import SkeletonCalendar from "../../../components/skeletons/skeletonCalendar"
 import { useTranslation } from "react-i18next"
 import i18next from "../../../i18next.server"
@@ -14,6 +14,13 @@ import type { TFunction } from "i18next"
 import { countries } from "../../../i18n"
 import ImportanceBadge from "../../../components/importanceBadge"
 import { DotSeparator } from "../../../components/ui/separator"
+import { Button } from "../../../components/ui/button"
+import { CalendarBody, CalendarDate, CalendarDatePagination, CalendarDatePicker, CalendarHeader, CalendarMonthPicker, CalendarProvider, CalendarYearPicker, useCalendar } from "../../../components/ui/calendar"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../../../components/ui/dialog"
+import { EventDetails } from "../$id"
+import { Alert, AlertDescription, AlertTitle } from "../../../components/ui/alert"
+import { Skeleton } from "../../../components/ui/skeleton"
+import { addDays, endOfMonth, startOfMonth } from "date-fns"
 // import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs"
 // import { useState } from "react"
 // import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
@@ -52,6 +59,7 @@ export const handle = {
 
 export default function Index() {
 	const { t, i18n } = useTranslation("calendar")
+	const [display, setDisplay] = useState("calendar")
 
 	return (
 		<div>
@@ -70,8 +78,22 @@ export default function Index() {
                 </AccordionItem>
             </Accordion> */}
 
-			<div className="w-full px-4 pt-4 lg:px-10 lg:pt-10">
-				<EconomicCalendar t={t} language={i18n.language} />
+			{/* px-4 pt-4 lg:px-10 lg:pt-10 */}
+			<div className="w-full px-4 pt-4 lg:px-10 lg:pt-10 flex flex-col space-y-6">
+				<div className="flex flex-col">
+					<div className="space-x-4">
+						<Button variant="outline" onClick={() => setDisplay(display === "list" ? "calendar" : "list")}>
+							{display === "list" ? "Calendrier" : "Liste"}
+						</Button>
+					</div>
+				</div>
+
+				{display === "list" ? (
+					<EconomicCalendarList t={t} language={i18n.language} />
+				) : (
+					<EconomicCalendar t={t} language={i18n.language} />
+				)}
+
 			</div>
 			{/* <Tabs
 				defaultValue={tab}
@@ -103,6 +125,158 @@ export default function Index() {
 }
 
 const EconomicCalendar = memo(function EconomicCalendar({
+	t,
+	language
+}: {
+	t: TFunction,
+	language: string
+}) {
+	const { t: tCalendar } = useTranslation("calendarId")
+	const [focusEvent, setFocusEvent] = useState<Events | null>(null)
+	const calendar = useCalendar()
+
+	const month = calendar.month
+	const year = calendar.year
+
+	const {
+		data: events,
+		isPending,
+		error
+	} = useQuery<Events[]>({
+		queryKey: ["events", month, year],
+		queryFn: async () => {
+			const req = await fetch(`/api/calendar/economic?month=${month}&year=${year}`)
+
+			const json = await req.json()
+
+			return json
+		},
+		refetchOnWindowFocus: true
+	})
+
+	if (isPending) {
+		const safeYear = year
+		const safeMonth = month
+
+		const startMonth = startOfMonth(new Date(safeYear, safeMonth))
+
+		const skeletonArray = Array.from({ length: 31 }).map((_, index) => {
+			const newDate = addDays(startMonth, index)
+
+			return {
+				endAt: newDate.toISOString(),
+			}
+		})
+
+		return (
+			<div className="flex size-full items-center justify-center px-4 sm:p-0">
+				<div className="relative w-[90vh] max-w-[90vh] rounded-md border bg-background">
+					<CalendarProvider locale={language}>
+						<CalendarDate className="flex-col gap-2 sm:flex-row">
+							<CalendarDatePicker className="w-full justify-between sm:w-auto">
+								<CalendarMonthPicker />
+								<CalendarYearPicker start={2024} end={2025} />
+							</CalendarDatePicker>
+
+							<CalendarDatePagination className="w-full justify-between sm:w-auto" />
+						</CalendarDate>
+						<CalendarHeader
+							textDirection="center"
+						/>
+						<CalendarBody items={skeletonArray} maxItems={10}>
+							{({ item }): ReactNode => (
+								<Skeleton
+									key={item.endAt}
+									className="h-full w-full"
+								/>
+							)}
+						</CalendarBody>
+					</CalendarProvider>
+				</div>
+			</div>
+		)
+	}
+
+	if (error) {
+		throw error
+	}
+
+	return (
+		<div className="flex size-full items-center justify-center sm:p-0">
+			<Dialog
+				open={!!focusEvent}
+				onOpenChange={(open) => open ? null : setFocusEvent(null)}
+			>
+				<DialogContent className="max-h-[91%] w-11/12 max-w-[91%] overflow-auto lg:max-w-fit">
+					<DialogHeader>
+						<DialogTitle>Informations sur l'événements</DialogTitle>
+						<DialogDescription>
+							Informations détaillées sur l'événement {focusEvent?.title || ""}
+						</DialogDescription>
+					</DialogHeader>
+
+					<div className="relative">
+						<div className="flex w-full items-center justify-end">
+							<Button asChild={true} variant="default">
+								<Link to={`/calendar/${focusEvent?.id}`}>
+									Ouvrir la page de l'événement
+								</Link>
+							</Button>
+
+						</div>
+
+						{focusEvent ? (
+							<EventDetails
+								event={focusEvent}
+								language={language}
+								t={tCalendar}
+							/>
+						) : null}
+					</div>
+				</DialogContent>
+			</Dialog>
+
+			<div className="relative w-[100vh] max-w-[100vh] lg:w-[90vh] lg:max-w-[90vh] rounded-md border bg-background">
+				{!events || events.length === 0 ? (
+					<Alert variant="destructive" className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 z-10 flex h-1/2 w-1/2 transform flex-col items-center justify-center bg-destructive">
+						<AlertTitle className="text-destructive-foreground">
+							Aucun événement
+						</AlertTitle>
+						<AlertDescription className="text-destructive-foreground">
+							Aucun événement n'a été trouvé pour ce mois
+						</AlertDescription>
+					</Alert>
+
+				) : null}
+
+				<CalendarProvider locale={language}>
+					<CalendarDate className="flex-col gap-2 sm:flex-row">
+						<CalendarDatePicker className="w-full justify-between sm:w-auto">
+							<CalendarMonthPicker />
+							<CalendarYearPicker start={2024} end={2025} />
+						</CalendarDatePicker>
+
+						<CalendarDatePagination className="w-full justify-between sm:w-auto" />
+					</CalendarDate>
+					<CalendarHeader
+						textDirection="center"
+					/>
+					<CalendarBody items={events.map((event) => ({ ...event, endAt: event.date || "" }))} maxItems={10}>
+						{({ item }): ReactNode => (
+							<div className="ml-2 flex items-center gap-2" key={item.id}>
+								<button className="truncate" type="button" onClick={() => setFocusEvent(item)}>
+									{item.title}
+								</button>
+							</div>
+						)}
+					</CalendarBody>
+				</CalendarProvider>
+			</div>
+		</div>
+	)
+})
+
+const EconomicCalendarList = memo(function EconomicCalendarList({
 	t,
 	language
 }: {

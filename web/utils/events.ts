@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
 import config from "../../config.js"
-import { startOfWeek, formatISO, addDays } from "date-fns"
+import { startOfWeek, formatISO, addDays, startOfMonth, endOfMonth } from "date-fns"
 import { type Events, eventsSchema } from "../../db/schema/events.js"
 import { and, asc, desc, eq, gte, isNotNull, like, lte, or } from "drizzle-orm"
 import type { EventRaw } from "../types/Events.js"
@@ -10,23 +10,49 @@ import logger from "../../log/index.js"
 async function getEvents({
 	page = 1,
 	limit = 10,
-	order = "desc"
-}: { page?: number; limit?: number; order?: "asc" | "desc" }) {
+	order = "desc",
+	month,
+	year
+}: { page?: number; limit?: number; order?: "asc" | "desc"; month?: number; year?: number } = {}) {
 	const sqlite = new Database("../db/sqlite.db")
 	const db = drizzle(sqlite)
 
 	const referenceDate = new Date()
-
 	referenceDate.setMinutes(referenceDate.getMinutes() - 20)
+
+	const today = new Date()
+
+	// Set the from and to dates with the month and year parameters
+	const safeYear = year || today.getFullYear()
+	const safeMonth = month || today.getMonth()
+
+	const from = startOfMonth(new Date(safeYear, safeMonth))
+	const to = endOfMonth(new Date(safeYear, safeMonth))
+
+	console.log(from, to, month, year)
 
 	const allEvents = await db
 		.select()
 		.from(eventsSchema)
-		.limit(limit)
-		.offset(limit * (page - 1))
-		.where(and(isNotNull(eventsSchema.date), gte(eventsSchema.date, referenceDate.toISOString())))
+		.limit(!month && !year ? limit : -1)
+		.offset(!month && !year ? limit * (page - 1) : 0)
+		.where(
+			and(
+				isNotNull(eventsSchema.date),
+				and(
+					month || year ? and(
+						gte(eventsSchema.date, from.toISOString()),
+						lte(eventsSchema.date, to.toISOString())
+					) : undefined,
+					// year ? and(
+					// 	gte(eventsSchema.date, from.toISOString()),
+					// 	lte(eventsSchema.date, to.toISOString())
+					// ) : undefined,
+					!month && !year ? gte(eventsSchema.date, referenceDate.toISOString()) : undefined
+				)
+			)
+		)
 		.orderBy(order === "asc" ? asc(eventsSchema.date) : desc(eventsSchema.date))
-	// .orderBy(desc(eventsSchema.referenceDate))
 
 	return allEvents
 }
@@ -51,7 +77,8 @@ async function fetchEvents() {
 
 	const from = formatISO(startOfWeek(now, { weekStartsOn: 0 }))
 
-	const dayToAdd = config.calendarPreferences.numberOfDays
+	// const dayToAdd = config.calendarPreferences.numberOfDays
+	const dayToAdd = 31 * 3
 	const to = formatISO(addDays(new Date(from), dayToAdd))
 
 	const countries = [
@@ -102,7 +129,7 @@ async function fetchEvents() {
 		// if (!response.ok) return { success: false, error: true, message: "Error fetching agenda (trading view error)", status: response.status }
 		if (!response.ok) {
 			logger.error(`Error fetching agenda (trading view error) ${response.status}`)
-		
+
 			return []
 		}
 
@@ -111,14 +138,14 @@ async function fetchEvents() {
 
 		if (!events || events.length === 0) {
 			logger.error("No events found")
-		
+
 			return []
 		}
 
 		return events as EventRaw[]
 	} catch (error) {
 		logger.error("Error fetching agenda (can't fetch)", error)
-	
+
 		return []
 	}
 }

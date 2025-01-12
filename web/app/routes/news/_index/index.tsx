@@ -257,6 +257,12 @@ const DisplayFilter = memo(function DisplayFilter({
 			</PopupFilter>
 
 			<div className="flex flex-row items-center gap-2 overflow-x-auto">
+				<Button variant={opened === "all" ? "default" : "outline"} onClick={handleOpen("all")} className="flex flex-row items-center gap-2">
+					<FilterIcon className="size-5" />
+
+					Tous les filtres
+				</Button>
+				
 				<Button variant={opened === "languages" ? "default" : "outline"} onClick={handleOpen("languages")} className="flex flex-row items-center gap-2">
 					<GlobeIcon className="size-5" />
 
@@ -273,12 +279,6 @@ const DisplayFilter = memo(function DisplayFilter({
 					<StarIcon className="size-5" />
 
 					Importance ({selectedImportance.length})
-				</Button>
-
-				<Button variant={opened === "all" ? "default" : "outline"} onClick={handleOpen("all")} className="flex flex-row items-center gap-2">
-					<FilterIcon className="size-5" />
-
-					Tous les filtres
 				</Button>
 			</div>
 		</>

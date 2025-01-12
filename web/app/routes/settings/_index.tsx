@@ -327,9 +327,9 @@ const ChangeTheme = memo(function ChangeTheme({
 					<SelectValue placeholder={t("chooseTheme")} />
 				</SelectTrigger>
 				<SelectContent>
-					<SelectItem value="light-dark">Sombre</SelectItem>
+					<SelectItem value="light-dark">{t("dark")}</SelectItem>
 					<SelectItem value="light">{t("light")}</SelectItem>
-					<SelectItem value="dark">Très sombre</SelectItem>
+					<SelectItem value="dark">{t("veryDark")}</SelectItem>
 				</SelectContent>
 			</Select>
 		</Form>
