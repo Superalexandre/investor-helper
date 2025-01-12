@@ -3,7 +3,7 @@ import { Card, CardContent, CardTitle } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Button } from "../../components/ui/button";
-import { type ActionFunction, redirect } from "@remix-run/node";
+import type { ActionFunction, LoaderFunction, MetaFunction } from "@remix-run/node";
 import { SquareAsteriskIcon } from "lucide-react";
 import crypto from "node:crypto"
 import Database from "better-sqlite3";
@@ -15,17 +15,47 @@ import logger from "../../../../log";
 import { sendEmail } from "../../../utils/email/email";
 import { cn } from "../../lib/utils";
 import { formatDistance } from "date-fns";
+import { useTranslation } from "react-i18next";
+import i18next from "../../i18next.server";
+import { dateFns } from "../../i18n";
+import { z as zod } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { getValidatedFormData, useRemixForm } from "remix-hook-form";
+
+const schema = zod.object({
+    email: zod.string({
+        required_error: "errors.requiredEmail"
+    }).email("errors.invalidEmail")
+
+})
+
+type FormData = zod.infer<typeof schema>
+const resolver = zodResolver(schema)
+
+export const loader: LoaderFunction = async ({ request }) => {
+    const [t] = await Promise.all([
+        i18next.getFixedT(request, "forgotPassword")
+    ])
+
+    return {
+        title: t("title"),
+        description: t("description")
+    }
+}
 
 export const action: ActionFunction = async ({ request }) => {
-    const body = new URLSearchParams(await request.text())
-    const email = body.get("email")
+    const [t, language] = await Promise.all([
+        i18next.getFixedT(request, "forgotPassword"),
+        i18next.getLocale(request)
+    ])
 
-    if (!email) {
-        return {
-            success: false,
-            message: "Missing email"
-        }
+    const { errors, data, receivedValues: defaultValues } = await getValidatedFormData<FormData>(request, resolver)
+
+    if (errors) {
+        return { errors, defaultValues }
     }
+
+    const email = data.email
 
     // Check if the email exists in the database
     // If it does, send an email with a token to reset the password
@@ -46,8 +76,11 @@ export const action: ActionFunction = async ({ request }) => {
 
     if (!user || user.length === 0) {
         return {
-            success: false,
-            message: "Email not found"
+            errors: {
+                email: {
+                    message: t("emailNotFound")
+                }
+            }
         }
     }
 
@@ -65,9 +98,14 @@ export const action: ActionFunction = async ({ request }) => {
         const FIVE_MINUTES_IN_MS = 5 * 60 * 1000
 
         if (diff < FIVE_MINUTES_IN_MS) {
+            const distance = formatDistance(new Date(createdAt.getTime() + FIVE_MINUTES_IN_MS), now, { includeSeconds: true, locale: dateFns[language] })
+
             return {
-                success: false,
-                message: `Email already sent please wait ${formatDistance(new Date(createdAt.getTime() + FIVE_MINUTES_IN_MS), new Date(), { includeSeconds: true })}`,
+                errors: {
+                    email: {
+                        message: `${t("alreadySent")} ${distance}`
+                    }
+                }
             }
         }
 
@@ -82,8 +120,11 @@ export const action: ActionFunction = async ({ request }) => {
             })
 
             return {
-                success: false,
-                message: "Unknown error"
+                errors: {
+                    email: {
+                        message: "Unknown error"
+                    }
+                }
             }
         }
     }
@@ -104,8 +145,11 @@ export const action: ActionFunction = async ({ request }) => {
         })
 
         return {
-            success: false,
-            message: "Unknown error"
+            errors: {
+                email: {
+                    message: "Unknown error"
+                }
+            }
         }
     }
 
@@ -119,12 +163,46 @@ export const action: ActionFunction = async ({ request }) => {
 
     return {
         success: true,
-        message: "Email sent"
+        message: t("success")
     }
 }
 
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+    if (!data) {
+        return []
+    }
+
+    const { title, description } = data
+
+    return [
+        { title: title },
+        { name: "og:title", content: title },
+        { name: "description", content: description },
+        { name: "og:description", content: description },
+        { tagName: "link", rel: "canonical", href: "https://www.investor-helper.com/register" }
+    ]
+}
+
+export const handle = {
+    i18n: "forgotPassword",
+}
+
 export default function Index() {
+    const { t } = useTranslation("forgotPassword")
     const result = useActionData<typeof action>()
+
+    const {
+        handleSubmit,
+        formState: { errors, isSubmitting, isSubmitSuccessful },
+        register
+    } = useRemixForm<FormData>({
+        mode: "onSubmit",
+        submitConfig: {
+            action: "/forgot-password",
+            method: "POST"
+        },
+        resolver
+    })
 
     return (
         <div className="flex h-screen w-screen flex-1 flex-col items-center justify-center p-4">
@@ -132,28 +210,34 @@ export default function Index() {
                 <CardTitle className="flex flex-row items-center justify-center gap-2 pt-4 pb-8 text-center font-bold text-3xl dark:text-white">
                     <SquareAsteriskIcon className="size-8" />
 
-                    Mot de passe oublié
+                    {t("forgotPassword")}
                 </CardTitle>
                 <CardContent className="flex h-full w-full items-center justify-center">
                     <div className="w-11/12 lg:w-1/2">
-                        <Form method="post" action="/forgot-password" className="flex size-full flex-col items-center justify-center gap-4">
-                            <Label htmlFor="email">Email de votre compte</Label>
+                        <Form method="post" action="/forgot-password" className="flex size-full flex-col items-center justify-center gap-4" onSubmit={handleSubmit}>
+                            <Label htmlFor="email">{t("emailAccount")}</Label>
                             <Input
                                 type="email"
-                                name="email"
                                 id="email"
-                                placeholder="Email"
+                                placeholder={t("email")}
                                 autoComplete="email"
+                                {...register("email")}
                             />
 
-                            {result?.message ? (
-                                <div className={cn("w-full", result.success ? "text-green-500" : "text-red-500")}>
-                                    {result.message}
-                                </div>
+                            {errors?.email?.message ? (
+                                <span className={cn("w-full text-center text-red-500 text-sm lg:text-left")}>
+                                    {t(errors.email?.message?.toString())}
+                                </span>
                             ) : null}
 
+                            {result?.message ? (
+                                <span className={cn("w-full text-center text-green-500 text-sm lg:text-left")}>
+                                    {result.message}
+                                </span>
+                            ) : null}
+                            
                             <Button type="submit" variant="default">
-                                Envoyer
+                                {t("send")}
                             </Button>
                         </Form>
                     </div>

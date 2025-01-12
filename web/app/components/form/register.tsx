@@ -197,18 +197,6 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				) : null}
 			</div>
 
-			{/* <Link
-				to={{
-					pathname: "/login",
-					search: preferredRedirect !== "" ? `?redirect=${preferredRedirect}` : ""
-				}}
-				className="text-center underline hover:text-slate-400 dark:text-white"
-			>
-				{t("haveAccount")}
-			</Link> */}
-
-			{/* <Link to="/forgot-password" className="text-white underline hover:text-slate-400 text-center">Mot de passe oublié ?</Link> */}
-
 			<Button
 				variant="default"
 				type="submit"
@@ -233,7 +221,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 					>
 						<LogInIcon className="size-5" />
 
-						Connexion
+						{t("connection")}
 					</Link>
 				</Button>
 
@@ -241,7 +229,7 @@ export default function Register({ redirect, callback }: RegisterProps) {
 					<Link to={`/login/auth/google?redirect=${preferredRedirect}`}>
 						<GoogleIcon className="fill-primary" />
 
-						Créer un compte avec Google
+						{t("createGoogleAccount")}
 					</Link>
 				</Button>
 			</div>

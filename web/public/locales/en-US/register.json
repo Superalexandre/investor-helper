@@ -7,6 +7,8 @@
     "terms": "terms of service",
     "privacy": "privacy policy",
     "haveAccount": "Already have an account? Log in",
+    "connection": "Log In",
+    "createGoogleAccount": "Create an account with Google",
     "placeholders": {
         "name": "Name",
         "firstName": "First Name",
@@ -26,7 +28,7 @@
         "usernameInvalid": "Username can only contain letters, numbers, and dashes",
         "emailInvalid": "Email is not valid",
         "passwordMinLength": "Password must be at least 8 characters long",
-        "passwordMaxLength": "Password must be at most 32 characters long",
+        "passwordMaxLength": "Password must be at most 255 characters long",
         "passwordInvalid": "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
         "confirmPassword": "Passwords do not match",
         "usernameExists": "This username is already taken",

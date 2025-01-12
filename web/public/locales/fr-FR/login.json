@@ -4,6 +4,9 @@
     "connexion": "Connexion",
     "notRegistered": "Pas encore inscrit ? Créez un compte !",
     "connect": "Se connecter",
+    "createAccount": "Créer un compte",
+    "loginGoogle": "Se connecter avec Google",
+    "forgotPassword": "Mot de passe oublié ?",
     "placeholders": {
         "emailOrUsername": "Nom d'utilisateur ou adresse mail",
         "password": "Mot de passe"

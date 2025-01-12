@@ -1,10 +1,8 @@
 import { LockKeyholeIcon, SquareAsteriskIcon } from "lucide-react";
 import { Card, CardContent, CardTitle } from "../../components/ui/card";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
-import { Label } from "../../components/ui/label";
-import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
-import { type ActionFunction, type LoaderFunction, redirect } from "@remix-run/node";
+import { type ActionFunction, type LoaderFunction, type MetaFunction, redirect } from "@remix-run/node";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
 import { resetPasswordEmailSchema } from "../../../../db/schema/password";
@@ -16,17 +14,18 @@ import bcrypt from "bcryptjs"
 import { cn } from "../../lib/utils";
 import { z as zod } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRemixForm } from "remix-hook-form";
+import { getValidatedFormData, useRemixForm } from "remix-hook-form";
 import InputForm, { type FieldErrors } from "../../components/form/inputForm";
 import { useState } from "react";
 import { ShowButtonComponent } from "../../components/button/showHideButton";
 import { useTranslation } from "react-i18next";
+import i18next from "../../i18next.server";
 
 const schema = zod.object({
-    password: zod.string().min(8, "Password must be at least 8 characters").max(255, "Password must be at most 255 characters"),
-    confirmPassword: zod.string().min(8, "Password must be at least 8 characters").max(255, "Password must be at most 255 characters")
+    password: zod.string().min(8, "errors.passwordMinLength").max(255, "errors.passwordMaxLength"),
+    confirmPassword: zod.string().min(8, "errors.passwordMinLength").max(255, "errors.passwordMaxLength")
 }).refine(data => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
+    message: "errors.confirmPassword",
     path: ["confirmPassword"]
 })
 
@@ -37,6 +36,8 @@ export const loader: LoaderFunction = async ({ request }) => {
     // Check if the user have a token in the URL and if it's valid
     // If it is, show the form to reset the password
     // If it isn't, redirect to the login page
+    const t = await i18next.getFixedT(request, "resetPassword")
+
     const url = new URL(request.url)
     const token = url.searchParams.get("token")
 
@@ -54,38 +55,46 @@ export const loader: LoaderFunction = async ({ request }) => {
         return redirect("/login")
     }
 
+    const title = t("title")
+    const description = t("description")
+
     return {
-        token
+        token,
+        title,
+        description
     }
 }
 
 export const action: ActionFunction = async ({ request }) => {
+    const t = await i18next.getFixedT(request, "resetPassword")
     const url = new URL(request.url)
     const token = url.searchParams.get("token")
 
-    const body = new URLSearchParams(await request.text())
-    const password = body.get("password")
-    const confirmPassword = body.get("confirmPassword")
+    // const body = new URLSearchParams(await request.text())
+    // const password = body.get("password")
+    // const confirmPassword = body.get("confirmPassword")
+    const { errors, data, receivedValues: defaultValues } = await getValidatedFormData<FormData>(request, resolver)
 
-    if (!password || !confirmPassword || !token) {
-        console.log({
-            password,
-            confirmPassword,
-            token
-        })
-
-        return {
-            success: false,
-            message: "Missing fields"
-        }
+    if (errors) {
+        return { errors, defaultValues }
     }
+
+    if (!token) {
+        return redirect("/login")
+    }
+
+    const password = data.password
+    const confirmPassword = data.confirmPassword
 
     if (password !== confirmPassword) {
         logger.warn("Passwords don't match")
 
         return {
-            success: false,
-            message: "Passwords don't match"
+            errors: {
+                confirmPassword: {
+                    message: t("errors.passwordsDontMatch")
+                }
+            }
         }
     }
 
@@ -96,9 +105,13 @@ export const action: ActionFunction = async ({ request }) => {
 
     if (!user || user.length === 0) {
         logger.warn("Invalid token")
+
         return {
-            success: false,
-            message: "Invalid token"
+            errors: {
+                password: {
+                    message: "Invalid token"
+                }
+            }
         }
     }
 
@@ -126,10 +139,27 @@ export const action: ActionFunction = async ({ request }) => {
     logger.success(`Password reset for ${newUser[0].username}`)
 
     // return redirect("/login")
+
     return {
         success: true,
-        message: "Password reset"
+        message: t("success")
     }
+}
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+    if (!data) {
+        return []
+    }
+
+    const { title, description } = data
+
+    return [
+        { title: title },
+        { name: "og:title", content: title },
+        { name: "description", content: description },
+        { name: "og:description", content: description },
+        { tagName: "link", rel: "canonical", href: "https://www.investor-helper.com/reset-password" }
+    ]
 }
 
 export const handle = {
@@ -147,7 +177,7 @@ export default function Index() {
 
     const {
         handleSubmit,
-        formState: { errors, isSubmitting, isSubmitSuccessful },
+        formState: { errors },
         register
     } = useRemixForm<FormData>({
         mode: "onSubmit",
@@ -157,13 +187,14 @@ export default function Index() {
         },
         resolver
     })
+
     return (
         <div className="flex h-screen w-screen flex-1 flex-col items-center justify-center p-4">
             <Card className="size-full lg:size-1/2">
                 <CardTitle className="flex flex-row items-center justify-center gap-2 pt-4 pb-8 text-center font-bold text-3xl dark:text-white">
                     <SquareAsteriskIcon className="size-8" />
 
-                    Réinitialisation de mot de passe
+                    {t("resetPassword")}
                 </CardTitle>
                 <CardContent className="flex h-full w-full items-center justify-center">
                     <div className="w-11/12 lg:w-1/2">
@@ -174,19 +205,11 @@ export default function Index() {
                             onSubmit={handleSubmit}
                         >
                             <div className="w-full">
-                                {/* <Label htmlFor="password">Nouveau mot de passe</Label>
-                                <Input
-                                    type="password"
-                                    id="password"
-                                    placeholder="Nouveau mot de passe"
-                                    autoComplete="new-password"
-                                    {...register("password")}
-                                /> */}
                                 <InputForm
                                     type={showPassword ? "text" : "password"}
                                     name="password"
                                     id="password"
-                                    placeholder="Nouveau mot de passe"
+                                    placeholder={t("newPassword")}
                                     autoComplete="new-password"
                                     errors={errors as FieldErrors}
                                     register={register}
@@ -196,13 +219,11 @@ export default function Index() {
                                 />
                             </div>
                             <div className="w-full">
-
-
                                 <InputForm
                                     type={showPasswordConfirmation ? "text" : "password"}
                                     name="confirmPassword"
                                     id="confirmPassword"
-                                    placeholder="Confirmer le nouveau mot de passe"
+                                    placeholder={t("confirmNewPassword")}
                                     autoComplete="new-password"
                                     errors={errors as FieldErrors}
                                     register={register}
@@ -219,7 +240,7 @@ export default function Index() {
                             ) : null}
 
                             <Button type="submit" variant="default">
-                                Réinitialiser
+                                {t("reset")}
                             </Button>
                         </Form>
                     </div>

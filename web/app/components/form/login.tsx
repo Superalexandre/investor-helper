@@ -1,4 +1,4 @@
-import { Form, Link, useLocation, useSearchParams } from "@remix-run/react"
+import { Form, Link, useSearchParams } from "@remix-run/react"
 import InputForm, { type FieldErrors } from "./inputForm"
 import { useEffect, useState } from "react"
 import { useRemixForm } from "remix-hook-form"
@@ -38,7 +38,6 @@ interface LoginProps {
 }
 
 export default function Login({ redirect, callback }: LoginProps) {
-	const location = useLocation()
 	const { t } = useTranslation("login", {
 		useSuspense: false
 	})
@@ -92,7 +91,7 @@ export default function Login({ redirect, callback }: LoginProps) {
 				t={t}
 			/>
 
-			<div className="flex flex-col items-start w-full">
+			<div className="flex w-full flex-col items-start">
 				<InputForm
 					type={showPassword ? "text" : "password"}
 					name="password"
@@ -106,10 +105,8 @@ export default function Login({ redirect, callback }: LoginProps) {
 					t={t}
 				/>
 				<Button variant="link" asChild={true} className="p-0">
-					<Link
-						to="/forgot-password"
-					>
-						Mot de passe oublié ?
+					<Link to="/forgot-password">
+						{t("forgotPassword")}
 					</Link>
 				</Button>
 			</div>
@@ -117,7 +114,7 @@ export default function Login({ redirect, callback }: LoginProps) {
 			<Button
 				variant="default"
 				type="submit"
-				className="flex flex-row items-center justify-center gap-2 w-full"
+				className="flex w-full flex-row items-center justify-center gap-2"
 				disabled={isSubmitting}
 			>
 				{isSubmitting ? <Loading className="size-5 border-2 text-secondary" /> : <LogInIcon className="size-5" />}
@@ -138,7 +135,7 @@ export default function Login({ redirect, callback }: LoginProps) {
 					>
 						<UserRoundPlusIcon className="size-5" />
 
-						Créer un compte
+						{t("createAccount")}
 					</Link>
 				</Button>
 
@@ -146,20 +143,10 @@ export default function Login({ redirect, callback }: LoginProps) {
 					<Link to={`/login/auth/google?redirect=${preferredRedirect}`}>
 						<GoogleIcon className="fill-primary" />
 
-						Connexion avec Google
+						{t("loginGoogle")}
 					</Link>
 				</Button>
 			</div>
-
-
-			{/* 
-			<Separator className="w-full h-[2px] bg-primary" />
-
-			<Button variant="ghost" asChild={true} type="button">
-				<Link to="#">
-					Connexion avec Google
-				</Link>
-			</Button> */}
 		</Form>
 	)
 }

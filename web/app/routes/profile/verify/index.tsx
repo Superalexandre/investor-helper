@@ -1,4 +1,4 @@
-import { type ActionFunction, type LoaderFunction, redirect } from "@remix-run/node"
+import { type ActionFunction, type LoaderFunction, type MetaFunction, redirect } from "@remix-run/node"
 import logger from "../../../../../log"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
@@ -16,16 +16,20 @@ import { getValidatedFormData, useRemixForm } from "remix-hook-form"
 import { Form, useLoaderData } from "@remix-run/react"
 import { z as zod } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useState } from "react"
+import i18next from "../../../i18next.server"
+import { useTranslation } from "react-i18next"
 
 const schema = zod.object({
-	code: zod.string().length(4, "errors.codeLength").regex(/^\d+$/, "errors.codeInvalid"),
+	code: zod.string({
+		required_error: "errors.codeRequired"
+	}).length(4, "errors.codeLength").regex(/^\d+$/, "errors.codeInvalid"),
 })
 
 type FormData = zod.infer<typeof schema>
 const resolver = zodResolver(schema)
 
 export const loader: LoaderFunction = async ({ request }) => {
+	const t = await i18next.getFixedT(request, "verify")
 	const url = new URL(request.url)
 	const token = url.searchParams.get("token")
 
@@ -47,12 +51,18 @@ export const loader: LoaderFunction = async ({ request }) => {
 		return redirect("/")
 	}
 
+	const title = t("title")
+	const description = t("description")
+
 	return {
-		token
+		token,
+		title,
+		description
 	}
 }
 
 export const action: ActionFunction = async ({ request }) => {
+	const t = await i18next.getFixedT(request, "verify")
 	const url = new URL(request.url)
 	const token = url.searchParams.get("token")
 	const { errors, data } = await getValidatedFormData<FormData>(request, resolver)
@@ -85,7 +95,7 @@ export const action: ActionFunction = async ({ request }) => {
 		return {
 			errors: {
 				code: {
-					message: "Code invalid"
+					message: t("errors.codeInvalid")
 				}
 			}
 		}
@@ -134,7 +144,28 @@ export const action: ActionFunction = async ({ request }) => {
 	return redirect("/profile")
 }
 
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+	if (!data) {
+		return []
+	}
+
+	const { title, description } = data
+
+	return [
+		{ title: title },
+		{ name: "og:title", content: title },
+		{ name: "description", content: description },
+		{ name: "og:description", content: description },
+		{ tagName: "link", rel: "canonical", href: "https://www.investor-helper.com/verify" }
+	]
+}
+
+export const handle = {
+	i18n: "verify"
+}
+
 export default function Index() {
+	const { t} = useTranslation("verify")
 	const { token } = useLoaderData<typeof loader>()
 
 	const {
@@ -155,7 +186,7 @@ export default function Index() {
 		<div className="flex h-screen w-full flex-1 flex-col items-center justify-center p-4">
 			<Card className="size-full lg:size-1/2">
 				<CardTitle className="flex flex-row items-center justify-center gap-2 p-4 text-center font-bold text-3xl text-white">
-					Vérification de l'email
+					{t("verify")}
 				</CardTitle>
 				<CardContent className="flex h-full w-full items-center justify-center">
 					<Form
@@ -165,14 +196,13 @@ export default function Index() {
 						onSubmit={handleSubmit}
 					>
 						<Label>
-							Entrez le code de vérification reçu par email
+							{t("enterCode")}
 						</Label>
 
 						<InputOTP
 							maxLength={4}
 							pattern={REGEXP_ONLY_DIGITS}
 							onComplete={(): void => {
-								console.log("complete")
 								trigger("code")
 								handleSubmit()
 							}}
@@ -190,12 +220,12 @@ export default function Index() {
 							</InputOTPGroup>
 						</InputOTP>
 
-						{errors?.code ? (
-							<p className="text-red-500 text-sm">{errors.code.message}</p>
+						{errors?.code?.message ? (
+							<p className="text-red-500 text-sm">{t(errors.code.message)}</p>
 						) : null}
 
 						<Button type="submit" disabled={isSubmitting}>
-							Valider
+							{t("verify")}
 						</Button>
 					</Form>
 				</CardContent>

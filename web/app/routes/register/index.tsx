@@ -10,8 +10,10 @@ import { useTranslation } from "react-i18next"
 import { UserRoundPlusIcon } from "lucide-react"
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const t = await i18next.getFixedT(request, "register")
-	const user = await getUser(request)
+	const [t, user] = await Promise.all([
+		i18next.getFixedT(request, "register"),
+		getUser(request)
+	])
 
 	if (user) {
 		return redirect("/profile")
