@@ -20,7 +20,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { EventDetails } from "../$id"
 import { Alert, AlertDescription, AlertTitle } from "../../../components/ui/alert"
 import { Skeleton } from "../../../components/ui/skeleton"
-import { addDays, endOfMonth, startOfMonth } from "date-fns"
+import { addDays, startOfMonth } from "date-fns"
 import { Maximize2Icon, Minimize2Icon } from "lucide-react"
 import { cn } from "../../../lib/utils"
 // import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs"
@@ -79,11 +79,11 @@ export default function Index() {
 
 				{/* px-4 pt-4 lg:px-10 lg:pt-10 */}
 				{/* w-full flex-col space-y-6 px-4 pt-4 lg:px-10 lg:pt-10 */}
-				<div 
-				className={cn(
-					"flex h-full min-h-0 w-full flex-col space-y-6", 
-					isCalendar && fullScreen ? "px-0 pt-0" : "px-4 pt-4 lg:px-10 lg:pt-10"
-				)}>
+				<div
+					className={cn(
+						"flex h-full min-h-0 w-full flex-col space-y-6",
+						isCalendar && fullScreen ? "px-0 pt-0" : "px-4 pt-4 lg:px-10 lg:pt-10"
+					)}>
 					{isCalendar && fullScreen ? null : (
 						<div className="flex flex-col">
 							<div className="space-x-4">
@@ -97,9 +97,9 @@ export default function Index() {
 					{display === "list" ? (
 						<EconomicCalendarList t={t} language={i18n.language} />
 					) : (
-						<EconomicCalendar 
-							t={t} 
-							language={i18n.language} 
+						<EconomicCalendar
+							t={t}
+							language={i18n.language}
 							isFullScreen={fullScreen}
 							setFullScreen={() => setFullScreen(!fullScreen)}
 						/>
@@ -186,7 +186,7 @@ const EconomicCalendar = memo(function EconomicCalendar({
 		})
 
 		return (
-			<div className="flex h-full min-h-0 w-full items-center justify-center px-4 sm:p-0">
+			<div className="flex h-full min-h-0 w-full items-center justify-center">
 				<div className="relative h-full w-full rounded-md border bg-background">
 					<CalendarProvider locale={language}>
 						<CalendarDate className="flex-col gap-2 sm:flex-row">
@@ -195,7 +195,28 @@ const EconomicCalendar = memo(function EconomicCalendar({
 								<CalendarYearPicker start={2024} end={2025} />
 							</CalendarDatePicker>
 
-							<CalendarDatePagination className="w-full justify-between sm:w-auto" />
+
+							<div className="flex w-full flex-col items-center justify-between sm:w-auto sm:flex-row">
+								<CalendarDatePagination className="flex w-full flex-row justify-between" />
+
+								<Button
+									variant="ghost"
+									onClick={setFullScreen}
+									className="flex flex-row items-center justify-center gap-2"
+								>
+									{isFullScreen ? (
+										<>
+											<span className="block sm:hidden">Minimiser</span>
+											<Minimize2Icon size={16} />
+										</>
+									) : (
+										<>
+											<span className="block sm:hidden">Maximiser</span>
+											<Maximize2Icon size={16} />
+										</>
+									)}
+								</Button>
+							</div>
 						</CalendarDate>
 						<CalendarHeader
 							textDirection="center"
@@ -254,41 +275,52 @@ const EconomicCalendar = memo(function EconomicCalendar({
 			</Dialog>
 
 			<div className="relative h-full w-full rounded-md border bg-background">
-				{!events || events.length === 0 ? (
-					<Alert variant="destructive" className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 z-10 flex h-1/2 w-1/2 transform flex-col items-center justify-center bg-destructive">
-						<AlertTitle className="text-destructive-foreground">
-							Aucun événement
-						</AlertTitle>
-						<AlertDescription className="text-destructive-foreground">
-							Aucun événement n'a été trouvé pour ce mois
-						</AlertDescription>
-					</Alert>
-
-				) : null}
-
-				<CalendarProvider locale={language}>
+				<CalendarProvider locale={language} className="relative">
 					<CalendarDate className="flex-col gap-2 sm:flex-row">
 						<CalendarDatePicker className="w-full justify-between sm:w-auto">
 							<CalendarMonthPicker />
 							<CalendarYearPicker start={2024} end={2025} />
 						</CalendarDatePicker>
 
-						<CalendarDatePagination className="w-full justify-between sm:w-auto" />
+						<div className="flex w-full flex-col items-center justify-between sm:w-auto sm:flex-row">
+							<CalendarDatePagination className="flex w-full flex-row justify-between" />
 
-						<Button 
-							variant="ghost"
-							onClick={setFullScreen}
-						>
-							{isFullScreen ? (
-								<Minimize2Icon />
-							) : (
-								<Maximize2Icon />
-							)}
-						</Button>
+							<Button
+								variant="ghost"
+								onClick={setFullScreen}
+								className="flex flex-row items-center justify-center gap-2"
+							>
+								{isFullScreen ? (
+									<>
+										<span className="block sm:hidden">Minimiser</span>
+										<Minimize2Icon size={16} />
+									</>
+								) : (
+									<>
+										<span className="block sm:hidden">Maximiser</span>
+										<Maximize2Icon size={16} />
+									</>
+								)}
+							</Button>
+						</div>
+
 					</CalendarDate>
 					<CalendarHeader
 						textDirection="center"
 					/>
+
+					{!events || events.length === 0 ? (
+						<Alert variant="destructive" className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 z-10 flex h-1/2 w-1/2 transform flex-col items-center justify-center bg-destructive">
+							<AlertTitle className="text-destructive-foreground">
+								Aucun événement
+							</AlertTitle>
+							<AlertDescription className="text-destructive-foreground">
+								Aucun événement n'a été trouvé pour ce mois
+							</AlertDescription>
+						</Alert>
+
+					) : null}
+
 					<CalendarBody items={events.map((event) => ({ ...event, endAt: event.date || "" }))} maxItems={10}>
 						{({ item }): ReactNode => (
 							<div className="ml-2 flex items-center gap-2" key={item.id}>
