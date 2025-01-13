@@ -334,12 +334,12 @@ const CalendarBody = <T extends CalendarItem,>({ items, children, maxItems = 3 }
     }
 
     return (
-        <div className="grid flex-grow grid-cols-7 ">
+        <div className="grid flex-grow grid-cols-7 h-full min-h-0">
             {days.map((day, index) => (
                 <div
                     key={index}
                     className={cn(
-                        'relative aspect-square overflow-hidden border-t border-r',
+                        'relative aspect-square overflow-hidden border-t border-r size-full',
                         index % 7 === 6 && 'border-r-0'
                     )}
                 >
@@ -533,7 +533,7 @@ const CalendarProvider = ({
     className,
 }: CalendarProviderProps) => (
     <CalendarContext.Provider value={{ locale, startDay }}>
-        <div className={cn('relative flex flex-col', className)}>{children}</div>
+        <div className={cn('relative flex flex-col size-full', className)}>{children}</div>
     </CalendarContext.Provider>
 );
 

@@ -21,6 +21,8 @@ import { EventDetails } from "../$id"
 import { Alert, AlertDescription, AlertTitle } from "../../../components/ui/alert"
 import { Skeleton } from "../../../components/ui/skeleton"
 import { addDays, endOfMonth, startOfMonth } from "date-fns"
+import { Maximize2Icon, Minimize2Icon } from "lucide-react"
+import { cn } from "../../../lib/utils"
 // import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs"
 // import { useState } from "react"
 // import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
@@ -60,39 +62,50 @@ export const handle = {
 export default function Index() {
 	const { t, i18n } = useTranslation("calendar")
 	const [display, setDisplay] = useState("calendar")
+	const [fullScreen, setFullScreen] = useState(false)
+
+	const isCalendar = display === "calendar"
 
 	return (
-		<div>
-			<ScrollTop showBelow={250} />
+		<div className="h-[calc(100vh-64px)]">
+			<div className="flex h-full flex-col items-center">
+				<ScrollTop showBelow={250} />
 
-			<div className="flex flex-col items-center justify-center space-y-4">
-				<p className="pt-4 text-center font-bold text-2xl">{t("events")}</p>
-			</div>
-
-			{/* <Accordion type="single" collapsible className="px-4 lg:px-10">
-                <AccordionItem value="item-1">
-                    <AccordionTrigger>Événements important passés aujourd'hui</AccordionTrigger>
-                    <AccordionContent>
-                        TOUT LES ÉVÉNEMENTS PASSÉS
-                    </AccordionContent>
-                </AccordionItem>
-            </Accordion> */}
-
-			{/* px-4 pt-4 lg:px-10 lg:pt-10 */}
-			<div className="w-full px-4 pt-4 lg:px-10 lg:pt-10 flex flex-col space-y-6">
-				<div className="flex flex-col">
-					<div className="space-x-4">
-						<Button variant="outline" onClick={() => setDisplay(display === "list" ? "calendar" : "list")}>
-							{display === "list" ? "Calendrier" : "Liste"}
-						</Button>
+				{isCalendar && fullScreen ? null : (
+					<div className="flex flex-col items-center justify-center space-y-4 pt-4">
+						<p className="text-center font-bold text-2xl">{t("events")}</p>
 					</div>
-				</div>
-
-				{display === "list" ? (
-					<EconomicCalendarList t={t} language={i18n.language} />
-				) : (
-					<EconomicCalendar t={t} language={i18n.language} />
 				)}
+
+				{/* px-4 pt-4 lg:px-10 lg:pt-10 */}
+				{/* w-full flex-col space-y-6 px-4 pt-4 lg:px-10 lg:pt-10 */}
+				<div 
+				className={cn(
+					"flex h-full min-h-0 w-full flex-col space-y-6", 
+					isCalendar && fullScreen ? "px-0 pt-0" : "px-4 pt-4 lg:px-10 lg:pt-10"
+				)}>
+					{isCalendar && fullScreen ? null : (
+						<div className="flex flex-col">
+							<div className="space-x-4">
+								<Button variant="outline" onClick={() => setDisplay(display === "list" ? "calendar" : "list")}>
+									{display === "list" ? "Calendrier" : "Liste"}
+								</Button>
+							</div>
+						</div>
+					)}
+
+					{display === "list" ? (
+						<EconomicCalendarList t={t} language={i18n.language} />
+					) : (
+						<EconomicCalendar 
+							t={t} 
+							language={i18n.language} 
+							isFullScreen={fullScreen}
+							setFullScreen={() => setFullScreen(!fullScreen)}
+						/>
+					)}
+
+				</div>
 
 			</div>
 			{/* <Tabs
@@ -126,10 +139,14 @@ export default function Index() {
 
 const EconomicCalendar = memo(function EconomicCalendar({
 	t,
-	language
+	language,
+	isFullScreen,
+	setFullScreen
 }: {
 	t: TFunction,
 	language: string
+	isFullScreen: boolean,
+	setFullScreen: () => void
 }) {
 	const { t: tCalendar } = useTranslation("calendarId")
 	const [focusEvent, setFocusEvent] = useState<Events | null>(null)
@@ -169,8 +186,8 @@ const EconomicCalendar = memo(function EconomicCalendar({
 		})
 
 		return (
-			<div className="flex size-full items-center justify-center px-4 sm:p-0">
-				<div className="relative w-[90vh] max-w-[90vh] rounded-md border bg-background">
+			<div className="flex h-full min-h-0 w-full items-center justify-center px-4 sm:p-0">
+				<div className="relative h-full w-full rounded-md border bg-background">
 					<CalendarProvider locale={language}>
 						<CalendarDate className="flex-col gap-2 sm:flex-row">
 							<CalendarDatePicker className="w-full justify-between sm:w-auto">
@@ -202,7 +219,7 @@ const EconomicCalendar = memo(function EconomicCalendar({
 	}
 
 	return (
-		<div className="flex size-full items-center justify-center sm:p-0">
+		<div className="flex h-full min-h-0 w-full items-center justify-center sm:p-0">
 			<Dialog
 				open={!!focusEvent}
 				onOpenChange={(open) => open ? null : setFocusEvent(null)}
@@ -216,7 +233,7 @@ const EconomicCalendar = memo(function EconomicCalendar({
 					</DialogHeader>
 
 					<div className="relative">
-						<div className="flex w-full items-center justify-end">
+						<div className="flex w-full items-center justify-center lg:justify-end">
 							<Button asChild={true} variant="default">
 								<Link to={`/calendar/${focusEvent?.id}`}>
 									Ouvrir la page de l'événement
@@ -236,7 +253,7 @@ const EconomicCalendar = memo(function EconomicCalendar({
 				</DialogContent>
 			</Dialog>
 
-			<div className="relative w-[100vh] max-w-[100vh] lg:w-[90vh] lg:max-w-[90vh] rounded-md border bg-background">
+			<div className="relative h-full w-full rounded-md border bg-background">
 				{!events || events.length === 0 ? (
 					<Alert variant="destructive" className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 z-10 flex h-1/2 w-1/2 transform flex-col items-center justify-center bg-destructive">
 						<AlertTitle className="text-destructive-foreground">
@@ -257,6 +274,17 @@ const EconomicCalendar = memo(function EconomicCalendar({
 						</CalendarDatePicker>
 
 						<CalendarDatePagination className="w-full justify-between sm:w-auto" />
+
+						<Button 
+							variant="ghost"
+							onClick={setFullScreen}
+						>
+							{isFullScreen ? (
+								<Minimize2Icon />
+							) : (
+								<Maximize2Icon />
+							)}
+						</Button>
 					</CalendarDate>
 					<CalendarHeader
 						textDirection="center"

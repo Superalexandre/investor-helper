@@ -29,8 +29,6 @@ async function getEvents({
 	const from = startOfMonth(new Date(safeYear, safeMonth))
 	const to = endOfMonth(new Date(safeYear, safeMonth))
 
-	console.log(from, to, month, year)
-
 	const allEvents = await db
 		.select()
 		.from(eventsSchema)
