@@ -6,7 +6,7 @@ import { ScrollTop } from "@/components/scrollTop"
 import TimeCounter from "../../../components/timeCounter"
 import { useQuery } from "@tanstack/react-query"
 import type { Events } from "../../../../../db/schema/events"
-import { memo, type ReactNode, useEffect, useRef, useState } from "react"
+import { memo, type ReactNode, startTransition, useEffect, useRef, useState } from "react"
 import SkeletonCalendar from "../../../components/skeletons/skeletonCalendar"
 import { useTranslation } from "react-i18next"
 import i18next from "../../../i18next.server"
@@ -91,7 +91,12 @@ export default function Index() {
 					{isCalendar && fullScreen ? null : (
 						<div className="flex flex-col">
 							<div className="space-x-4">
-								<Button variant="outline" onClick={() => setDisplay(display === "list" ? "calendar" : "list")}>
+								<Button variant="outline" onClick={() => {
+									// setDisplay(display === "list" ? "calendar" : "list"
+									startTransition(() => {
+										setDisplay(display === "list" ? "calendar" : "list")
+									})
+								}}>
 									{display === "list" ? "Calendrier" : "Liste"}
 								</Button>
 							</div>
@@ -137,7 +142,7 @@ export default function Index() {
 					<p>Test</p>
 				</TabsContent>
 			</Tabs> */}
-		</div>
+		</div >
 	)
 }
 
@@ -232,13 +237,13 @@ const EconomicCalendar = memo(function EconomicCalendar({
 					<CalendarProvider locale={language}>
 						<CalendarDate className="flex-col gap-2 sm:flex-row">
 							<CalendarDatePicker className="w-full justify-between sm:w-auto">
-								<CalendarMonthPicker 
+								<CalendarMonthPicker
 									month={month}
 									setMonth={setMonth}
 								/>
-								<CalendarYearPicker 
-									start={2024} 
-									end={2025} 
+								<CalendarYearPicker
+									start={2024}
+									end={2025}
 									year={year}
 									setYear={setYear}
 								/>
@@ -246,7 +251,7 @@ const EconomicCalendar = memo(function EconomicCalendar({
 
 
 							<div className="flex w-full flex-col items-center justify-between sm:w-auto sm:flex-row">
-								<CalendarDatePagination className="flex w-full flex-row justify-between" 
+								<CalendarDatePagination className="flex w-full flex-row justify-between"
 									month={month}
 									setMonth={setMonth}
 									year={year}
@@ -272,11 +277,9 @@ const EconomicCalendar = memo(function EconomicCalendar({
 								</Button>
 							</div>
 						</CalendarDate>
-						<CalendarHeader
-							textDirection="center"
-						/>
-						<CalendarBody 
-							items={skeletonArray} 
+						<CalendarHeader textDirection="center" />
+						<CalendarBody
+							items={skeletonArray}
 							maxItems={10}
 							month={month}
 							year={year}
@@ -337,21 +340,21 @@ const EconomicCalendar = memo(function EconomicCalendar({
 				<CalendarProvider locale={language} className="relative">
 					<CalendarDate className="flex-col gap-2 sm:flex-row">
 						<CalendarDatePicker className="w-full justify-between sm:w-auto">
-							<CalendarMonthPicker 
+							<CalendarMonthPicker
 								month={month}
 								setMonth={setMonth}
 							/>
-							<CalendarYearPicker 
-								start={2024} 
-								end={2025} 
+							<CalendarYearPicker
+								start={2024}
+								end={2025}
 								year={year}
 								setYear={setYear}
 							/>
 						</CalendarDatePicker>
 
 						<div className="flex w-full flex-col items-center justify-between sm:w-auto sm:flex-row">
-							<CalendarDatePagination 
-								className="flex w-full flex-row justify-between" 
+							<CalendarDatePagination
+								className="flex w-full flex-row justify-between"
 								month={month}
 								year={year}
 								setMonth={setMonth}
@@ -394,8 +397,8 @@ const EconomicCalendar = memo(function EconomicCalendar({
 
 					) : null}
 
-					<CalendarBody 
-						items={events.map((event) => ({ ...event, endAt: event.date || "" }))} 
+					<CalendarBody
+						items={events.map((event) => ({ ...event, endAt: event.date || "" }))}
 						maxItems={10}
 						month={month}
 						year={year}
