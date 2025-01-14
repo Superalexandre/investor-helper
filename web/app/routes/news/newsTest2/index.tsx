@@ -1,0 +1,538 @@
+import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
+import { Link, useFetcher, useLoaderData, useLocation } from "@remix-run/react"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+
+import { ScrollTop } from "@/components/scrollTop"
+import { Button } from "@/components/ui/button"
+import ImportanceBadge from "@/components/importanceBadge"
+import { useQuery } from "@tanstack/react-query"
+import type { NewsFull, NewsSymbols } from "../../../../types/News"
+import SkeletonNews from "../../../components/skeletons/skeletonNews"
+import DisplaySymbols from "../../../components/displaySymbols"
+import { memo, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
+import type { TFunction } from "i18next"
+import i18next from "../../../i18next.server"
+import { flags } from "../../../i18n"
+import { Checkbox } from "../../../components/ui/checkbox"
+import { Label } from "../../../components/ui/label"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../../../components/ui/dialog"
+import type { CheckedState } from "@radix-ui/react-checkbox"
+import getNewsPreferences from "../../../lib/getNewsPreferences"
+import { getSourceList } from "../../../../utils/news"
+import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, ChevronsUpDownIcon, ExternalLinkIcon, FilterIcon, GlobeIcon, RssIcon, StarIcon } from "lucide-react"
+import { DotSeparator, Separator } from "../../../components/ui/separator"
+import { Badge } from "../../../components/ui/badge"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../components/ui/tooltip"
+import SymbolLogo from "../../../components/symbolLogo"
+import type { Symbol as SymbolType } from "@/schema/symbols"
+import { Popover, PopoverContent, PopoverTrigger } from "../../../components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../../components/ui/command"
+import { cn } from "../../../lib/utils"
+
+export async function loader({ request }: LoaderFunctionArgs) {
+	const [t, newsPreferences] = await Promise.all([
+		i18next.getFixedT(request, "news"),
+		getNewsPreferences(request)
+	])
+
+	// console.log(newsPreferences)
+
+	const allSources = await getSourceList({
+		languages: newsPreferences.languages
+	})
+
+	const title = t("title")
+	const description = t("description")
+
+	return {
+		title: title,
+		description: description,
+		newsPreferences: newsPreferences,
+		allSources: allSources
+	}
+}
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+	if (!data) {
+		return []
+	}
+
+	const { title, description } = data
+
+	return [
+		{ title: title },
+		{ name: "og:title", content: title },
+		{ name: "description", content: description },
+		{ name: "og:description", content: description },
+		{ tagName: "link", rel: "canonical", href: "https://www.investor-helper.com/news" }
+	]
+}
+
+export const handle = {
+	i18n: "news"
+}
+
+export default function Index() {
+	const { newsPreferences, allSources } = useLoaderData<typeof loader>()
+	const { t, i18n } = useTranslation("news")
+
+	// Memoize the translation function to prevent unstable references
+	const memoT = useMemo(() => t, [t])
+
+	const location = useLocation()
+
+	// Memoize URLSearchParams to avoid recalculating on every render
+	const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search])
+
+	const actualPage = searchParams ? Number.parseInt(searchParams.get("page") || "1") : 1
+
+	const previousPage = searchParams && actualPage - 1 >= 1 ? actualPage - 1 : 1
+	const nextPage = searchParams ? actualPage + 1 : 2
+
+	const [selectedLanguage, setSelectedLanguage] = useState<string[]>(newsPreferences.languages)
+	const [selectedImportance, setSelectedImportance] = useState<string[]>(newsPreferences.importances)
+	const [selectedSource, setSelectedSource] = useState<string[]>(newsPreferences.sources)
+
+	return (
+		<div>
+			<ScrollTop showBelow={250} />
+
+			<div className="flex flex-col items-center justify-center space-y-1 pt-4">
+				<p className="text-center font-bold text-2xl">{memoT("lastNews")}</p>
+				{actualPage > 1 ? (
+					<p className="text-muted-foreground text-sm">
+						{memoT("page")} {actualPage}
+					</p>
+				) : null}
+
+				{/* <Button variant="default">
+                    Rafraîchir
+                </Button> */}
+			</div>
+
+			<div className="flex flex-col space-y-6 p-4 lg:p-10">
+				<DisplayFilter
+					t={memoT}
+					selectedLanguage={selectedLanguage}
+					setSelectedLanguage={setSelectedLanguage}
+					selectedImportance={selectedImportance}
+					setSelectedImportance={setSelectedImportance}
+					allSources={allSources}
+					selectedSource={selectedSource}
+					setSelectedSource={setSelectedSource}
+				/>
+
+				<News
+					t={memoT}
+					language={i18n.language}
+					actualPage={actualPage}
+					selectedLanguage={selectedLanguage}
+					selectedImportance={selectedImportance}
+					selectedSource={selectedSource}
+				/>
+			</div>
+
+			<div className="flex flex-row items-center justify-center gap-4 pb-4">
+				<Button
+					variant="default"
+					className="flex flex-row content-center items-center justify-center gap-2"
+					asChild={true}
+				>
+					<Link
+						to={{
+							pathname: "/news",
+							search: `?page=${previousPage}`
+						}}
+						rel="prev"
+					>
+						<ArrowLeftIcon className="size-5" />
+						{memoT("previousPage")}
+					</Link>
+				</Button>
+
+				<Button
+					variant="default"
+					className="flex flex-row content-center items-center justify-center gap-2"
+					asChild={true}
+				>
+					<Link
+						to={{
+							pathname: "/news",
+							search: `?page=${nextPage}`
+						}}
+						rel="next"
+					>
+						{memoT("nextPage")}
+						<ArrowRightIcon className="size-5" />
+					</Link>
+				</Button>
+			</div>
+		</div>
+	)
+}
+
+
+const DisplayFilter = memo(function DisplayFilter({
+	t,
+	selectedLanguage,
+	setSelectedLanguage,
+	selectedImportance,
+	setSelectedImportance,
+	allSources,
+	selectedSource,
+	setSelectedSource,
+}: {
+	t: TFunction;
+	selectedLanguage: string[];
+	setSelectedLanguage: (value: string[]) => void;
+
+	selectedImportance: string[];
+	setSelectedImportance: (value: string[]) => void;
+
+	allSources: string[];
+	selectedSource: string[];
+	setSelectedSource: (value: string[]) => void;
+}) {
+	const fetcher = useFetcher()
+
+	const languageItems = ["fr-FR", "en-US"];
+	const languageLabels = { "fr-FR": "Français", "en-US": "Anglais" };
+
+	const importanceItems = ["none", "low", "medium", "high", "very-high"];
+	const importanceLabels = {
+		none: "Neutre",
+		low: "Faible",
+		medium: "Moyenne",
+		high: "Forte",
+		"very-high": "Très forte",
+	};
+
+	const handleSync = (type: string, updatedItems: string[]) => {
+		fetcher.submit(
+			{
+				type: "newsPreferences",
+				[type]: updatedItems.join(","),
+				redirect: "/news/newsTest2",
+			},
+			{
+				method: "POST",
+				action: "/settings",
+				encType: "application/json",
+			}
+		);
+	};
+
+	const renderFilter = (
+		title: string,
+		items: string[],
+		selectedItems: string[],
+		setSelectedItems: (value: string[]) => void,
+		labels: { [key: string]: string },
+		type: string
+	): ReactNode => {
+		const [open, setOpen] = useState(false);
+
+		return (
+			<Popover open={open} onOpenChange={setOpen}>
+				<PopoverTrigger asChild={true}>
+					<Button variant="outline" className="w-auto justify-between capitalize">
+						{title} ({selectedItems.length})
+						<ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+					</Button>
+				</PopoverTrigger>
+				<PopoverContent className="w-auto p-0">
+					<Command>
+						<CommandInput placeholder={`Rechercher ${title}`} />
+						<CommandList>
+							<CommandEmpty>Vide</CommandEmpty>
+							<CommandGroup>
+								{items.map((item) => (
+									<CommandItem
+										key={item}
+										value={item}
+										onSelect={(currentValue) => {
+											let updatedItems: string[];
+											if (selectedItems.includes(currentValue)) {
+												updatedItems = selectedItems.filter((value) => value !== currentValue);
+											} else {
+												updatedItems = [...selectedItems, currentValue];
+											}
+											setSelectedItems(updatedItems);
+											handleSync(type, updatedItems);
+										}}
+										className="capitalize"
+									>
+										<CheckIcon
+											className={cn(
+												"mr-2 h-4 w-4",
+												selectedItems.includes(item) ? "opacity-100" : "opacity-0"
+											)}
+										/>
+										{labels[item] || item}
+									</CommandItem>
+								))}
+							</CommandGroup>
+						</CommandList>
+					</Command>
+				</PopoverContent>
+			</Popover>
+		);
+	};
+
+	return (
+		<div className="flex flex-row items-center gap-2 overflow-x-auto">
+			{renderFilter("Langue", languageItems, selectedLanguage, setSelectedLanguage, languageLabels, "languages")}
+			{renderFilter("Importance", importanceItems, selectedImportance, setSelectedImportance, importanceLabels, "importances")}
+			{renderFilter("Sources", allSources, selectedSource, setSelectedSource, allSources.reduce((acc: Record<string, string>, source) => {
+				acc[source] = source;
+				return acc;
+			}, {}), "sources")}
+		</div>
+	);
+});
+
+function Empty({
+	t
+}: {
+	t: TFunction
+}) {
+	return (
+		<div className="flex flex-col items-center justify-center space-y-4">
+			<p className="pt-4 text-center font-bold text-2xl">{t("lastNews")}</p>
+
+			<p className="text-center text-lg">{t("errors.empty")}</p>
+
+			<Link to="/news">
+				<Button variant="default">{t("firstPage")}</Button>
+			</Link>
+		</div>
+	)
+}
+
+const News = memo(function News({
+	t,
+	language,
+	actualPage,
+	selectedLanguage,
+	selectedImportance,
+	selectedSource
+}: {
+	t: TFunction
+	language: string
+	actualPage: number
+	selectedLanguage: string[]
+	selectedImportance: string[]
+	selectedSource: string[]
+}) {
+	const newsRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
+
+	const {
+		data: news,
+		isPending,
+		error
+	} = useQuery<NewsFull[]>({
+		queryKey: [
+			"news",
+			selectedLanguage,
+			selectedImportance,
+			selectedSource,
+			{
+				page: actualPage
+			}
+		],
+		queryFn: async () => {
+			const req = await fetch(
+				`/api/news?page=${actualPage}&limit=20&languages=${selectedLanguage.join(",")}&importances=${selectedImportance.join(",")}&sources=${selectedSource.join(",")}`
+			)
+			const json = await req.json()
+
+			return json
+		},
+		refetchOnWindowFocus: true
+	})
+
+	useEffect(() => {
+		if (location.hash && news && news.length > 0) {
+			const newsId = location.hash.replace("#", "")
+			const newsRef = newsRefs.current[newsId]
+
+			if (newsRef) {
+				newsRef.scrollIntoView({ behavior: "smooth" })
+			}
+		}
+	}, [news])
+
+	if (isPending) {
+		const skeletonArray = Array.from({ length: 10 })
+
+		return (
+			<div className="flex flex-col space-y-6">
+				{skeletonArray.map((_, index) => (
+					// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+					<SkeletonNews key={index} />
+				))}
+			</div>
+		)
+	}
+
+	if (error) {
+		throw error
+	}
+
+	if (!news || news.length <= 0) {
+		return <Empty t={t} />
+	}
+
+	const prettyLanguage: Record<string, string> = {
+		"fr-FR": "Français",
+		"en-US": "Anglais"
+	}
+
+	const prettyDate = (date: Date): string => date.toLocaleDateString(language, {
+		hour: "numeric",
+		minute: "numeric",
+		year: "numeric",
+		month: "long",
+		day: "numeric",
+		timeZoneName: "shortOffset",
+		weekday: "long"
+	})
+
+	return news.map((item) => (
+		<Card key={item.news.id} className="border-card-border">
+			<CardHeader>
+				<div className="flex flex-col items-start justify-between gap-1.5 lg:flex-row lg:gap-4">
+					<CardTitle className="flex-grow text-lg">
+						<a href={item.news.link || "#"} className="flex items-start gap-2 hover:underline" target="_blank" rel="noopener noreferrer">
+							<span className="line-clamp-2">{item.news.title}</span>
+							<ExternalLinkIcon size={16} className="mt-1 flex-shrink-0" />
+						</a>
+					</CardTitle>
+					<div className="flex flex-shrink-0 flex-row-reverse items-center gap-2 lg:flex-row">
+						<div className="flex flex-row items-center gap-2">
+							<p className="block lg:hidden">Importance :</p>
+							<ImportanceIndicator importance={Math.floor(item.news.importanceScore / 50)} />
+						</div>
+						<Badge variant="secondary" className="flex items-center gap-1">
+							<GlobeIcon size={12} />
+							{prettyLanguage[item.news.lang]}
+						</Badge>
+					</div>
+				</div>
+				<CardDescription className="flex items-center justify-between">
+					<span>{item.news.source} - {prettyDate(new Date(item.news.published * 1000 || ""))}</span>
+				</CardDescription>
+			</CardHeader>
+			<CardContent className="flex flex-col gap-4">
+				<p>{item.news_article.shortDescription}</p>
+				<div>
+					<h4 className="mb-2 font-semibold text-sm">Associated Stocks :</h4>
+
+					{/* <div className="flex flex-row gap-2 items-center flex-wrap">
+						{item.relatedSymbols.map((symbol: { symbol: SymbolType }) => (
+							<Badge
+								key={symbol.symbol.symbolId}
+								// variant="outline"
+								className="flex h-8 flex-row items-center justify-center"
+							>
+								<SymbolLogo symbol={symbol.symbol} className="mr-1.5 size-5 rounded-full" />
+
+								{symbol.symbol.name}
+							</Badge>
+						))}
+					</div> */}
+
+					<DisplaySymbols symbolList={item.relatedSymbols} hash={item.news.id} t={t} />
+					{/* <div className="flex flex-wrap gap-2">
+						{item.associatedStocks.map((stock) => (
+							<Badge key={stock} variant="outline">{stock}</Badge>
+						))}
+					</div> */}
+				</div>
+			</CardContent>
+		</Card>
+	))
+})
+
+function ImportanceIndicator({ importance }: { importance: number }) {
+	if (importance > 5) {
+		importance = 5;
+	} else if (importance < 1) {
+		importance = 1;
+	}
+
+	const colors = [
+		"bg-blue-300",
+		"bg-green-400",
+		"bg-yellow-400",
+		"bg-orange-400",
+		"bg-red-400"
+	]
+
+	return (
+		<TooltipProvider>
+			<Tooltip>
+				<TooltipTrigger>
+					<div className="w-16 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+						<div
+							className={`h-full ${colors[importance - 1]}`}
+							style={{ width: `${importance * 20}%` }}
+						/>
+					</div>
+				</TooltipTrigger>
+				<TooltipContent>
+					<p>Importance: {importance}/5</p>
+				</TooltipContent>
+			</Tooltip>
+		</TooltipProvider>
+	)
+}
+
+/*
+
+			{/* <Card className="border-card-border">
+				<Link
+					to={{
+						pathname: `/news/${item.news.id}`
+					}}
+					state={{
+						redirect: "/news",
+						hash: item.news.id,
+						search: location.search
+					}}
+				>
+					<CardHeader>
+						<CardTitle className="flex flex-row items-center gap-2">
+							<img src={flags[item.news.lang]} alt={item.news.lang} className="size-5" />
+
+							{item.news.title}
+						</CardTitle>
+					</CardHeader>
+				</Link>
+
+				<CardContent>
+					<DisplaySymbols symbolList={item.relatedSymbols} hash={item.news.id} t={t} />
+				</CardContent>
+
+				<CardFooter className="flex flex-col flex-wrap justify-start gap-1 text-muted-foreground lg:flex-row lg:items-center lg:gap-2">
+					<span className="w-full lg:w-auto">
+						{item.news.source}
+					</span>
+
+					<DotSeparator className="hidden lg:block" />
+
+					<span className="w-full lg:w-auto">
+						{new Date(item.news.published * 1000 || "").toLocaleDateString(language, {
+							hour: "numeric",
+							minute: "numeric",
+							year: "numeric",
+							month: "long",
+							day: "numeric",
+							timeZoneName: "shortOffset",
+							weekday: "long"
+						})}
+					</span>
+				</CardFooter>
+			</Card>
+			*/
