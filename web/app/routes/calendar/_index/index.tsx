@@ -15,7 +15,7 @@ import { countries } from "../../../i18n"
 import ImportanceBadge from "../../../components/importanceBadge"
 import { DotSeparator } from "../../../components/ui/separator"
 import { Button } from "../../../components/ui/button"
-import { CalendarBody, CalendarDate, CalendarDatePagination, CalendarDatePicker, CalendarHeader, CalendarMonthPicker, CalendarProvider, CalendarYearPicker, useCalendar } from "../../../components/ui/calendar"
+import { CalendarBody, CalendarDate, CalendarDatePagination, CalendarDatePicker, CalendarHeader, CalendarMonthPicker, CalendarProvider, type CalendarState, CalendarYearPicker, useCalendar } from "../../../components/ui/calendar"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../../../components/ui/dialog"
 import { EventDetails } from "../$id"
 import { Alert, AlertDescription, AlertTitle } from "../../../components/ui/alert"
@@ -26,6 +26,7 @@ import { cn } from "../../../lib/utils"
 // import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs"
 // import { useState } from "react"
 // import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { createParser, parseAsBoolean, parseAsInteger, parseAsString, parseAsStringEnum, parseAsStringLiteral, useQueryState } from 'nuqs'
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const t = await i18next.getFixedT(request, "calendar")
@@ -61,8 +62,11 @@ export const handle = {
 
 export default function Index() {
 	const { t, i18n } = useTranslation("calendar")
-	const [display, setDisplay] = useState("calendar")
-	const [fullScreen, setFullScreen] = useState(false)
+	// const [display, setDisplay] = useState("calendar")
+	// const [fullScreen, setFullScreen] = useState(false)
+
+	const [display, setDisplay] = useQueryState("display", parseAsStringLiteral(["calendar", "list"]).withDefault("calendar"))
+	const [fullScreen, setFullScreen] = useQueryState("fullScreen", parseAsBoolean.withDefault(false))
 
 	const isCalendar = display === "calendar"
 
@@ -150,10 +154,50 @@ const EconomicCalendar = memo(function EconomicCalendar({
 }) {
 	const { t: tCalendar } = useTranslation("calendarId")
 	const [focusEvent, setFocusEvent] = useState<Events | null>(null)
-	const calendar = useCalendar()
+	// const calendar = useCalendar()
 
-	const month = calendar.month
-	const year = calendar.year
+	const minYear = 2024
+	const maxYear = 2025
+
+	const defaultMonth = new Date().getMonth() as CalendarState["month"]
+	const [month, setMonth] = useQueryState("month", createParser<CalendarState["month"]>({
+		parse(queryValue) {
+			if (Number.isNaN(Number(queryValue))) {
+				return null
+			}
+
+			const queryMonth = Number(queryValue)
+
+			if (queryMonth < 0 || queryMonth > 11) {
+				return null
+			}
+
+			return queryMonth as CalendarState["month"]
+		},
+		serialize(value) {
+			return value.toString()
+		}
+	}).withDefault(defaultMonth))
+
+	const defaultYear = new Date().getFullYear() as CalendarState["year"]
+	const [year, setYear] = useQueryState("year", createParser<CalendarState["year"]>({
+		parse(queryValue) {
+			if (Number.isNaN(Number(queryValue))) {
+				return null
+			}
+
+			const queryYear = Number(queryValue)
+
+			if (queryYear < minYear || queryYear > maxYear) {
+				return null
+			}
+
+			return queryYear as CalendarState["year"]
+		},
+		serialize(value) {
+			return value.toString()
+		}
+	}).withDefault(defaultYear))
 
 	const {
 		data: events,
@@ -172,10 +216,7 @@ const EconomicCalendar = memo(function EconomicCalendar({
 	})
 
 	if (isPending) {
-		const safeYear = year
-		const safeMonth = month
-
-		const startMonth = startOfMonth(new Date(safeYear, safeMonth))
+		const startMonth = startOfMonth(new Date(year, month))
 
 		const skeletonArray = Array.from({ length: 31 }).map((_, index) => {
 			const newDate = addDays(startMonth, index)
@@ -191,13 +232,26 @@ const EconomicCalendar = memo(function EconomicCalendar({
 					<CalendarProvider locale={language}>
 						<CalendarDate className="flex-col gap-2 sm:flex-row">
 							<CalendarDatePicker className="w-full justify-between sm:w-auto">
-								<CalendarMonthPicker />
-								<CalendarYearPicker start={2024} end={2025} />
+								<CalendarMonthPicker 
+									month={month}
+									setMonth={setMonth}
+								/>
+								<CalendarYearPicker 
+									start={2024} 
+									end={2025} 
+									year={year}
+									setYear={setYear}
+								/>
 							</CalendarDatePicker>
 
 
 							<div className="flex w-full flex-col items-center justify-between sm:w-auto sm:flex-row">
-								<CalendarDatePagination className="flex w-full flex-row justify-between" />
+								<CalendarDatePagination className="flex w-full flex-row justify-between" 
+									month={month}
+									setMonth={setMonth}
+									year={year}
+									setYear={setYear}
+								/>
 
 								<Button
 									variant="ghost"
@@ -221,7 +275,12 @@ const EconomicCalendar = memo(function EconomicCalendar({
 						<CalendarHeader
 							textDirection="center"
 						/>
-						<CalendarBody items={skeletonArray} maxItems={10}>
+						<CalendarBody 
+							items={skeletonArray} 
+							maxItems={10}
+							month={month}
+							year={year}
+						>
 							{({ item }): ReactNode => (
 								<Skeleton
 									key={item.endAt}
@@ -278,12 +337,26 @@ const EconomicCalendar = memo(function EconomicCalendar({
 				<CalendarProvider locale={language} className="relative">
 					<CalendarDate className="flex-col gap-2 sm:flex-row">
 						<CalendarDatePicker className="w-full justify-between sm:w-auto">
-							<CalendarMonthPicker />
-							<CalendarYearPicker start={2024} end={2025} />
+							<CalendarMonthPicker 
+								month={month}
+								setMonth={setMonth}
+							/>
+							<CalendarYearPicker 
+								start={2024} 
+								end={2025} 
+								year={year}
+								setYear={setYear}
+							/>
 						</CalendarDatePicker>
 
 						<div className="flex w-full flex-col items-center justify-between sm:w-auto sm:flex-row">
-							<CalendarDatePagination className="flex w-full flex-row justify-between" />
+							<CalendarDatePagination 
+								className="flex w-full flex-row justify-between" 
+								month={month}
+								year={year}
+								setMonth={setMonth}
+								setYear={setYear}
+							/>
 
 							<Button
 								variant="ghost"
@@ -321,7 +394,12 @@ const EconomicCalendar = memo(function EconomicCalendar({
 
 					) : null}
 
-					<CalendarBody items={events.map((event) => ({ ...event, endAt: event.date || "" }))} maxItems={10}>
+					<CalendarBody 
+						items={events.map((event) => ({ ...event, endAt: event.date || "" }))} 
+						maxItems={10}
+						month={month}
+						year={year}
+					>
 						{({ item }): ReactNode => (
 							<div className="ml-2 flex items-center gap-2" key={item.id}>
 								<button className="truncate" type="button" onClick={() => setFocusEvent(item)}>

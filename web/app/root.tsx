@@ -31,6 +31,7 @@ import { useChangeLanguage } from "remix-i18next/react"
 import { getTheme } from "./lib/getTheme"
 import { getNotificationList, getNotificationListNumber } from "../utils/notifications"
 import type { NotificationList } from "../../db/schema/notifications"
+import { NuqsAdapter } from 'nuqs/adapters/remix'
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const [user, theme, locale] = await Promise.all([getUser(request), getTheme(request), i18next.getLocale(request)])
@@ -167,9 +168,11 @@ export default function App() {
 	}, [])
 
 	return (
-		<QueryClientProvider client={queryClient}>
-			<Outlet />
-		</QueryClientProvider>
+		<NuqsAdapter>
+			<QueryClientProvider client={queryClient}>
+				<Outlet />
+			</QueryClientProvider>
+		</NuqsAdapter>
 	)
 }
 

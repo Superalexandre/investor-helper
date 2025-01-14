@@ -261,6 +261,8 @@ type CalendarItem = {
 }
 
 type CalendarBodyProps<T extends CalendarItem> = {
+    month: CalendarState['month'];
+    year: CalendarState['year'];
     items: T[];
     maxItems?: number;
     children: (props: {
@@ -268,8 +270,8 @@ type CalendarBodyProps<T extends CalendarItem> = {
     }) => ReactNode;
 };
 
-const CalendarBody = <T extends CalendarItem,>({ items, children, maxItems = 3 }: CalendarBodyProps<T>) => {
-    const { month, year } = useCalendar();
+const CalendarBody = <T extends CalendarItem,>({ items, children, maxItems = 3, month, year }: CalendarBodyProps<T>) => {
+    // const { month, year } = useCalendar();
     const { startDay } = useContext(CalendarContext);
     const daysInMonth = getDaysInMonth(new Date(year, month, 1));
     const firstDay = (getDay(new Date(year, month, 1)) - startDay + 7) % 7;
@@ -376,12 +378,16 @@ const CalendarDatePicker = ({
 
 type CalendarMonthPickerProps = {
     className?: string;
+    month: CalendarState['month'];
+    setMonth: CalendarState['setMonth'];
 };
 
 const CalendarMonthPicker = ({
     className,
+    month, 
+    setMonth
 }: CalendarMonthPickerProps) => {
-    const { month, setMonth } = useCalendar();
+    // const { month, setMonth } = useCalendar();
     const { locale } = useContext(CalendarContext);
 
     return (
@@ -410,14 +416,18 @@ type CalendarYearPickerProps = {
     className?: string;
     start: number;
     end: number;
+    year: CalendarState['year'];
+    setYear: CalendarState['setYear'];
 };
 
 const CalendarYearPicker = ({
     className,
     start,
     end,
+    year,
+    setYear,
 }: CalendarYearPickerProps) => {
-    const { year, setYear } = useCalendar();
+    // const { year, setYear } = useCalendar();
 
     return (
         <Combobox
@@ -445,14 +455,22 @@ type CalendarDatePaginationProps = {
     className?: string;
     previousText?: string;
     nextText?: string;
+    month: CalendarState['month'];
+    year: CalendarState['year'];
+    setMonth: CalendarState['setMonth'];
+    setYear: CalendarState['setYear'];
 };
 
 const CalendarDatePagination = ({
     className,
     previousText = 'Previous month',
     nextText = 'Next month',
+    month,
+    year,
+    setMonth,
+    setYear,
 }: CalendarDatePaginationProps) => {
-    const { month, year, setMonth, setYear } = useCalendar();
+    // const { month, year, setMonth, setYear } = useCalendar();
 
     const handlePreviousMonth = () => {
         if (month === 0) {

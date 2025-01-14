@@ -12,7 +12,7 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 	// Convert the limit and page to numbers
 	const limitResult = limit ? Number.parseInt(limit) : 60
 	const pageResult = page ? Number.parseInt(page) : 1
-
+	
 	const events = await getEvents({
 		limit: limitResult,
 		page: pageResult,

@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
 import config from "../../config.js"
-import { startOfWeek, formatISO, addDays, startOfMonth, endOfMonth } from "date-fns"
+import { startOfWeek, formatISO, addDays, startOfMonth, endOfMonth, subDays } from "date-fns"
 import { type Events, eventsSchema } from "../../db/schema/events.js"
 import { and, asc, desc, eq, gte, isNotNull, like, lte, or } from "drizzle-orm"
 import type { EventRaw } from "../types/Events.js"
@@ -72,8 +72,9 @@ async function fetchEvents() {
 	const url = new URL(config.url.events)
 
 	const now = new Date()
+	const newNow = subDays(now, 31 * 3)
 
-	const from = formatISO(startOfWeek(now, { weekStartsOn: 0 }))
+	const from = formatISO(startOfWeek(newNow, { weekStartsOn: 0 }))
 
 	// const dayToAdd = config.calendarPreferences.numberOfDays
 	const dayToAdd = 31 * 3
@@ -184,7 +185,24 @@ async function saveEvents(events: EventRaw[]) {
 	}
 
 	if (eventsValues.length > 0) {
-		await db.insert(eventsSchema).values(eventsValues)
+		const chunkSize = 500
+		if (eventsValues.length > chunkSize) {
+			// Split the events in chunks of 500
+			const chunkedEvents: Events[][] = []
+
+			for (let i = 0; i < eventsValues.length; i += chunkSize) {
+				chunkedEvents.push(eventsValues.slice(i, i + chunkSize))
+			}
+
+			for (const chunk of chunkedEvents) {
+				logger.info(`Inserting ${chunk.length} events (chunk : ${chunkedEvents.indexOf(chunk) + 1}/${chunkedEvents.length})`)
+
+				await db.insert(eventsSchema).values(chunk)
+			}
+		} else {
+			await db.insert(eventsSchema).values(eventsValues)
+		}
+
 	}
 
 	logger.success(`Inserted ${eventsValues.length} events`)
