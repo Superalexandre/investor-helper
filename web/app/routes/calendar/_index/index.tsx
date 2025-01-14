@@ -6,7 +6,7 @@ import { ScrollTop } from "@/components/scrollTop"
 import TimeCounter from "../../../components/timeCounter"
 import { useQuery } from "@tanstack/react-query"
 import type { Events } from "../../../../../db/schema/events"
-import { memo, type ReactNode, startTransition, useEffect, useRef, useState } from "react"
+import { memo, type ReactNode, startTransition, useEffect, useRef, useState, useTransition } from "react"
 import SkeletonCalendar from "../../../components/skeletons/skeletonCalendar"
 import { useTranslation } from "react-i18next"
 import i18next from "../../../i18next.server"
@@ -92,10 +92,10 @@ export default function Index() {
 						<div className="flex flex-col">
 							<div className="space-x-4">
 								<Button variant="outline" onClick={() => {
-									// setDisplay(display === "list" ? "calendar" : "list"
-									startTransition(() => {
-										setDisplay(display === "list" ? "calendar" : "list")
-									})
+									setDisplay(display === "list" ? "calendar" : "list")
+									// startTransition(() => {
+									// 	setDisplay(display === "list" ? "calendar" : "list")
+									// })
 								}}>
 									{display === "list" ? "Calendrier" : "Liste"}
 								</Button>
@@ -159,6 +159,7 @@ const EconomicCalendar = memo(function EconomicCalendar({
 }) {
 	const { t: tCalendar } = useTranslation("calendarId")
 	const [focusEvent, setFocusEvent] = useState<Events | null>(null)
+	const [isLoading, startTransition] = useTransition()
 	// const calendar = useCalendar()
 
 	const minYear = 2024
@@ -181,8 +182,8 @@ const EconomicCalendar = memo(function EconomicCalendar({
 		},
 		serialize(value) {
 			return value.toString()
-		}
-	}).withDefault(defaultMonth))
+		},
+	}).withDefault(defaultMonth).withOptions({ startTransition, shallow: false }))
 
 	const defaultYear = new Date().getFullYear() as CalendarState["year"]
 	const [year, setYear] = useQueryState("year", createParser<CalendarState["year"]>({
@@ -202,7 +203,7 @@ const EconomicCalendar = memo(function EconomicCalendar({
 		serialize(value) {
 			return value.toString()
 		}
-	}).withDefault(defaultYear))
+	}).withDefault(defaultYear).withOptions({ startTransition, shallow: false }))
 
 	const {
 		data: events,
@@ -220,7 +221,7 @@ const EconomicCalendar = memo(function EconomicCalendar({
 		refetchOnWindowFocus: true
 	})
 
-	if (isPending) {
+	if (isPending || isLoading) {
 		const startMonth = startOfMonth(new Date(year, month))
 
 		const skeletonArray = Array.from({ length: 31 }).map((_, index) => {
