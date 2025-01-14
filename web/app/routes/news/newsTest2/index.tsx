@@ -197,16 +197,24 @@ const DisplayFilter = memo(function DisplayFilter({
 	const fetcher = useFetcher()
 
 	const languageItems = ["fr-FR", "en-US"];
-	const languageLabels = { "fr-FR": "Français", "en-US": "Anglais" };
+	const languageLabels: Record<string, string> = { "fr-FR": "Français", "en-US": "Anglais" };
 
 	const importanceItems = ["none", "low", "medium", "high", "very-high"];
-	const importanceLabels = {
+	const importanceLabels: Record<string, string> = {
 		none: "Neutre",
 		low: "Faible",
 		medium: "Moyenne",
 		high: "Forte",
 		"very-high": "Très forte",
 	};
+
+	const importanceColors = [
+		"bg-gray-200",
+		"bg-green-400",
+		"bg-yellow-400",
+		"bg-orange-400",
+		"bg-red-400"
+	]
 
 	const handleSync = (type: string, updatedItems: string[]) => {
 		fetcher.submit(
@@ -228,8 +236,8 @@ const DisplayFilter = memo(function DisplayFilter({
 		items: string[],
 		selectedItems: string[],
 		setSelectedItems: (value: string[]) => void,
-		labels: { [key: string]: string },
-		type: string
+		type: string,
+		children: (item: string) => ReactNode = (item) => item
 	): ReactNode => {
 		const [open, setOpen] = useState(false);
 
@@ -269,7 +277,8 @@ const DisplayFilter = memo(function DisplayFilter({
 												selectedItems.includes(item) ? "opacity-100" : "opacity-0"
 											)}
 										/>
-										{labels[item] || item}
+
+										{children(item)}
 									</CommandItem>
 								))}
 							</CommandGroup>
@@ -282,12 +291,25 @@ const DisplayFilter = memo(function DisplayFilter({
 
 	return (
 		<div className="flex flex-row items-center gap-2 overflow-x-auto">
-			{renderFilter("Langue", languageItems, selectedLanguage, setSelectedLanguage, languageLabels, "languages")}
-			{renderFilter("Importance", importanceItems, selectedImportance, setSelectedImportance, importanceLabels, "importances")}
-			{renderFilter("Sources", allSources, selectedSource, setSelectedSource, allSources.reduce((acc: Record<string, string>, source) => {
-				acc[source] = source;
-				return acc;
-			}, {}), "sources")}
+			{renderFilter("Langue", languageItems, selectedLanguage, setSelectedLanguage, "languages", (item) => (
+				<span>{languageLabels[item]}</span>
+			))}
+			{renderFilter("Importance", importanceItems, selectedImportance, setSelectedImportance, "importances", (item) => (
+				<div className="flex w-full flex-row items-center justify-between">
+					<span>{importanceLabels[item]}</span>
+
+					<div 
+						className={cn(
+							"size-4 rounded-full",
+							importanceColors[importanceItems.indexOf(item)],
+							// selectedImportance.includes(item) ? "opacity-100" : "opacity-50"
+						)}
+					/>
+				</div>
+			))}
+			{renderFilter("Sources", allSources, selectedSource, setSelectedSource, "sources", (item) => (
+				<span>{item}</span>
+			))}
 		</div>
 	);
 });
@@ -456,14 +478,14 @@ const News = memo(function News({
 })
 
 function ImportanceIndicator({ importance }: { importance: number }) {
-	if (importance > 5) {
-		importance = 5;
-	} else if (importance < 1) {
-		importance = 1;
+	if (importance > 4) {
+		importance = 4;
+	} else if (importance < 0) {
+		importance = 0;
 	}
 
 	const colors = [
-		"bg-blue-300",
+		"bg-gray-200",
 		"bg-green-400",
 		"bg-yellow-400",
 		"bg-orange-400",
@@ -476,13 +498,13 @@ function ImportanceIndicator({ importance }: { importance: number }) {
 				<TooltipTrigger>
 					<div className="w-16 h-1.5 rounded-full bg-gray-200 overflow-hidden">
 						<div
-							className={`h-full ${colors[importance - 1]}`}
-							style={{ width: `${importance * 20}%` }}
+							className={`h-full ${colors[importance]}`}
+							style={{ width: `${(importance + 1) * 20}%` }}
 						/>
 					</div>
 				</TooltipTrigger>
 				<TooltipContent>
-					<p>Importance: {importance}/5</p>
+					<p>Importance: {importance + 1}/5</p>
 				</TooltipContent>
 			</Tooltip>
 		</TooltipProvider>
