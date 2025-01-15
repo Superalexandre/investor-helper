@@ -143,6 +143,7 @@ export default function App() {
 						description: event.data.body,
 						closeButton: true,
 						id: id,
+						className: "flex justify-between",
 						action: (
 							<Link
 								to={event.data.url}

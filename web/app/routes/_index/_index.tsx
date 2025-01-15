@@ -345,16 +345,16 @@ const DisplayBestLosers = memo(function DisplayBestLosers({
 				</CardTitle>
 				<CardContent className="flex flex-col items-center justify-center gap-4 p-4">
 					<div className="flex flex-col items-center justify-center">
-						<p className="flex flex-row items-center gap-2">
-							<span>
+						<div className="flex flex-row items-center gap-2">
+							<p>
 								{loser.close}
 								{loser.currency}
-							</span>
+							</p>
 							<Badge className="flex flex-row items-center bg-red-500 font-bold text-white hover:bg-red-500">
 								<TriangleDownIcon className="size-5" />
 								<span>{Number(loser.rawChange).toFixed(2)}%</span>
 							</Badge>
-						</p>
+						</div>
 						{loser.recommendation_mark ?
 							<p className={cn(recommendationColor(loser.recommendation_mark))}>{recommendation(loser.recommendation_mark)}</p>
 							: null}
@@ -472,16 +472,16 @@ const DisplayBestGainers = memo(function DisplayBestGainers({
 				<CardContent className="flex flex-col items-center justify-center gap-4 p-4">
 					<div className="flex flex-col items-center justify-center">
 
-						<p className="flex flex-row items-center gap-2">
-							<span>
+						<div className="flex flex-row items-center gap-2">
+							<p>
 								{gainer.close}
 								{gainer.currency}
-							</span>
+							</p>
 							<Badge className="flex flex-row items-center justify-center bg-green-500 font-bold text-white hover:bg-green-500">
 								<TriangleUpIcon className="size-5" />
 								<span>{Number(gainer.rawChange).toFixed(2)}%</span>
 							</Badge>
-						</p>
+						</div>
 						{gainer.recommendation_mark ?
 							<p className={cn(recommendationColor(gainer.recommendation_mark))}>{recommendation(gainer.recommendation_mark)}</p>
 							: null}
