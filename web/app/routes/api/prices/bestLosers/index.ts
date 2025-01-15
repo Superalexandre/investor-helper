@@ -12,6 +12,7 @@ export async function loader() {
 
 	const startFetch = Date.now()
 	const { parsedResult } = await fetchScreener({
+		labelProduct: "screener-stock",
 		country: country,
 		columns: columns,
 		filter: filter,

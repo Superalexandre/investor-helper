@@ -1,6 +1,6 @@
-import { and, createFilterExpression, or, type ColumnType } from "../../../../utils/tradingview/filter"
+import { and, createFilterExpression, or, type ColumnTypeScreener } from "../../../../utils/tradingview/filter"
 
-export const columns: ColumnType[] = [
+export const columns: ColumnTypeScreener[] = [
 	"exchange",
 	"name",
 	"description",

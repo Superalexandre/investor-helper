@@ -97,10 +97,11 @@ type ColumnStockMappingType = {
 const FilterOperationSchema = z.enum(["and", "or"])
 type FilterOperationType = z.infer<typeof FilterOperationSchema>
 
+// Add is_blacklisted to the list of supported columns
 type FilterFieldType = z.infer<typeof ColumnScreenerSchema> | z.infer<typeof ColumnStockSchema>
 
 // Define supported operations for expressions
-const ExpressionOperationSchema = z.enum(["equal", "greater", "has", "has_none_of"])
+const ExpressionOperationSchema = z.enum(["equal", "greater", "has", "has_none_of", "not_in_range"])
 type ExpressionOperationType = z.infer<typeof ExpressionOperationSchema>
 
 // Define FilterExpression schema
@@ -137,6 +138,25 @@ type MarketsType = z.infer<typeof MarketsSchema>
 // Supported `lang` values
 const LangSchema = z.enum(["fr", "en"])
 type LangType = z.infer<typeof LangSchema>
+
+/*
+{
+	left: "market_cap_basic",
+	operation: "nempty"
+}
+*/
+
+const createFilterOperation = <T extends FilterFieldType>(
+	left: T,
+	operation: "nempty",
+) => {
+	return {
+		expression: {
+			left,
+			operation,
+		}
+	}
+}
 
 // Helper function to create filter expressions dynamically
 const createFilterExpression = <T extends FilterFieldType>(
@@ -182,6 +202,7 @@ export {
 	MarketsSchema,
 	LangSchema,
 	createFilterExpression,
+	createFilterOperation,
 	and,
 	or
 }

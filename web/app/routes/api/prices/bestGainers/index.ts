@@ -11,6 +11,7 @@ export async function loader() {
 	const country = "france"
 
 	const { parsedResult } = await fetchScreener({
+		labelProduct: "screener-stock",
 		country: country,
 		columns: columns,
 		filter: filter,

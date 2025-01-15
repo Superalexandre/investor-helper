@@ -250,8 +250,11 @@ const DisplayFilter = memo(function DisplayFilter({
 					</Button>
 				</PopoverTrigger>
 				<PopoverContent className="w-auto p-0">
-					<Command>
-						<CommandInput placeholder={`Rechercher ${title}`} />
+					<Command autoFocus={false} >
+						<CommandInput 
+							placeholder={`Rechercher ${title}`} 
+							autoFocus={false}
+						/>
 						<CommandList>
 							<CommandEmpty>Vide</CommandEmpty>
 							<CommandGroup>

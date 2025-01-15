@@ -73,8 +73,9 @@ const TradingViewRequestSchema = z.object({
 type TradingViewRequest = z.infer<typeof TradingViewRequestSchema>
 
 const FetchScreenerParamsSchema = z.object({
+	labelProduct: z.union([z.literal("screener-stock"), z.literal("heatmap-stock")]),
 	country: z.string(),
-	columns: z.array(ColumnScreenerSchema),
+	columns:z.union([z.literal("all"), z.array(ColumnScreenerSchema)]),
 	filter: FilterOperationSchemaNested.optional(),
 	range: z.tuple([z.number(), z.number()]).optional(),
 	options: z
@@ -89,26 +90,34 @@ const FetchScreenerParamsSchema = z.object({
 		})
 		.optional(),
 	symbols: z.record(z.unknown()).optional(),
-	markets: MarketsSchema.optional()
+	markets: MarketsSchema.optional(),
+	ignore_unknown_fields: z.boolean().optional()
 })
 type FetchParams = z.infer<typeof FetchScreenerParamsSchema>
 
 // biome-ignore lint/style/useNamingConvention: <explanation>
 const fetchScreener = async <TColumns extends ColumnsArrayScreener>({
+	labelProduct,
 	country,
 	columns,
 	filter,
 	range,
 	sort,
 	symbols,
-	options
+	options,
+	ignore_unknown_fields,
+	markets
 }: FetchParams): Promise<{
 	success: boolean
 	message: string
 	result: TradingViewResponseDynamic<TColumns> | null
 	parsedResult: { [K in TColumns[number]]: ColumnScreenerMappingType[K] }[] | null
 }> => {
-	const url = `https://scanner.tradingview.com/${country}/scan?label-product=screener-stock`
+	const url = `https://scanner.tradingview.com/${country}/scan?label-product=${labelProduct}`
+
+	if (columns === "all") {
+		columns = Object.keys(ColumnStockMapping) as TColumns
+	}
 
 	const requestBody: TradingViewRequest = {
 		columns,
@@ -123,8 +132,8 @@ const fetchScreener = async <TColumns extends ColumnsArrayScreener>({
 			sortOrder: "asc"
 		},
 		// biome-ignore lint/style/useNamingConvention: <explanation>
-		ignore_unknown_fields: true,
-		markets: [country],
+		ignore_unknown_fields: ignore_unknown_fields || false,
+		markets: markets || [],
 		symbols: symbols || {}
 	}
 
