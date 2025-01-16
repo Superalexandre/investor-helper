@@ -197,7 +197,7 @@ export default function Index() {
 
 				<div className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute">
 					<DropdownMenu>
-						<DropdownMenuTrigger asChild={true}>
+						<DropdownMenuTrigger asChild={true} name="More options" aria-label="More options">
 							<Button variant="ghost">
 								<EllipsisVerticalIcon className="size-6" />
 							</Button>

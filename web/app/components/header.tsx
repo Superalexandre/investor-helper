@@ -44,7 +44,7 @@ export default function Header({
 						<img
 							src="/logo-32-32.webp"
 							loading="eager"
-							alt="Investor Helper"
+							alt="Logo d'Investor Helper"
 							className="mx-auto size-8"
 							height="32"
 							width="32"

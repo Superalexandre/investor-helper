@@ -263,6 +263,8 @@ const EconomicCalendar = memo(function EconomicCalendar({
 									variant="ghost"
 									onClick={setFullScreen}
 									className="flex flex-row items-center justify-center gap-2"
+									name="fullScreen"
+									aria-label={isFullScreen ? "Minimiser" : "Maximiser"}
 								>
 									{isFullScreen ? (
 										<>

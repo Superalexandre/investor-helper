@@ -492,12 +492,12 @@ const CalendarDatePagination = ({
 
     return (
         <div className={cn('flex items-center gap-2', className)}>
-            <Button onClick={() => handlePreviousMonth()} variant="ghost" size="icon" className="w-auto flex items-center gap-2">
+            <Button onClick={() => handlePreviousMonth()} variant="ghost" size="icon" className="w-auto flex items-center gap-2" name="previousMonth" aria-label="Previous month">
                 <ChevronLeftIcon size={16} />
 
                 <span className="block sm:hidden">{previousText}</span>
             </Button>
-            <Button onClick={() => handleNextMonth()} variant="ghost" size="icon" className="w-auto flex items-center gap-2">
+            <Button onClick={() => handleNextMonth()} variant="ghost" size="icon" className="w-auto flex items-center gap-2" name="nextMonth" aria-label="Next month">
                 <span className="block sm:hidden">{nextText}</span>
 
                 <ChevronRightIcon size={16} />
