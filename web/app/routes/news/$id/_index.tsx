@@ -81,7 +81,7 @@ export default function Index() {
 
 				<div className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute">
 					<DropdownMenu>
-						<DropdownMenuTrigger asChild={true}>
+						<DropdownMenuTrigger asChild={true} name="More options" aria-label="More options">
 							<Button variant="ghost">
 								<EllipsisVerticalIcon className="size-6" />
 							</Button>
@@ -391,6 +391,15 @@ function GetDeepComponent(
 					<TableCell key={`${child.type}-${Component.length}-${child.children?.length}`}>
 						{ComponentResult}
 					</TableCell>
+				)
+			} else if (["pre"].includes(child?.type)) {
+				const ComponentResult = GetDeepComponent(child.children, relatedSymbols, newsId, {
+					className: configClassName,
+					rawText: true
+				})
+
+				Component.push(
+					<pre key={`${child.type}-${Component.length}-${child.children?.length}`}>{ComponentResult}</pre>
 				)
 			} else {
 				console.error("Unknown child", child, newsId)
