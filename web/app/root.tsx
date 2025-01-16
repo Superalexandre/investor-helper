@@ -133,7 +133,7 @@ export default function App() {
 
 	useEffect(() => {
 		if ("serviceWorker" in navigator) {
-			const handleMessages = (event: MessageEvent) => {
+			const handleMessages = (event: MessageEvent): void => {
 				console.log("SW message", event)
 
 				if (event.data && event.data.type === "notification") {
@@ -147,7 +147,7 @@ export default function App() {
 						action: (
 							<Link
 								to={event.data.url}
-								onClick={() => {
+								onClick={(): void => {
 									sonner.dismiss(id)
 								}}
 							>

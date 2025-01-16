@@ -177,12 +177,14 @@ export default function Header({
 				</SheetContent>
 			</Sheet>
 			<div className="block xl:hidden">
-				<Link to="/search" className="absolute inset-y-0 right-0 mr-3 flex flex-row items-center">
-					<Button className="flex flex-row items-center justify-center gap-2 px-8">
-						<SearchIcon className="size-5" />
-						{t("header.search")}
+				<div className="absolute inset-y-0 right-0 mr-3 flex h-full flex-row items-center justify-center">
+					<Button className="flex h-9 flex-row items-center justify-center gap-2 px-8" asChild={true}>
+						<Link to="/search" className="flex h-9 flex-row items-center justify-center gap-2 px-8">
+							<SearchIcon className="size-5" />
+							{t("header.search")}
+						</Link>
 					</Button>
-				</Link>
+				</div>
 			</div>
 
 			{/* <Separator className="w-full h-[2px]" /> */}

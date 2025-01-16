@@ -429,10 +429,10 @@ const News = memo(function News({
 			<CardHeader>
 				<div className="flex flex-col items-start justify-between gap-1.5 lg:flex-row lg:gap-4">
 					<CardTitle className="flex-grow text-lg">
-						<a href={item.news.link || "#"} className="flex items-start gap-2 hover:underline" target="_blank" rel="noopener noreferrer">
+						<Link to={`/news/${item.news.id}`} className="flex items-start gap-2 hover:underline">
 							<span className="line-clamp-2">{item.news.title}</span>
 							<ExternalLinkIcon size={16} className="mt-1 flex-shrink-0" />
-						</a>
+						</Link>
 					</CardTitle>
 					<div className="flex flex-shrink-0 flex-row-reverse items-center gap-2 lg:flex-row">
 						<div className="flex flex-row items-center gap-2">
@@ -498,7 +498,7 @@ function ImportanceIndicator({ importance }: { importance: number }) {
 	return (
 		<TooltipProvider>
 			<Tooltip>
-				<TooltipTrigger>
+				<TooltipTrigger name="Importance trigger">
 					<div className="w-16 h-1.5 rounded-full bg-gray-200 overflow-hidden">
 						<div
 							className={`h-full ${colors[importance]}`}
