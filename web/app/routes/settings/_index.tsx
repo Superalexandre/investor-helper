@@ -283,7 +283,7 @@ const ChangeLanguage = memo(function ChangeLanguage({
 			className="flex w-3/4 flex-col items-center justify-center gap-2 lg:w-1/2"
 		>
 			<Label htmlFor="language">{t("language")}</Label>
-			<Select name="language" defaultValue={language} onValueChange={handleChange}>
+			<Select name="language" defaultValue={language} onValueChange={handleChange} aria-label="Choose language">
 				<SelectTrigger>
 					<SelectValue placeholder={t("chooseLanguage")} />
 				</SelectTrigger>
@@ -322,7 +322,7 @@ const ChangeTheme = memo(function ChangeTheme({
 	return (
 		<Form className="flex w-3/4 flex-col items-center justify-center gap-2 lg:w-1/2">
 			<Label htmlFor="theme">{t("theme")}</Label>
-			<Select name="theme" defaultValue={theme} onValueChange={(value) => handleChange(value)}>
+			<Select name="theme" defaultValue={theme} onValueChange={(value) => handleChange(value)} aria-label="Choose theme">
 				<SelectTrigger>
 					<SelectValue placeholder={t("chooseTheme")} />
 				</SelectTrigger>

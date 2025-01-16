@@ -13,7 +13,7 @@ import {
 	notificationSubscribedNewsSymbolsSchema
 } from "../../db/schema/notifications.js"
 import { addNotificationList, sendNotification } from "./notifications.js"
-import type { NewsFull, NewsSymbols, NewsSymbolsArticle } from "../types/News.js"
+import type { NewsFull, NewsSymbolsArticle } from "../types/News.js"
 import i18n, { newsUrl } from "../app/i18n.js"
 import logger from "../../log/index.js"
 

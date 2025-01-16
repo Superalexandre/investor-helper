@@ -214,6 +214,8 @@ function SearchInput({
 				{hidden ? null : (
 					<Button
 						variant="ghost"
+						name="clear"
+						aria-label="Clear"
 						onClick={() => {
 							if (inputRef.current) {
 								inputRef.current.value = ""
