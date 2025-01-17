@@ -1,4 +1,4 @@
-import type { ActionFunction, LoaderFunction } from "@remix-run/node";
+import type { ActionFunction, LoaderFunction, MetaFunction } from "@remix-run/node";
 import { Form, useActionData, useLoaderData, useNavigate, useSearchParams, useSubmit } from "@remix-run/react";
 import { ResponsiveContainer, Tooltip, Treemap } from "recharts";
 import { fetchScreener } from "../../../utils/tradingview/request";
@@ -155,19 +155,32 @@ export const action: ActionFunction = async ({ request }) => {
     }
 }
 
-// export async function action({ request }: ActionFunctionArgs) {
-//     let market = "SP500"
-//     const body = await request.formData()
-//     if (body.get("market")) {
-//         market = body.get("market") as string
-//     }
+export const meta: MetaFunction = () => {
+    // if (!data) {
+    // 	return []
+    // }
 
-//     const data = await getData(market)
+    // const { title, description } = data
 
-//     return {
-//         data
-//     }
-// }
+    // return [
+    // 	{ title: title },
+    // 	{ name: "og:title", content: title },
+    // 	{ name: "description", content: description },
+    // 	{ name: "og:description", content: description },
+    // 	{ name: "canonical", content: "https://www.investor-helper.com/login" }
+    // ]
+
+    const title = "Investor Helper - Heatmap"
+    const description = "Visualisation de la capitalisation boursière des entreprises du S&P 500, CAC 40 et NASDAQ 100."
+
+    return [
+        { title: title },
+        { name: "og:title", content: title },
+        { name: "description", content: description },
+        { name: "og:description", content: description },
+        { name: "canonical", content: "https://www.investor-helper.com/heatmap" }
+    ]
+}
 
 const processData = (data: ResultType[] = []): ProcessedDataType[] => {
     if (!Array.isArray(data) || data.length === 0) {
@@ -272,8 +285,8 @@ const CustomizedContent = (props: {
     const fontSize = 24
     const minImageSize = width / 6
 
-    const displayText = height > (fontSize * 3) + minImageSize && width > (description?.length / 2) * fontSize 
-    const bigImage = width < 50 
+    const displayText = height > (fontSize * 3) + minImageSize && width > (description?.length / 2) * fontSize
+    const bigImage = width < 50
 
     return (
         <g>
@@ -285,7 +298,7 @@ const CustomizedContent = (props: {
                 )}>
                     <img
                         src={`/api/image/symbol?name=${logoid}`}
-                        alt={description}
+                        alt={description || symbol || "Logo"}
                         className={cn(
                             "mx-auto rounded-full",
                             displayText ? "w-1/6" : (bigImage ? "w-full" : "w-1/2")
@@ -344,7 +357,12 @@ export default function Index(): ReactNode {
 
             <Form className="absolute top-0 left-0" method="POST">
                 <div className="absolute top-0 left-0 z-10 m-4">
-                    <Select name="market" defaultValue={market} onValueChange={(value) => handleSubmit(value)}>
+                    <Select 
+                        name="market" 
+                        defaultValue={market} 
+                        onValueChange={(value) => handleSubmit(value)} 
+                        aria-label="Choisir un marché"
+                    >
                         <SelectTrigger className="bg-background">
                             <SelectValue placeholder="Choisir un marché" />
                         </SelectTrigger>
