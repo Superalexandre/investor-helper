@@ -60,10 +60,6 @@ export const loader: LoaderFunction = async ({ request }) => {
 	
 	// Remove price that are not in the from range
 	const pricesFiltered = prices.filter((price) => {
-		if (new Date(price.time * 1000) <= timeframe.from) {
-			console.log("PRICE OUT OF RANGE", new Date(price.time * 1000), timeframe.from)
-		}
-
 		return new Date(price.time * 1000) >= timeframe.from
 	})
 

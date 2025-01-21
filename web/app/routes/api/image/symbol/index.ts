@@ -20,7 +20,8 @@ export async function loader({ request }: ClientLoaderFunctionArgs) {
 	const imageBlob = await imageReq.blob()
 	return new Response(imageBlob, {
 		headers: {
-			"Content-Type": "image/svg+xml"
+			"Content-Type": "image/svg+xml",
+			"Cache-Control": "public, max-age=604800, immutable"
 		}
 	})
 }
