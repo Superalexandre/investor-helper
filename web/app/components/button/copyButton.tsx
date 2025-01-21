@@ -7,8 +7,8 @@ import { useTranslation } from "react-i18next"
 import { CopyIcon } from "lucide-react"
 
 // Ajout de React.forwardRef pour que CopyButton accepte une ref
-const CopyButton = React.forwardRef<HTMLButtonElement, { content: string; className?: string }>(
-	({ content, className }, ref) => {
+const CopyButton = React.forwardRef<HTMLButtonElement, { content: string; className?: string, label?: boolean }>(
+	({ content, className, label = true }, ref) => {
 		const { t } = useTranslation("common", {
 			useSuspense: false,
 		})
@@ -43,7 +43,7 @@ const CopyButton = React.forwardRef<HTMLButtonElement, { content: string; classN
 				}}
 				className={cn("flex w-full flex-row items-center justify-start gap-1.5", className)}
 			>
-				{t("copyLink.trigger")}
+				{label ? t("copyLink.trigger") : null}
 
 				<CopyIcon className="size-5" />
 			</Button>

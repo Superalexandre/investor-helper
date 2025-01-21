@@ -43,9 +43,12 @@ export default defineConfig({
 	server: {
 		port: 4000
 	},
-	ssr: {
-		noExternal: ["react-charts", "remix-utils"]
-	},
+	// ssr: {
+	// 	noExternal: [
+	// 		"react-charts", 
+	// 		"remix-utils"
+	// 	]
+	// },
 	assetsInclude: ["**/*.md"],
 	plugins: _plugins
 })

@@ -40,6 +40,7 @@ const ColumnScreenerMapping = {
 
 const ColumnStockMapping = {
 	...ColumnGlobalMapping,
+	change: z.number(),
 	"High.1M": z.number(),
 	"Low.1M": z.number(),
 	"Perf.1M": z.number(),
@@ -65,7 +66,12 @@ const ColumnStockMapping = {
 	base_currency_logoid: z.string(),
 	currency: z.string(),
 	exchange: z.string(),
-	isin: z.string()
+	isin: z.string(),
+	type: z.string(),
+	close: z.number(),
+	ticker: z.string(),
+	"sector.tr": z.string(),
+	"country.tr": z.string(),
 } as const
 
 const ColumnScreenerSchema = z.enum(

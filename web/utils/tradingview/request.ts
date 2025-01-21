@@ -166,13 +166,15 @@ const fetchScreener = async <TColumns extends ColumnsArrayScreener>({
 const FetchSymbolParamsSchema = z.object({
 	symbol: z.string(),
 	// Fields is "all" or a list of columns
-	fields: z.union([z.literal("all"), z.array(ColumnStockSchema)])
+	fields: z.union([z.literal("all"), z.array(ColumnStockSchema)]),
+	language: z.string().optional()
 })
 type FetchSymbolParams = z.infer<typeof FetchSymbolParamsSchema>
 
 const fetchSymbol = async <TColumns extends ColumnsArrayStock>({
 	symbol,
-	fields
+	fields,
+	language = "en"
 }: FetchSymbolParams): Promise<{
 	success: boolean
 	message: string
@@ -184,7 +186,7 @@ const fetchSymbol = async <TColumns extends ColumnsArrayStock>({
 		fields = Object.keys(ColumnStockMapping) as TColumns
 	}
 
-	const url = `https://scanner.tradingview.com/symbol?symbol=${symbol}&fields=${fields}&no_404=true`
+	const url = `https://scanner.tradingview.com/symbol?symbol=${symbol}&fields=${fields}&no_404=true&lang=${language}`
 
 	const response = await fetch(url, {
 		headers: {
@@ -203,14 +205,24 @@ const fetchSymbol = async <TColumns extends ColumnsArrayStock>({
 
 	const result: TradingViewResponseDynamic<TColumns> = await response.json()
 
+	if (!result) {
+		return {
+			success: false,
+			message: "No data found",
+			result: null,
+			parsedResult: null
+		}
+	}
+
 	// Parse the response based on stock column types
-	const parsed = parseTradingViewResponse(fields as TColumns, result as TradingViewResponseDynamic<TColumns>)
+	// const parsed = parseTradingViewResponse(fields as TColumns, result as TradingViewResponseDynamic<TColumns>)
 
 	return {
 		success: true,
 		message: "Data fetched successfully",
 		result,
-		parsedResult: parsed as { [K in TColumns[number]]: ColumnStockMappingType[K] }[]
+		parsedResult: null
+		// parsedResult: parsed as { [K in TColumns[number]]: ColumnStockMappingType[K] }[]
 	}
 }
 
