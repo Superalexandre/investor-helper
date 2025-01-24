@@ -309,15 +309,15 @@ export default function Index(): ReactNode {
 
 				<CardContent>
 					<div className="flex items-center justify-between">
-						<span className="text-sm">Low: {data.info["Pivot.M.Fibonacci.S3"]}</span>
-						<span className="text-sm">Avg: {data.info["Pivot.M.Fibonacci.Middle"]}</span>
-						<span className="text-sm">High: {data.info["Pivot.M.Fibonacci.R3"]}</span>
+						<span className="text-sm truncate">Low: {data.info["Pivot.M.Fibonacci.S3"].toFixed(2)}</span>
+						<span className="text-sm truncate">Avg: {data.info["Pivot.M.Fibonacci.Middle"].toFixed(2)}</span>
+						<span className="text-sm truncate">High: {data.info["Pivot.M.Fibonacci.R3"].toFixed(2)}</span>
 					</div>
-					<div className="mt-2 h-2 rounded-full bg-primary-foreground">
+					<div className="mt-2 h-2 rounded-full bg-secondary">
 						<div
 							className="h-full max-w-full rounded-full bg-primary"
 							style={{
-								width: `${((data.info.close - data.info["Pivot.M.Fibonacci.S3"]) /
+								width: `${((data.info["Pivot.M.Fibonacci.Middle"] - data.info["Pivot.M.Fibonacci.S3"]) /
 									(data.info["Pivot.M.Fibonacci.R3"] - data.info["Pivot.M.Fibonacci.S3"])) *
 									100
 									}%`,
@@ -338,7 +338,7 @@ export default function Index(): ReactNode {
 							<div key={news.news.id} className="flex flex-col">
 								<Button variant="link" asChild={true} className="h-auto justify-start p-0">
 									<Link to={`/news/${news.news.id}`} className="flex flex-row items-center gap-2">
-										<h2 className="font-bold">{news.news.title}</h2>
+										<h2 className="truncate font-bold">{news.news.title}</h2>
 
 										<ExternalLinkIcon className="h-4 w-4" />
 									</Link>

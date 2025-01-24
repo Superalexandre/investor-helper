@@ -123,7 +123,7 @@ export function FullChart({ symbol, setInfo }: {
 
     return (
         <div className="flex flex-col gap-4">
-            <div className="flex flex-row items-center gap-1">
+            <div className="flex flex-row items-center gap-1 overflow-auto">
                 <Button type="submit" className="" onClick={(): void => setTimeframe("1D")} variant={data.timeframe === "1D" ? "default" : "outline"}>
                     1D
                 </Button>

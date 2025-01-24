@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Link, useFetcher, useLoaderData, useLocation } from "@remix-run/react"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
 import { ScrollTop } from "@/components/scrollTop"
 import { Button } from "@/components/ui/button"
@@ -20,8 +20,15 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import type { CheckedState } from "@radix-ui/react-checkbox"
 import getNewsPreferences from "../../../lib/getNewsPreferences"
 import { getSourceList } from "../../../../utils/news"
-import { ArrowLeftIcon, ArrowRightIcon, FilterIcon, GlobeIcon, RssIcon, StarIcon } from "lucide-react"
-import { DotSeparator } from "../../../components/ui/separator"
+import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, ChevronsUpDownIcon, ExternalLinkIcon, FilterIcon, GlobeIcon, RssIcon, StarIcon } from "lucide-react"
+import { DotSeparator, Separator } from "../../../components/ui/separator"
+import { Badge } from "../../../components/ui/badge"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../components/ui/tooltip"
+import SymbolLogo from "../../../components/symbolLogo"
+import type { Symbol as SymbolType } from "@/schema/symbols"
+import { Popover, PopoverContent, PopoverTrigger } from "../../../components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../../components/ui/command"
+import { cn } from "../../../lib/utils"
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const [t, newsPreferences] = await Promise.all([
@@ -165,6 +172,7 @@ export default function Index() {
 	)
 }
 
+
 const DisplayFilter = memo(function DisplayFilter({
 	t,
 	selectedLanguage,
@@ -173,197 +181,141 @@ const DisplayFilter = memo(function DisplayFilter({
 	setSelectedImportance,
 	allSources,
 	selectedSource,
-	setSelectedSource
+	setSelectedSource,
 }: {
-	t: TFunction
-	selectedLanguage: string[]
-	setSelectedLanguage: (value: string[]) => void
+	t: TFunction;
+	selectedLanguage: string[];
+	setSelectedLanguage: (value: string[]) => void;
 
-	selectedImportance: string[]
-	setSelectedImportance: (value: string[]) => void
+	selectedImportance: string[];
+	setSelectedImportance: (value: string[]) => void;
 
-	allSources: string[]
-	selectedSource: string[]
-	setSelectedSource: (value: string[]) => void
-}) {
-	const [opened, setOpened] = useState<string | null>(null)
-
-	// Memoized handlers for opening filters
-	const handleOpen = useCallback((type: string) => () => setOpened(type), [])
-	const handleClose = useCallback(() => setOpened(null), [])
-
-	const commonSources = allSources.filter((source) => selectedSource.includes(source))
-
-	const languageItems = ["fr-FR", "en-US"]
-	const languageLabels = { "fr-FR": "Français", "en-US": "Anglais" }
-
-	const importanceItems = ["none", "low", "medium", "high", "very-high"]
-	const importanceLabels = {
-		"none": <div className="flex flex-row items-center gap-2"><p>Neutre</p></div>,
-		"low": <div className="flex flex-row items-center gap-2"><p>Faible</p><ImportanceBadge starNumber={1} /></div>,
-		"medium": <div className="flex flex-row items-center gap-2"><p>Moyenne</p><ImportanceBadge starNumber={2} /></div>,
-		"high": <div className="flex flex-row items-center gap-2"><p>Forte</p><ImportanceBadge starNumber={3} /></div>,
-		"very-high": <div className="flex flex-row items-center gap-2"><p>Très forte</p><ImportanceBadge starNumber={4} /></div>
-	}
-
-	const sourceLabels = allSources.reduce((acc, source) => {
-		acc[source] = source
-		return acc
-	}, {} as { [key: string]: string | ReactNode })
-
-	const renderFilterComponent = (isPopup: boolean, type: string, selectedItems: string[], setSelectedItems: (value: string[]) => void, items: string[], labels: { [key: string]: string | ReactNode }) => {
-		const child = (
-			<FilterComponent
-				selectedItems={selectedItems}
-				setSelectedItems={setSelectedItems}
-				items={items}
-				labels={labels}
-				type={type}
-			/>
-		)
-
-		if (!isPopup) {
-			return child
-		}
-
-		return (
-			<PopupFilter open={opened === type} onClose={handleClose}>
-				{child}
-			</PopupFilter>
-		)
-	}
-
-	return (
-		<>
-			{renderFilterComponent(true, "languages", selectedLanguage, setSelectedLanguage, languageItems, languageLabels)}
-			{renderFilterComponent(true, "importances", selectedImportance, setSelectedImportance, importanceItems, importanceLabels)}
-			{renderFilterComponent(true, "sources", selectedSource, setSelectedSource, allSources, sourceLabels)}
-
-			<PopupFilter open={opened === "all"} onClose={handleClose}>
-				<div className="flex flex-col items-center justify-center gap-4">
-					<div className="flex flex-col items-center justify-center gap-2">
-						<p className="text-muted-foreground text-sm">Langue</p>
-						{renderFilterComponent(false, "languages", selectedLanguage, setSelectedLanguage, languageItems, languageLabels)}
-					</div>
-					<div className="flex flex-col items-center justify-center gap-2">
-						<p className="text-muted-foreground text-sm">Importance</p>
-						{renderFilterComponent(false, "importances", selectedImportance, setSelectedImportance, importanceItems, importanceLabels)}
-					</div>
-					<div className="flex flex-col items-center justify-center gap-2">
-						<p className="text-muted-foreground text-sm">Sources</p>
-						{renderFilterComponent(false, "sources", selectedSource, setSelectedSource, allSources, sourceLabels)}
-					</div>
-				</div>
-			</PopupFilter>
-
-			<div className="flex flex-row items-center gap-2 overflow-x-auto">
-				<Button variant={opened === "all" ? "default" : "outline"} onClick={handleOpen("all")} className="flex flex-row items-center gap-2">
-					<FilterIcon className="size-5" />
-
-					Tous les filtres
-				</Button>
-				
-				<Button variant={opened === "languages" ? "default" : "outline"} onClick={handleOpen("languages")} className="flex flex-row items-center gap-2">
-					<GlobeIcon className="size-5" />
-
-					Langue ({selectedLanguage.length})
-				</Button>
-
-				<Button variant={opened === "sources" ? "default" : "outline"} onClick={handleOpen("sources")} className="flex flex-row items-center gap-2">
-					<RssIcon className="size-5" />
-
-					Sources ({commonSources.length})
-				</Button>
-
-				<Button variant={opened === "importances" ? "default" : "outline"} onClick={handleOpen("importances")} className="flex flex-row items-center gap-2">
-					<StarIcon className="size-5" />
-
-					Importance ({selectedImportance.length})
-				</Button>
-			</div>
-		</>
-	)
-})
-
-function PopupFilter({
-	open,
-	onClose,
-	children
-}: {
-	open: boolean
-	onClose: () => void
-	children: ReactNode
-}) {
-	return (
-		<Dialog open={open} onOpenChange={(newOpen) => (newOpen ? null : onClose())}>
-			<DialogContent className="w-11/12 max-h-full overflow-auto">
-				<DialogHeader>
-					<DialogTitle>Filtrez les actualités</DialogTitle>
-					<DialogDescription>Affinez les actualités en fonction de vos préférences</DialogDescription>
-				</DialogHeader>
-
-				{children}
-			</DialogContent>
-		</Dialog>
-	)
-}
-
-function FilterComponent({
-	selectedItems,
-	setSelectedItems,
-	items,
-	labels,
-	type
-}: {
-	selectedItems: string[]
-	setSelectedItems: (value: string[]) => void
-	items: string[]
-	labels: { [key: string]: string | ReactNode }
-	type: string
+	allSources: string[];
+	selectedSource: string[];
+	setSelectedSource: (value: string[]) => void;
 }) {
 	const fetcher = useFetcher()
 
-	const onChange = (checked: CheckedState, value: string): void => {
-		let newItems: string[] = []
+	const languageItems = ["fr-FR", "en-US"];
+	const languageLabels: Record<string, string> = { "fr-FR": "Français", "en-US": "Anglais" };
 
-		if (checked) {
-			newItems = [...selectedItems, value]
-		} else {
-			newItems = selectedItems.filter((item) => item !== value)
-		}
+	const importanceItems = ["none", "low", "medium", "high", "very-high"];
+	const importanceLabels: Record<string, string> = {
+		none: "Neutre",
+		low: "Faible",
+		medium: "Moyenne",
+		high: "Forte",
+		"very-high": "Très forte",
+	};
 
-		setSelectedItems(newItems)
+	const importanceColors = [
+		"bg-gray-200",
+		"bg-green-400",
+		"bg-yellow-400",
+		"bg-orange-400",
+		"bg-red-400"
+	]
 
+	const handleSync = (type: string, updatedItems: string[]) => {
 		fetcher.submit(
 			{
 				type: "newsPreferences",
-				[type]: newItems.join(","),
-				redirect: "/news"
+				[type]: updatedItems.join(","),
+				redirect: "/news/newsTest2",
 			},
 			{
 				method: "POST",
 				action: "/settings",
-				encType: "application/json"
+				encType: "application/json",
 			}
-		)
-	}
+		);
+	};
+
+	const renderFilter = (
+		title: string,
+		items: string[],
+		selectedItems: string[],
+		setSelectedItems: (value: string[]) => void,
+		type: string,
+		children: (item: string) => ReactNode = (item) => item
+	): ReactNode => {
+		const [open, setOpen] = useState(false);
+
+		return (
+			<Popover open={open} onOpenChange={setOpen}>
+				<PopoverTrigger asChild={true}>
+					<Button variant="outline" className="w-auto justify-between capitalize">
+						{title} ({selectedItems.length})
+						<ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+					</Button>
+				</PopoverTrigger>
+				<PopoverContent className="w-auto p-0">
+					<Command autoFocus={false} >
+						<CommandInput 
+							placeholder={`Rechercher ${title}`} 
+							autoFocus={false}
+						/>
+						<CommandList>
+							<CommandEmpty>Vide</CommandEmpty>
+							<CommandGroup>
+								{items.map((item) => (
+									<CommandItem
+										key={item}
+										value={item}
+										onSelect={(currentValue) => {
+											let updatedItems: string[];
+											if (selectedItems.includes(currentValue)) {
+												updatedItems = selectedItems.filter((value) => value !== currentValue);
+											} else {
+												updatedItems = [...selectedItems, currentValue];
+											}
+											setSelectedItems(updatedItems);
+											handleSync(type, updatedItems);
+										}}
+										className="capitalize"
+									>
+										<CheckIcon
+											className={cn(
+												"mr-2 h-4 w-4",
+												selectedItems.includes(item) ? "opacity-100" : "opacity-0"
+											)}
+										/>
+
+										{children(item)}
+									</CommandItem>
+								))}
+							</CommandGroup>
+						</CommandList>
+					</Command>
+				</PopoverContent>
+			</Popover>
+		);
+	};
 
 	return (
-		<fetcher.Form className="flex flex-col items-center gap-2">
-			{items.map((item) => (
-				<div key={item} className="flex flex-row items-center justify-center gap-2">
-					<Checkbox
-						id={item}
-						value={item}
-						defaultChecked={selectedItems.includes(item)}
-						onCheckedChange={(checked) => onChange(checked, item)}
+		<div className="flex flex-row items-center gap-2 overflow-x-auto">
+			{renderFilter("Langue", languageItems, selectedLanguage, setSelectedLanguage, "languages", (item) => (
+				<span>{languageLabels[item]}</span>
+			))}
+			{renderFilter("Importance", importanceItems, selectedImportance, setSelectedImportance, "importances", (item) => (
+				<div className="flex w-full flex-row items-center justify-between">
+					<span>{importanceLabels[item]}</span>
+
+					<div 
+						className={cn(
+							"size-4 rounded-full",
+							importanceColors[importanceItems.indexOf(item)],
+							// selectedImportance.includes(item) ? "opacity-100" : "opacity-50"
+						)}
 					/>
-					<Label htmlFor={item}>{labels[item]}</Label>
 				</div>
 			))}
-		</fetcher.Form>
-	)
-}
+			{renderFilter("Sources", allSources, selectedSource, setSelectedSource, "sources", (item) => (
+				<span>{item}</span>
+			))}
+		</div>
+	);
+});
 
 function Empty({
 	t
@@ -457,23 +409,114 @@ const News = memo(function News({
 		return <Empty t={t} />
 	}
 
-	return news.map((item) => (
-		<div
-			className="relative"
-			key={item.news.id}
-			id={item.news.id}
-			ref={(element) => {
-				newsRefs.current[item.news.id] = element
-			}}
-		>
-			{item.news.importanceScore > 50 ? (
-				<ImportanceBadge
-					starNumber={Math.floor(item.news.importanceScore / 50)}
-					className="-right-[10px] -top-[10px] absolute"
-				/>
-			) : null}
+	const prettyLanguage: Record<string, string> = {
+		"fr-FR": "Français",
+		"en-US": "Anglais"
+	}
 
-			<Card className="border-card-border">
+	const prettyDate = (date: Date): string => date.toLocaleDateString(language, {
+		hour: "numeric",
+		minute: "numeric",
+		year: "numeric",
+		month: "long",
+		day: "numeric",
+		timeZoneName: "shortOffset",
+		weekday: "long"
+	})
+
+	return news.map((item) => (
+		<Card key={item.news.id} className="border-card-border">
+			<CardHeader>
+				<div className="flex flex-col items-start justify-between gap-1.5 lg:flex-row lg:gap-4">
+					<CardTitle className="flex-grow text-lg">
+						<Link to={`/news/${item.news.id}`} className="flex items-start gap-2 hover:underline">
+							<span className="line-clamp-2">{item.news.title}</span>
+							<ExternalLinkIcon size={16} className="mt-1 flex-shrink-0" />
+						</Link>
+					</CardTitle>
+					<div className="flex flex-shrink-0 flex-row-reverse items-center gap-2 lg:flex-row">
+						<div className="flex flex-row items-center gap-2">
+							<p className="block lg:hidden">Importance :</p>
+							<ImportanceIndicator importance={Math.floor(item.news.importanceScore / 50)} />
+						</div>
+						<Badge variant="secondary" className="flex items-center gap-1">
+							<GlobeIcon size={12} />
+							{prettyLanguage[item.news.lang]}
+						</Badge>
+					</div>
+				</div>
+				<CardDescription className="flex items-center justify-between">
+					<span>{item.news.source} - {prettyDate(new Date(item.news.published * 1000 || ""))}</span>
+				</CardDescription>
+			</CardHeader>
+			<CardContent className="flex flex-col gap-4">
+				<p>{item.news_article.shortDescription}</p>
+				<div>
+					<h4 className="mb-2 font-semibold text-sm">Associated Stocks :</h4>
+
+					{/* <div className="flex flex-row gap-2 items-center flex-wrap">
+						{item.relatedSymbols.map((symbol: { symbol: SymbolType }) => (
+							<Badge
+								key={symbol.symbol.symbolId}
+								// variant="outline"
+								className="flex h-8 flex-row items-center justify-center"
+							>
+								<SymbolLogo symbol={symbol.symbol} className="mr-1.5 size-5 rounded-full" />
+
+								{symbol.symbol.name}
+							</Badge>
+						))}
+					</div> */}
+
+					<DisplaySymbols symbolList={item.relatedSymbols} hash={item.news.id} t={t} />
+					{/* <div className="flex flex-wrap gap-2">
+						{item.associatedStocks.map((stock) => (
+							<Badge key={stock} variant="outline">{stock}</Badge>
+						))}
+					</div> */}
+				</div>
+			</CardContent>
+		</Card>
+	))
+})
+
+function ImportanceIndicator({ importance }: { importance: number }) {
+	if (importance > 4) {
+		importance = 4;
+	} else if (importance < 0) {
+		importance = 0;
+	}
+
+	const colors = [
+		"bg-gray-200",
+		"bg-green-400",
+		"bg-yellow-400",
+		"bg-orange-400",
+		"bg-red-400"
+	]
+
+	return (
+		<TooltipProvider>
+			<Tooltip>
+				<TooltipTrigger name="Importance trigger" aria-label="Importance">
+					<div className="h-1.5 w-16 overflow-hidden rounded-full bg-gray-200">
+						<div
+							className={`h-full ${colors[importance]}`}
+							style={{ width: `${(importance + 1) * 20}%` }}
+						/>
+					</div>
+				</TooltipTrigger>
+				<TooltipContent>
+					<p>Importance: {importance + 1}/5</p>
+				</TooltipContent>
+			</Tooltip>
+		</TooltipProvider>
+	)
+}
+
+/*
+
+			{/* <Card className="border-card-border">
 				<Link
 					to={{
 						pathname: `/news/${item.news.id}`
@@ -485,7 +528,7 @@ const News = memo(function News({
 					}}
 				>
 					<CardHeader>
-						<CardTitle className="flex flex-row items-center gap-2 font-bold">
+						<CardTitle className="flex flex-row items-center gap-2">
 							<img src={flags[item.news.lang]} alt={item.news.lang} className="size-5" />
 
 							{item.news.title}
@@ -493,9 +536,7 @@ const News = memo(function News({
 					</CardHeader>
 				</Link>
 
-				<CardContent className="flex flex-col gap-6">
-					<p>{item.news_article.shortDescription}</p>
-
+				<CardContent>
 					<DisplaySymbols symbolList={item.relatedSymbols} hash={item.news.id} t={t} />
 				</CardContent>
 
@@ -519,6 +560,4 @@ const News = memo(function News({
 					</span>
 				</CardFooter>
 			</Card>
-		</div>
-	))
-})
+			*/
