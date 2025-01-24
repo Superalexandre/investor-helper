@@ -147,6 +147,7 @@ async function getNewsBySymbol({ symbol, limit = 10 }: { symbol: string, limit?:
 		.innerJoin(newsRelatedSymbolsSchema, eq(newsSchema.id, newsRelatedSymbolsSchema.newsId))
 		.where(eq(newsRelatedSymbolsSchema.symbol, symbol))
 		.limit(limit)
+		.orderBy(desc(newsSchema.published))
 		// .innerJoin(newsArticleSchema, eq(newsSchema.id, newsArticleSchema.newsId))
 
 	return newsResults
