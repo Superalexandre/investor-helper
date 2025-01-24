@@ -11,7 +11,10 @@ export default function SymbolLogo({
 	symbol,
 	className,
 	alt,
-	fallback
+	fallback,
+	width,
+	height,
+	format
 }: {
 	symbol:
 		| {
@@ -22,7 +25,10 @@ export default function SymbolLogo({
 	className?: string
 	alt?: string
 	// React.ReactNode
-	fallback?: ReactNode
+	fallback?: ReactNode,
+	width?: number,
+	height?: number,
+	format?: string
 }) {
 	if (!symbol) {
 		return fallback || null
@@ -34,9 +40,24 @@ export default function SymbolLogo({
 		return fallback || null
 	}
 
+	// const url = new URL(`/api/image/symbol?name=${source}`)
+	let url = `/api/image/symbol?name=${source}`
+
+	if (width) {
+		url += `&width=${width}`
+	}
+
+	if (height) {
+		url += `&height=${height}`
+	}
+
+	if (format) {
+		url += `&format=${format}`
+	}
+
 	return (
 		<ImageContainer className={cn(className)}>
-			<ImageContent src={`/api/image/symbol?name=${source}`} alt={alt || "Icon"} className="bg-transparent" />
+			<ImageContent src={url.toString()} alt={alt || "Icon"} className="bg-transparent" />
 			<ImageFallback className="bg-transparent">
 				<Skeleton className="size-full rounded-full bg-muted" />
 			</ImageFallback>

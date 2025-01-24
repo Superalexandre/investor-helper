@@ -147,7 +147,13 @@ export function ParseComponent(
                         className={className?.badge}
                     >
                         <Badge variant="default" className="flex h-8 flex-row items-center justify-center">
-                            <SymbolLogo symbol={relatedSymbolsData?.symbol} className="mr-1.5 size-6 rounded-full" />
+                            <SymbolLogo 
+                                symbol={relatedSymbolsData?.symbol} 
+                                className="mr-1.5 size-6 rounded-full" 
+                                width={24}
+                                height={24}
+                                format="webp"
+                            />
 
                             <span>{child.params?.symbol}</span>
                         </Badge>

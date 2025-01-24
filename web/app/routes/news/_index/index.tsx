@@ -451,30 +451,13 @@ const News = memo(function News({
 			</CardHeader>
 			<CardContent className="flex flex-col gap-4">
 				<p>{item.news_article.shortDescription}</p>
-				<div>
-					<h4 className="mb-2 font-semibold text-sm">Associated Stocks :</h4>
+				{item.relatedSymbols.length > 0 ? (
+					<div>
+						<h4 className="mb-2 font-semibold text-sm">Associated Stocks :</h4>
 
-					{/* <div className="flex flex-row gap-2 items-center flex-wrap">
-						{item.relatedSymbols.map((symbol: { symbol: SymbolType }) => (
-							<Badge
-								key={symbol.symbol.symbolId}
-								// variant="outline"
-								className="flex h-8 flex-row items-center justify-center"
-							>
-								<SymbolLogo symbol={symbol.symbol} className="mr-1.5 size-5 rounded-full" />
-
-								{symbol.symbol.name}
-							</Badge>
-						))}
-					</div> */}
-
-					<DisplaySymbols symbolList={item.relatedSymbols} hash={item.news.id} t={t} />
-					{/* <div className="flex flex-wrap gap-2">
-						{item.associatedStocks.map((stock) => (
-							<Badge key={stock} variant="outline">{stock}</Badge>
-						))}
-					</div> */}
-				</div>
+						<DisplaySymbols symbolList={item.relatedSymbols} hash={item.news.id} t={t} />
+					</div>
+				) : null}
 			</CardContent>
 		</Card>
 	))

@@ -52,7 +52,13 @@ export default memo(function DisplaySymbols({
 						variant="default"
 						className="flex h-8 flex-row items-center justify-center"
 					>
-						<SymbolLogo symbol={symbol.symbol} className="mr-1.5 size-6 rounded-full" />
+						<SymbolLogo 
+							symbol={symbol.symbol} 
+							className="mr-1.5 size-6 rounded-full" 
+							width={24}
+							height={24}
+							format="webp"
+						/>
 
 						{symbol.symbol.name}
 					</Badge>

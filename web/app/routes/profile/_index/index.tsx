@@ -9,7 +9,7 @@ import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import { verificationEmailSchema } from "../../../../../db/schema/email"
 import { eq } from "drizzle-orm"
-import { formatDistance, formatDistanceToNow } from "date-fns"
+import { formatDistanceToNow } from "date-fns"
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
