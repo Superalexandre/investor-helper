@@ -72,6 +72,18 @@ const ColumnStockMapping = {
 	ticker: z.string(),
 	"sector.tr": z.string(),
 	"country.tr": z.string(),
+	market_cap_basic: z.number(),
+	recommend_signal: z.string(),
+	industry: z.string(),
+	"industry.tr": z.string(),
+	"Recommend.All|1W": z.number(),
+	"Pivot.M.Fibonacci.S3": z.number(),
+	"Pivot.M.Fibonacci.S2": z.number(),
+	"Pivot.M.Fibonacci.S1": z.number(),
+	"Pivot.M.Fibonacci.Middle": z.number(),
+	"Pivot.M.Fibonacci.R1": z.number(),
+	"Pivot.M.Fibonacci.R2": z.number(),
+	"Pivot.M.Fibonacci.R3": z.number(),
 } as const
 
 const ColumnScreenerSchema = z.enum(

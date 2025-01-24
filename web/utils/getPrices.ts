@@ -132,6 +132,12 @@ export default function getPrices(
 		// if (!chart) chart = new client.Session.Chart()
 		const chart = new client.Session.Chart()
 
+		if (!chart) {
+			logger.error("Can't create a session")
+
+			return
+		}
+
 		chart.setMarket(reverseNormalizeSymbol(symbolId), {
 			timeframe: timeframe as TimeFrame,
 			range
@@ -148,6 +154,8 @@ export default function getPrices(
 		chart.onUpdate(() => {
 			// When price changes
 			if (!chart.periods[0]) {
+				logger.error("No price (no period)")
+
 				return
 			}
 

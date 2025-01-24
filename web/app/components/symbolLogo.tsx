@@ -18,7 +18,7 @@ export default function SymbolLogo({
 				// biome-ignore lint/suspicious/noExplicitAny: This is a valid type.
 				[key: string]: any
 		  }
-		| undefined
+		| undefined | string
 	className?: string
 	alt?: string
 	// React.ReactNode
@@ -28,7 +28,7 @@ export default function SymbolLogo({
 		return fallback || null
 	}
 
-	const source = symbol.logoid || symbol.base_currency_logoid
+	const source = typeof symbol === "string" ? symbol : symbol.logoid || symbol.base_currency_logoid
 
 	if (!source) {
 		return fallback || null

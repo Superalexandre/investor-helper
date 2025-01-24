@@ -1,5 +1,4 @@
-import { Monitoring } from "react-scan/monitoring/remix"
-import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node"
+import type { LinksFunction, LoaderFunction, LoaderFunctionArgs } from "@remix-run/node"
 import {
 	isRouteErrorResponse,
 	Link,
@@ -19,21 +18,17 @@ import { getUser } from "./session.server"
 import { Button } from "@/components/ui/button"
 import { type ReactNode, useEffect } from "react"
 import { Toaster } from "@/components/ui/toaster"
-import Database from "better-sqlite3"
-import { drizzle } from "drizzle-orm/better-sqlite3"
-import { sourceTrackingSchema } from "@/schema/sourceTracking"
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { Toaster as Sonner } from "@/components/ui/sonner"
 import { toast as sonner } from "sonner"
 import i18next from "./i18next.server"
 import { useTranslation } from "react-i18next"
 import { useChangeLanguage } from "remix-i18next/react"
 import { getTheme } from "./lib/getTheme"
-import { getNotificationList, getNotificationListNumber } from "../utils/notifications"
-import type { NotificationList } from "../../db/schema/notifications"
-import { NuqsAdapter } from 'nuqs/adapters/remix'
+import { getNotificationListNumber } from "../utils/notifications"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { NuqsAdapter } from "nuqs/adapters/remix"
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export const loader: LoaderFunction = async ({ request }) => {
 	const [user, theme, locale] = await Promise.all([getUser(request), getTheme(request), i18next.getLocale(request)])
 
 	let notificationNumber = 0
@@ -41,22 +36,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		notificationNumber = await getNotificationListNumber(user.id)
 	}
 
-	const url = new URL(request.url)
+	// const url = new URL(request.url)
 
-	const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
-	const db = drizzle(sqlite)
+	// const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
+	// const db = drizzle(sqlite)
 
 	// Get the utm_source query parameter
-	const utmSource = url.searchParams.get("utm_source")
+	// const utmSource = url.searchParams.get("utm_source")
 
-	if (utmSource) {
-		await db.insert(sourceTrackingSchema).values({
-			source: utmSource,
-			fullUrl: url.href,
-			isLogged: user !== null,
-			type: "utm"
-		})
-	}
+	// if (utmSource) {
+	// 	await db.insert(sourceTrackingSchema).values({
+	// 		source: utmSource,
+	// 		fullUrl: url.href,
+	// 		isLogged: user !== null,
+	// 		type: "utm"
+	// 	})
+	// }
 
 	return { logged: user !== null, user, locale, theme: theme, notificationNumber }
 }
@@ -66,7 +61,7 @@ export const handle = {
 	i18n: "common"
 }
 
-export function Layout({ children }: { children: ReactNode }) {
+export function Layout({ children }: { children: ReactNode }): ReactNode {
 	const data = useRouteLoaderData<typeof loader>("root")
 	const { i18n, t } = useTranslation("common")
 
@@ -109,11 +104,6 @@ export function Layout({ children }: { children: ReactNode }) {
 				<meta name="mobile-web-app-capable" content="yes" />
 			</head>
 			<body className="flex min-h-screen flex-col">
-				{/* <Monitoring
-					apiKey="hv4UcoTdsZZxibgbmuoXgWzcgN5BKuGv" // Safe to expose publically
-					url="https://monitoring.react-scan.com/api/v1/ingest"
-				/> */}
-
 				<Header user={data?.user ?? null} t={t} notificationNumber={data?.notificationNumber ?? 0} />
 
 				{children}
@@ -128,7 +118,7 @@ export function Layout({ children }: { children: ReactNode }) {
 	)
 }
 
-export default function App() {
+export default function App(): ReactNode {
 	const queryClient = new QueryClient()
 
 	useEffect(() => {
@@ -162,22 +152,22 @@ export default function App() {
 
 			navigator.serviceWorker.addEventListener("message", handleMessages)
 
-			return () => {
+			return (): void => {
 				navigator.serviceWorker.removeEventListener("message", handleMessages)
 			}
 		}
 	}, [])
 
 	return (
+		<QueryClientProvider client={queryClient}>
 		<NuqsAdapter>
-			<QueryClientProvider client={queryClient}>
-				<Outlet />
-			</QueryClientProvider>
+		<Outlet />
 		</NuqsAdapter>
+		</QueryClientProvider>
 	)
 }
 
-export function ErrorBoundary() {
+export function ErrorBoundary(): ReactNode {
 	const { t } = useTranslation("common")
 	const error = useRouteError()
 

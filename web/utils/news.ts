@@ -51,19 +51,40 @@ async function getNews({
 		.orderBy(desc(newsSchema.published))
 
 	const news: NewsFull[] = []
-	for (const newsItem of allNews) {
-		const relatedSymbols = await db
-			.select()
-			.from(newsRelatedSymbolsSchema)
-			.innerJoin(symbolsSchema, eq(newsRelatedSymbolsSchema.symbol, symbolsSchema.symbolId))
-			.where(eq(newsRelatedSymbolsSchema.newsId, newsItem.news.id))
 
-		news.push({
-			news: newsItem.news,
-			news_article: newsItem.news_article,
-			relatedSymbols: relatedSymbols
+	// const startFor = Date.now()
+	// for (const newsItem of allNews) {
+	// 	const relatedSymbols = await db
+	// 		.select()
+	// 		.from(newsRelatedSymbolsSchema)
+	// 		.innerJoin(symbolsSchema, eq(newsRelatedSymbolsSchema.symbol, symbolsSchema.symbolId))
+	// 		.where(eq(newsRelatedSymbolsSchema.newsId, newsItem.news.id))
+
+	// 	news.push({
+	// 		news: newsItem.news,
+	// 		news_article: newsItem.news_article,
+	// 		relatedSymbols: relatedSymbols
+	// 	})
+	// }
+	// const endFor = Date.now()
+
+	await Promise.all(
+		allNews.map(async (newsItem) => {
+			const relatedSymbols = await db
+				.select()
+				.from(newsRelatedSymbolsSchema)
+				.innerJoin(symbolsSchema, eq(newsRelatedSymbolsSchema.symbol, symbolsSchema.symbolId))
+				.where(eq(newsRelatedSymbolsSchema.newsId, newsItem.news.id))
+
+			news.push({
+				news: newsItem.news,
+				news_article: newsItem.news_article,
+				relatedSymbols: relatedSymbols
+			})
 		})
-	}
+	)
+
+	// logger.info(`For loop: ${endFor - startFor}ms - Promise.all: ${endPromiseAll - startPromiseAll}ms - DB: ${endDb - startDb}ms`)
 
 	return news
 }
@@ -111,6 +132,24 @@ async function getNewsById({ id }: { id: string }) {
 		news,
 		relatedSymbols: relatedSymbolsResults
 	}
+}
+
+async function getNewsBySymbol({ symbol, limit = 10 }: { symbol: string, limit?: number }) {
+	const sqlite = new Database("../db/sqlite.db")
+	const db = drizzle(sqlite)
+
+	const newsResults = await db
+		.select({
+			news: newsSchema,
+			relatedSymbols: newsRelatedSymbolsSchema
+		})
+		.from(newsSchema)
+		.innerJoin(newsRelatedSymbolsSchema, eq(newsSchema.id, newsRelatedSymbolsSchema.newsId))
+		.where(eq(newsRelatedSymbolsSchema.symbol, symbol))
+		.limit(limit)
+		// .innerJoin(newsArticleSchema, eq(newsSchema.id, newsArticleSchema.newsId))
+
+	return newsResults
 }
 
 async function fetchNews(lang = "fr-FR") {
@@ -705,5 +744,6 @@ export {
 	getNewsImportanceScore,
 	searchNews,
 	getNewsFromDates,
-	getLastImportantNews
+	getLastImportantNews,
+	getNewsBySymbol
 }
