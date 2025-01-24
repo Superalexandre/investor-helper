@@ -60,9 +60,16 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 
 		newsResult.push(...news)
 	} else if (searching && ["all"].includes(searching)) {
-		const symbols = await searchSymbol(search, "undefined")
-		const news = await searchNews(search)
-		const events = await searchEvents(search)
+
+		const [symbols, news, events] = await Promise.all([
+			searchSymbol(search, "undefined"),
+			searchNews(search),
+			searchEvents(search)
+		])
+
+		// const symbols = await searchSymbol(search, "undefined")
+		// const news = await searchNews(search)
+		// const events = await searchEvents(search)
 
 		newsResult.push(...news)
 		symbolsResult.push(...symbols.symbols)
