@@ -77,7 +77,7 @@ export function Details({ symbol }: { symbol: string }): ReactNode {
 							return (
 								<Button variant="link" asChild={true} key={holding.symbol} className="p-0">
 									<Link
-										to={`/data/${holding.symbol}`}
+										to={holding.symbol ? `/data/${holding.symbol}` : "#"}
 										className="flex flex-row items-center justify-between"
 									>
 										<p className="w-8/12 truncate">{holding.name}</p>
@@ -133,7 +133,7 @@ export function Details({ symbol }: { symbol: string }): ReactNode {
 				<ul className="flex flex-col gap-2">
 					{formattedHolding.map((item, index) => (
 						<Button variant="link" key={item.name} className="flex items-center p-0" asChild={true}>
-							<Link to={`/data/${item.symbol}`} className="flex items-center">
+							<Link to={item.symbol ? `/data/${item.symbol}` : "#"} className="flex items-center">
 								<div
 									className="mr-2 h-4 w-4 rounded-full"
 									style={{ backgroundColor: colors[index % colors.length] }}

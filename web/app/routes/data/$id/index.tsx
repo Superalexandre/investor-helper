@@ -309,9 +309,9 @@ export default function Index(): ReactNode {
 
 				<CardContent>
 					<div className="flex items-center justify-between">
-						<span className="text-sm truncate">Low: {data.info["Pivot.M.Fibonacci.S3"].toFixed(2)}</span>
-						<span className="text-sm truncate">Avg: {data.info["Pivot.M.Fibonacci.Middle"].toFixed(2)}</span>
-						<span className="text-sm truncate">High: {data.info["Pivot.M.Fibonacci.R3"].toFixed(2)}</span>
+						<span className="truncate text-sm">Low: {data.info["Pivot.M.Fibonacci.S3"].toFixed(2)}</span>
+						<span className="truncate text-sm">Avg: {data.info["Pivot.M.Fibonacci.Middle"].toFixed(2)}</span>
+						<span className="truncate text-sm">High: {data.info["Pivot.M.Fibonacci.R3"].toFixed(2)}</span>
 					</div>
 					<div className="mt-2 h-2 rounded-full bg-secondary">
 						<div

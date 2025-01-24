@@ -498,7 +498,7 @@ function ImportanceIndicator({ importance }: { importance: number }) {
 	return (
 		<TooltipProvider>
 			<Tooltip>
-				<TooltipTrigger name="Importance trigger" aria-label="Importance">
+				<TooltipTrigger name="Importance trigger" aria-label="Importance" asChild={true}>
 					<div className="h-1.5 w-16 overflow-hidden rounded-full bg-gray-200">
 						<div
 							className={`h-full ${colors[importance]}`}
