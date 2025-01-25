@@ -143,7 +143,7 @@ export default function Index(): ReactNode {
 				<div className="relative flex w-full flex-row items-center justify-between">
 					<BackButton />
 
-					<Skeleton className="m-4 h-9 w-24" />
+					<Skeleton className="top-0 right-0 m-4 h-9 w-24 lg:absolute " />
 				</div>
 				
 				<div className="flex flex-col items-center justify-center gap-4">

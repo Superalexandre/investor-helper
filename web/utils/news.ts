@@ -17,6 +17,9 @@ import type { NewsFull, NewsSymbolsArticle } from "../types/News.js"
 import i18n, { newsUrl } from "../app/i18n.js"
 import logger from "../../log/index.js"
 
+const sqlite = new Database("../db/sqlite.db")
+const db = drizzle(sqlite)
+
 async function getNews({
 	page = 1,
 	limit = 10,
@@ -24,11 +27,7 @@ async function getNews({
 	scores,
 	sources
 }: { page?: number; limit?: number; language?: string[]; scores?: number[][]; sources?: string[] }) {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
-
 	// Score is an array of double array, the first element is the minimum score and the second element is the maximum score
-
 	const allNews = await db
 		.select()
 		.from(newsSchema)
@@ -94,9 +93,6 @@ async function getSourceList({
 }: {
 	languages: string[]
 }) {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
-
 	const sources = await db
 		.selectDistinct({
 			source: newsSchema.source
@@ -110,9 +106,6 @@ async function getSourceList({
 }
 
 async function getNewsById({ id }: { id: string }) {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
-
 	// Get the news from the database
 	const newsResults = await db
 		.select()
@@ -135,9 +128,6 @@ async function getNewsById({ id }: { id: string }) {
 }
 
 async function getNewsBySymbol({ symbol, limit = 10 }: { symbol: string, limit?: number }) {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
-
 	const newsResults = await db
 		.select({
 			news: newsSchema,
@@ -154,9 +144,6 @@ async function getNewsBySymbol({ symbol, limit = 10 }: { symbol: string, limit?:
 }
 
 async function fetchNews(lang = "fr-FR") {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
-
 	const urlLang = newsUrl[lang]
 
 	const response = await fetch(urlLang.news)
@@ -272,14 +259,9 @@ async function fetchNews(lang = "fr-FR") {
 async function saveFetchNews() {
 	logger.info("Fetching news")
 
-	// const sqlite = new Database("./db/sqlite.db")
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
-
 	const languages = i18n.supportedLngs
 
 	const newsList: NewsSymbolsArticle[] = []
-	// const newsList =
 	await Promise.all(
 		languages.map(async (lang) => {
 			const news = await fetchNews(lang)
@@ -398,9 +380,6 @@ interface NotificationToSend {
 }
 
 async function getNotificationNews(news: NewsSymbolsArticle) {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
-
 	const titleWords = news.title.split(" ").map((word) => word.toLowerCase())
 
 	let shortDescriptionWords: string[] = []
@@ -467,9 +446,6 @@ async function getNotificationNews(news: NewsSymbolsArticle) {
 }
 
 async function reduceAndSendNotifications(notifications: NotificationToSend[] | undefined) {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
-
 	if (!notifications) {
 		return
 	}
@@ -652,9 +628,6 @@ function flatten(nodes: any) {
 }
 
 async function searchNews(search: string, limit = 10) {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
-
 	const news = await db
 		.select({
 			id: newsSchema.id,
@@ -686,9 +659,6 @@ async function searchNews(search: string, limit = 10) {
 }
 
 async function getNewsFromDates(from: number, to: number) {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
-
 	const news = await db
 		.select({
 			title: newsSchema.title,
@@ -711,9 +681,6 @@ async function getNewsFromDates(from: number, to: number) {
 }
 
 async function getLastImportantNews(from: Date, to: Date, importance: number, limit: number) {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
-
 	const fromConvert = from.getTime() / 1000
 	const toConvert = to.getTime() / 1000
 

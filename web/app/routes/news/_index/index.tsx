@@ -1,31 +1,22 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Link, useFetcher, useLoaderData, useLocation } from "@remix-run/react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 import { ScrollTop } from "@/components/scrollTop"
 import { Button } from "@/components/ui/button"
-import ImportanceBadge from "@/components/importanceBadge"
 import { useQuery } from "@tanstack/react-query"
-import type { NewsFull, NewsSymbols } from "../../../../types/News"
+import type { NewsFull } from "../../../../types/News"
 import SkeletonNews from "../../../components/skeletons/skeletonNews"
 import DisplaySymbols from "../../../components/displaySymbols"
-import { memo, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { memo, type ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { TFunction } from "i18next"
 import i18next from "../../../i18next.server"
-import { flags } from "../../../i18n"
-import { Checkbox } from "../../../components/ui/checkbox"
-import { Label } from "../../../components/ui/label"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../../../components/ui/dialog"
-import type { CheckedState } from "@radix-ui/react-checkbox"
 import getNewsPreferences from "../../../lib/getNewsPreferences"
 import { getSourceList } from "../../../../utils/news"
-import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, ChevronsUpDownIcon, ExternalLinkIcon, FilterIcon, GlobeIcon, RssIcon, StarIcon } from "lucide-react"
-import { DotSeparator, Separator } from "../../../components/ui/separator"
+import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, ChevronsUpDownIcon, ExternalLinkIcon, GlobeIcon } from "lucide-react"
 import { Badge } from "../../../components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../components/ui/tooltip"
-import SymbolLogo from "../../../components/symbolLogo"
-import type { Symbol as SymbolType } from "@/schema/symbols"
 import { Popover, PopoverContent, PopoverTrigger } from "../../../components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../../components/ui/command"
 import { cn } from "../../../lib/utils"
@@ -78,7 +69,6 @@ export default function Index() {
 	const { t, i18n } = useTranslation("news")
 
 	// Memoize the translation function to prevent unstable references
-	const memoT = useMemo(() => t, [t])
 
 	const location = useLocation()
 
@@ -99,10 +89,10 @@ export default function Index() {
 			<ScrollTop showBelow={250} />
 
 			<div className="flex flex-col items-center justify-center space-y-1 pt-4">
-				<p className="text-center font-bold text-2xl">{memoT("lastNews")}</p>
+				<p className="text-center font-bold text-2xl">{t("lastNews")}</p>
 				{actualPage > 1 ? (
 					<p className="text-muted-foreground text-sm">
-						{memoT("page")} {actualPage}
+						{t("page")} {actualPage}
 					</p>
 				) : null}
 
@@ -113,7 +103,7 @@ export default function Index() {
 
 			<div className="flex flex-col space-y-6 p-4 lg:p-10">
 				<DisplayFilter
-					t={memoT}
+					t={t}
 					selectedLanguage={selectedLanguage}
 					setSelectedLanguage={setSelectedLanguage}
 					selectedImportance={selectedImportance}
@@ -124,7 +114,7 @@ export default function Index() {
 				/>
 
 				<News
-					t={memoT}
+					t={t}
 					language={i18n.language}
 					actualPage={actualPage}
 					selectedLanguage={selectedLanguage}
@@ -147,7 +137,7 @@ export default function Index() {
 						rel="prev"
 					>
 						<ArrowLeftIcon className="size-5" />
-						{memoT("previousPage")}
+						{t("previousPage")}
 					</Link>
 				</Button>
 
@@ -163,7 +153,7 @@ export default function Index() {
 						}}
 						rel="next"
 					>
-						{memoT("nextPage")}
+						{t("nextPage")}
 						<ArrowRightIcon className="size-5" />
 					</Link>
 				</Button>
@@ -221,7 +211,7 @@ const DisplayFilter = memo(function DisplayFilter({
 			{
 				type: "newsPreferences",
 				[type]: updatedItems.join(","),
-				redirect: "/news/newsTest2",
+				redirect: "/news",
 			},
 			{
 				method: "POST",
@@ -496,51 +486,3 @@ function ImportanceIndicator({ importance }: { importance: number }) {
 		</TooltipProvider>
 	)
 }
-
-/*
-
-			{/* <Card className="border-card-border">
-				<Link
-					to={{
-						pathname: `/news/${item.news.id}`
-					}}
-					state={{
-						redirect: "/news",
-						hash: item.news.id,
-						search: location.search
-					}}
-				>
-					<CardHeader>
-						<CardTitle className="flex flex-row items-center gap-2">
-							<img src={flags[item.news.lang]} alt={item.news.lang} className="size-5" />
-
-							{item.news.title}
-						</CardTitle>
-					</CardHeader>
-				</Link>
-
-				<CardContent>
-					<DisplaySymbols symbolList={item.relatedSymbols} hash={item.news.id} t={t} />
-				</CardContent>
-
-				<CardFooter className="flex flex-col flex-wrap justify-start gap-1 text-muted-foreground lg:flex-row lg:items-center lg:gap-2">
-					<span className="w-full lg:w-auto">
-						{item.news.source}
-					</span>
-
-					<DotSeparator className="hidden lg:block" />
-
-					<span className="w-full lg:w-auto">
-						{new Date(item.news.published * 1000 || "").toLocaleDateString(language, {
-							hour: "numeric",
-							minute: "numeric",
-							year: "numeric",
-							month: "long",
-							day: "numeric",
-							timeZoneName: "shortOffset",
-							weekday: "long"
-						})}
-					</span>
-				</CardFooter>
-			</Card>
-			*/
