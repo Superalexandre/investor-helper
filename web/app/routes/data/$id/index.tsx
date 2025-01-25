@@ -14,7 +14,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui
 import { Details } from "./Details"
 import { ConvertJsonToReact } from "../../../components/parseComponent"
 import { cn } from "../../../lib/utils"
-import { NewsSymbols } from "../../../../types/News"
+import type { NewsSymbols } from "../../../../types/News"
+import currencies from "../../../../../lang/currencies"
 
 export const loader: LoaderFunction = async ({ params }) => {
 	if (!params.id) {
@@ -23,16 +24,23 @@ export const loader: LoaderFunction = async ({ params }) => {
 
 	const info = await getInfo({ symbol: params.id })
 
+	if (!info) {
+		return null
+	}
+
+	const dataCurrency = info.currency as string
+	const prettyCurrency = currencies[dataCurrency]?.symbol_native ?? dataCurrency
+	
 	return {
 		name: info.description,
 		price: info.close,
-		currency: info.prettyCurrency
+		currency: prettyCurrency
 	}
 }
 
 export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
-	const title = `Investor Helper - Information sur ${data?.name}`
-	const description = `Graphique des prix pour ${data?.name}. Dernier prix ${data?.price}${data?.currency}.`
+	const title = `Investor Helper - Information sur ${data?.name ?? "l'entreprise"}`
+	const description = `Graphique des prix pour ${data?.name ?? ""}. Dernier prix ${data?.price ?? ""}${data?.currency ?? ""}.`
 
 	return [
 		{ title: title },
@@ -72,6 +80,7 @@ export default function Index(): ReactNode {
 		isPending,
 		error,
 	} = useQuery<{
+		error: boolean,
 		info: {
 			"Recommend.All|1W": number,
 			description: string,
@@ -131,14 +140,12 @@ export default function Index(): ReactNode {
 	if (isPending) {
 		return (
 			<div className="relative flex flex-col gap-4">
-				<BackButton />
+				<div className="relative flex w-full flex-row items-center justify-between">
+					<BackButton />
 
-				<div
-					className="top-0 right-0 m-4 flex h-9 w-24 flex-row items-center justify-center gap-2 text-center lg:absolute"
-				>
-					<Skeleton className="h-full w-full" />
+					<Skeleton className="m-4 h-9 w-24" />
 				</div>
-
+				
 				<div className="flex flex-col items-center justify-center gap-4">
 					<div className="flex max-w-full flex-col items-center justify-center gap-2 px-10 lg:flex-row">
 						<Skeleton className="h-12 w-12 rounded-full" />
@@ -157,17 +164,17 @@ export default function Index(): ReactNode {
 		)
 	}
 
-	if (!data) {
+	if (!data || data.error) {
 		return <p>Symbol not found</p>
 	}
 
 	return (
-		<div className="relative flex flex-col gap-4">
+		<div className="relative mb-4 flex flex-col gap-4">
 			<div className="relative flex w-full flex-row items-center justify-between">
 				<BackButton />
 
 				<Button
-					variant="ghost"
+					variant="outline"
 					className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-2 text-center lg:absolute"
 					onClick={() => setOpen(true)}
 				>

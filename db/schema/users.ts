@@ -87,6 +87,11 @@ export const walletSchema = sqliteTable("wallet", {
 			return uuidv4()
 		}),
 	name: text("name").notNull(),
+	private: int("private", {
+		mode: "boolean"
+	})
+		.default(false)
+		.notNull(),
 	description: text("description"),
 	createdAt: text("created_at")
 		.notNull()

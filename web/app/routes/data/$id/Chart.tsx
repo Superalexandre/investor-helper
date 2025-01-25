@@ -10,6 +10,7 @@ interface Response {
     prices: Period[],
     timeframe: string,
     range: number
+    error: boolean
 }
 
 export function FullChart({ symbol, setInfo }: {
@@ -81,7 +82,7 @@ export function FullChart({ symbol, setInfo }: {
         )
     }
 
-    if (!data) {
+    if (!data || error || data.error) {
         return <p>No prices</p>
     }
 

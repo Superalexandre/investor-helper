@@ -160,9 +160,9 @@ export default function App(): ReactNode {
 
 	return (
 		<QueryClientProvider client={queryClient}>
-		<NuqsAdapter>
-		<Outlet />
-		</NuqsAdapter>
+			<NuqsAdapter>
+				<Outlet />
+			</NuqsAdapter>
 		</QueryClientProvider>
 	)
 }
@@ -176,7 +176,7 @@ export function ErrorBoundary(): ReactNode {
 			return (
 				<div className="flex flex-grow flex-col items-center justify-center gap-4">
 					<h1 className="font-bold text-3xl">{t("error.notFoundTitle")}</h1>
-					<p>{t("error.notFoundMessage")}</p>
+					<p className="text-center">{t("error.notFoundMessage")}</p>
 					<Link to="/">
 						<Button type="button" variant="default">
 							{t("backHome")}
@@ -191,7 +191,7 @@ export function ErrorBoundary(): ReactNode {
 				<h1 className="font-bold text-3xl">
 					{t("error.errorTitle")} ({error.status})
 				</h1>
-				<p>{error.statusText}</p>
+				<p className="text-center">{error.statusText}</p>
 				<Link to="/">
 					<Button type="button" variant="default">
 						{t("backHome")}
@@ -205,7 +205,7 @@ export function ErrorBoundary(): ReactNode {
 		return (
 			<div className="flex flex-grow flex-col items-center justify-center gap-4">
 				<h1 className="font-bold text-3xl">{t("error.errorTitle")}</h1>
-				<p>{error.message}</p>
+				<p className="text-center">{error.message}</p>
 				<Link to="/">
 					<Button type="button" variant="default">
 						{t("backHome")}

@@ -3,7 +3,6 @@ import { useState, type ReactNode } from "react"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 import { Button } from "../../../components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../../../components/ui/dialog"
-import SymbolLogo from "../../../components/symbolLogo"
 import { Link } from "@remix-run/react"
 
 export function Details({ symbol }: { symbol: string }): ReactNode {
@@ -138,7 +137,7 @@ export function Details({ symbol }: { symbol: string }): ReactNode {
 									className="mr-2 h-4 w-4 rounded-full"
 									style={{ backgroundColor: colors[index % colors.length] }}
 								/>
-								<span className="flex-grow">{item.name}</span>
+								<span className="flex-grow truncate pr-4">{item.name}</span>
 								<span className="font-bold">{item.weight?.toFixed(2)}%</span>
 							
 							</Link>
