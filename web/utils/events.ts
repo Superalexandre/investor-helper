@@ -7,6 +7,9 @@ import { and, asc, desc, eq, gte, isNotNull, like, lte, or } from "drizzle-orm"
 import type { EventRaw } from "../types/Events.js"
 import logger from "../../log/index.js"
 
+const sqlite = new Database("../db/sqlite.db")
+const db = drizzle(sqlite)
+
 async function getEvents({
 	page = 1,
 	limit = 10,
@@ -14,9 +17,6 @@ async function getEvents({
 	month,
 	year
 }: { page?: number; limit?: number; order?: "asc" | "desc"; month?: number; year?: number } = {}) {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
-
 	const referenceDate = new Date()
 	referenceDate.setMinutes(referenceDate.getMinutes() - 20)
 
@@ -56,9 +56,6 @@ async function getEvents({
 }
 
 async function getEventById({ id }: { id: string }) {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
-
 	const event = await db.select().from(eventsSchema).where(eq(eventsSchema.id, id))
 
 	return {
@@ -161,9 +158,6 @@ async function saveFetchEvents() {
 }
 
 async function saveEvents(events: EventRaw[]) {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
-
 	const eventsValues: Events[] = []
 	// let updatedEvents = 0
 
@@ -210,9 +204,6 @@ async function saveEvents(events: EventRaw[]) {
 
 // Make a function to get the events that are happening rn
 async function getEventsNow() {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
-
 	const referenceDateFrom = new Date()
 
 	// Set seconds and milliseconds to 0
@@ -243,9 +234,6 @@ async function getEventsNow() {
 }
 
 async function getNextImportantEvent(from: Date, to: Date, importance: number, limit: number) {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
-
 	const events = await db
 		.select()
 		.from(eventsSchema)
@@ -264,9 +252,6 @@ async function getNextImportantEvent(from: Date, to: Date, importance: number, l
 }
 
 async function searchEvents(search: string, limit = 10) {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
-
 	const events = await db
 		.select()
 		.from(eventsSchema)
