@@ -111,25 +111,56 @@ interface PeriodInfo {
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-let client: any
+// let client: any
+
+const cachedClient: Record<string, { client: TradingView.Client }> = {}
 
 export default function getPrices(
 	symbolId: string,
 	{
 		range = 100,
-		timeframe = "D"
+		timeframe = "D",
+		clientId
 	}: {
 		range?: number
 		timeframe?: string
+		clientId?: string
 	} = {}
 ) {
-	return new Promise<{ period: Period[]; periodInfo: PeriodInfo }>((resolve, reject) => {
+	return new Promise<{ period: Period[]; periodInfo: PeriodInfo; clientId: string }>((resolve, reject) => {
+		// if (!client) {
+		// 	logger.info("Creating new client")
+
+		// 	client = new TradingView.Client()
+		// }
+		// if (!chart) chart = new client.Session.Chart()
+		// const chart = new client.Session.Chart()
+
+		let client: TradingView.Client = null
+		if (clientId && clientId !== "") {
+			if (cachedClient[clientId]) {
+				logger.info(`Using cached client: ${clientId}`)
+
+				client = cachedClient[clientId].client
+			} else {
+				logger.warn(`Invalid client id: ${clientId}, creating a new one`)
+
+				client = new TradingView.Client()
+				cachedClient[clientId] = { client }
+			}
+		}
+
 		if (!client) {
-			logger.info("Creating new client")
+			logger.info("Creating new client (no client id)")
+
+			const id = Math.random().toString(36).substring(7)
 
 			client = new TradingView.Client()
+
+			cachedClient[id] = { client }
+			clientId = id
 		}
-		// if (!chart) chart = new client.Session.Chart()
+
 		const chart = new client.Session.Chart()
 
 		if (!chart) {
@@ -161,20 +192,32 @@ export default function getPrices(
 
 			resolve({
 				period: chart.periods,
-				periodInfo: chart.infos
+				periodInfo: chart.infos,
+				clientId: clientId as string
 			})
 		})
 	})
 }
 
-export function closeClient() {
-	if (client) {
-		logger.info("Closing client")
-
-		client.end()
-
-		client = null
+export function closeClient({ clientId }: { clientId: string } = { clientId: "" }) {
+	if (!clientId || clientId === "") {
+		logger.warn("No client id provided")
 	}
+
+	if (cachedClient[clientId]) {
+		logger.info(`Closing client: ${clientId}`)
+
+		cachedClient[clientId].client.end()
+
+		delete cachedClient[clientId]
+	}
+	// if (client) {
+	// 	logger.info("Closing client")
+
+	// 	client.end()
+
+	// 	client = null
+	// }
 }
 
 export function formatPrices(prices: Period[]): Period[] {
@@ -187,23 +230,23 @@ export function formatPrices(prices: Period[]): Period[] {
 	const DAY_IN_MS = 24 * 60 * 60 * 1000
 	const HOUR_IN_MS = 60 * 60 * 1000
 
-    let filteredPrices: Period[];
+	let filteredPrices: Period[]
 
-    if (interval >= DAY_IN_MS) {
-        filteredPrices = prices;
-    } else if (interval < DAY_IN_MS && interval >= HOUR_IN_MS) {
-        filteredPrices = prices.filter((_, index) => index % 2 === 0);
-    } else {
-        filteredPrices = prices.filter((_, index) => index % 5 === 0);
-    }
+	if (interval >= DAY_IN_MS) {
+		filteredPrices = prices
+	} else if (interval < DAY_IN_MS && interval >= HOUR_IN_MS) {
+		filteredPrices = prices.filter((_, index) => index % 2 === 0)
+	} else {
+		filteredPrices = prices.filter((_, index) => index % 5 === 0)
+	}
 
-    // Ajouter le dernier prix (le plus ancien) s'il n'est pas déjà dans la liste
-    if (filteredPrices.at(-1) !== prices.at(-1)) {
-		const lastPrice = prices.at(-1);
+	// Ajouter le dernier prix (le plus ancien) s'il n'est pas déjà dans la liste
+	if (filteredPrices.at(-1) !== prices.at(-1)) {
+		const lastPrice = prices.at(-1)
 		if (lastPrice) {
-			filteredPrices.push(lastPrice);
+			filteredPrices.push(lastPrice)
 		}
-    }
+	}
 
 	return filteredPrices
 }

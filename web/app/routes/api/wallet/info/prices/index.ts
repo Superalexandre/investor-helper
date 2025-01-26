@@ -92,6 +92,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 		}
 	}
 
+	const clientId = Math.random().toString(36).substring(7)
 	const prices = await Promise.all(
 		resultWallet.walletSymbols.map(async (symbol) => {
 			if (symbol.quantity <= 0) {
@@ -101,7 +102,8 @@ export const loader: LoaderFunction = async ({ request }) => {
 			const [priceResult, symbolData] = await Promise.all([
 				getPrices(symbol.symbol, {
 					timeframe: timeframePrice,
-					range: range
+					range: range,
+					clientId
 				}),
 				fetchSymbol({
 					language: "fr-FR",
@@ -118,8 +120,6 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 			const lastPrice = priceResult.period[0].close
 			const firstPrice = priceResult.period.at(-1)?.close || 0
-
-			console.log("lastPrice", new Date(priceResult.period[0].time * 1000).toISOString())
 
 			const totalValue = lastPrice * symbol.quantity || 0
 			const performance = lastPrice * symbol.quantity - purchasePrice * symbol.quantity
@@ -171,7 +171,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 		})
 	)
 
-	closeClient()
+	closeClient({ clientId })
 
 	const validPrices = prices.filter((price) => price !== undefined)
 

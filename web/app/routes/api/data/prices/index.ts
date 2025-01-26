@@ -52,12 +52,12 @@ export const loader: LoaderFunction = async ({ request }) => {
 	const timeframe = timeframeMap[timeframeParams] || timeframeMap["1D"]
 	const [timeframePrice, range] = timeframe.timeframe
 
-	const { period: prices, periodInfo } = await getPrices(symbol, {
+	const { period: prices, periodInfo, clientId } = await getPrices(symbol, {
 		timeframe: timeframePrice,
 		range: range
 	})
 
-	closeClient()
+	closeClient({ clientId })
 
 	if (!prices) {
 		return {

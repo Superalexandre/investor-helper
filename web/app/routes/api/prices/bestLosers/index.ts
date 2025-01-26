@@ -75,11 +75,13 @@ export async function loader() {
 	const startPrices = Date.now()
 
 	logger.info(`toFetch (losers) ${toFetch.join(", ")}`)
+	const clientId = Math.random().toString(36).substring(7)
 	await Promise.all(
 		toFetch.map(async (symbol) => {
 			const prices = await getPrices(symbol, {
 				range: 360,
-				timeframe: "1"
+				timeframe: "1",
+				clientId: clientId
 			})
 
 			const reversed = formatPrices(prices.period).reverse()
@@ -103,7 +105,7 @@ export async function loader() {
 	const endPrices = Date.now()
 
 	if (toFetch.length > 0) {
-		closeClient()
+		closeClient({ clientId })
 	}
 
 	logger.info({

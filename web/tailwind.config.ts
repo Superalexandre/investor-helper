@@ -98,13 +98,10 @@ export default {
     	}
     },
 	plugins: [
-	]
-	/*
-	
 		animate,
 		scrollbar({
 			nocompatible: true,
 			preferredStrategy: "pseudoelements"
 		})
-			*/
+	]
 } satisfies Config

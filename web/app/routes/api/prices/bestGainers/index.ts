@@ -70,11 +70,13 @@ export async function loader() {
 	}
 	
 	logger.info(`toFetch (gainers) ${toFetch.join(", ")}`)
+	const clientId = Math.random().toString(36).substring(7)
 	await Promise.all(
 		toFetch.map(async (symbol) => {
 			const prices = await getPrices(symbol, {
 				range: 360,
-				timeframe: "1"
+				timeframe: "1",
+				clientId: clientId
 			})
 
 			const reversed = formatPrices(prices.period).reverse()
@@ -97,7 +99,7 @@ export async function loader() {
 	)
 
 	if (toFetch.length > 0) {
-		closeClient()
+		closeClient({ clientId })
 	}
 
 	return {
