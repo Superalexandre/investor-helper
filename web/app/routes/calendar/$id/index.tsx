@@ -1,5 +1,5 @@
-import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
-import { Link, redirect, useLoaderData } from "@remix-run/react"
+import type { LoaderFunctionArgs, MetaFunction } from "react-router";
+import { Link, redirect, useLoaderData } from "react-router";
 import { ScrollTop } from "@/components/scrollTop"
 import { getEventById } from "@/utils/events"
 import { cn } from "@/lib/utils"

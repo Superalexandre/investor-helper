@@ -1,6 +1,6 @@
 import { getNewsById } from "@/utils/news"
-import type { LoaderFunction, MetaFunction } from "@remix-run/node"
-import { redirect, useLoaderData } from "@remix-run/react"
+import type { LoaderFunction, MetaFunction } from "react-router";
+import { redirect, useLoaderData } from "react-router";
 import { ScrollTop } from "@/components/scrollTop"
 import BackButton from "@/components/button/backButton"
 import { Button } from "../../../components/ui/button"

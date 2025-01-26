@@ -6,7 +6,7 @@ import { drizzle } from "drizzle-orm/better-sqlite3"
 import crypto from "node:crypto"
 import { usersSchema } from "../../db/schema/users"
 import { eq, or } from "drizzle-orm"
-import { redirect } from "@remix-run/node"
+import { redirect } from "react-router";
 import logger from "../../log"
 import getLanguage from "./lib/getLanguage"
 import { getTheme } from "./lib/getTheme"

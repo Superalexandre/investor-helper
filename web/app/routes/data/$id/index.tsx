@@ -1,5 +1,5 @@
-import type { LoaderFunction, MetaFunction } from "@remix-run/node"
-import { Link, redirect, useParams } from "@remix-run/react"
+import type { LoaderFunction, MetaFunction } from "react-router";
+import { Link, redirect, useParams } from "react-router";
 import SymbolLogo from "@/components/symbolLogo"
 import { type ReactNode, useState } from "react"
 import BackButton from "@/components/button/backButton"

@@ -1,4 +1,4 @@
-import type { LoaderFunction, LoaderFunctionArgs } from "@remix-run/node"
+import type { LoaderFunction, LoaderFunctionArgs } from "react-router";
 import { getNextImportantEvent } from "../../../../../utils/events"
 
 export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) => {

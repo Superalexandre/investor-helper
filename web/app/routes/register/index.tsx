@@ -1,7 +1,7 @@
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
-import { redirect } from "@remix-run/react"
+import { redirect } from "react-router";
 import { getValidatedFormData } from "remix-hook-form"
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "react-router";
 import { getUser } from "@/session.server"
 import createAccount from "./createAccount"
 import Register, { type FormData, resolver } from "../../components/form/register"

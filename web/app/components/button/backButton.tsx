@@ -1,4 +1,4 @@
-import { type Path, useNavigate } from "@remix-run/react"
+import { type Path, useNavigate } from "react-router";
 import { Button } from "../ui/button"
 import { useEffect, useState } from "react"
 import { ArrowLeftIcon } from "lucide-react"

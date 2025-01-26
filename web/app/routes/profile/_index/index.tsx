@@ -1,5 +1,5 @@
-import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
-import { Form, Link, redirect, useLoaderData } from "@remix-run/react"
+import type { LoaderFunctionArgs, MetaFunction } from "react-router";
+import { Form, Link, redirect, useLoaderData } from "react-router";
 import NewWallet from "@/components/wallet/new"
 import { getUser } from "@/session.server"
 import { getWalletByUser } from "@/utils/getWallet"

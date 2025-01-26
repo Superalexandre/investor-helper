@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Form } from "@remix-run/react"
+import { Form } from "react-router";
 import { z as zod } from "zod"
 import InputForm, { type FieldErrors } from "./inputForm"
 import { useRemixForm } from "remix-hook-form"

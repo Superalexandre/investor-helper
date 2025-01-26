@@ -1,6 +1,6 @@
 import { notificationSchema } from "@/schema/notifications"
 import { sendNotifications } from "@remix-pwa/push"
-import type { LoaderFunctionArgs } from "@remix-run/node"
+import type { LoaderFunctionArgs } from "react-router";
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import logger from "../../../../../../log"

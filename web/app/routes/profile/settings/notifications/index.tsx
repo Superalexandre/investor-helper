@@ -1,5 +1,5 @@
-import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
-import { Link, redirect, useFetcher, useLoaderData } from "@remix-run/react"
+import type { LoaderFunctionArgs, MetaFunction } from "react-router";
+import { Link, redirect, useFetcher, useLoaderData } from "react-router";
 import { getUser } from "@/session.server"
 import BackButton from "../../../../components/button/backButton"
 import { getUserNotifications } from "../../../../../utils/notifications"

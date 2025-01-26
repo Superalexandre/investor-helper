@@ -13,7 +13,7 @@ import { Input } from "../ui/input"
 import { Button } from "../ui/button"
 import { type FormEvent, useRef, useState } from "react"
 import { usePush } from "@remix-pwa/push/client"
-import { useSubmit, useFetcher } from "@remix-run/react"
+import { useSubmit, useFetcher } from "react-router";
 
 export default function DialogNotificationNews({
 	open,
@@ -80,14 +80,14 @@ export default function DialogNotificationNews({
 	}
 
 	return (
-		<Dialog
+        (<Dialog
 			open={open}
 			onOpenChange={(openChange) => {
 				setOpen(openChange)
 				setKeyword(keywords ?? [])
 			}}
 		>
-			<DialogContent className="w-11/12">
+            <DialogContent className="w-11/12">
 				<fetcher.Form method="post" action={action} onSubmit={submitCallback}>
 					<DialogHeader>
 						{type === "create" ? (
@@ -117,15 +117,14 @@ export default function DialogNotificationNews({
 							<div className="flex flex-row flex-wrap items-center gap-2">
 								{keyword.map((word, index) => (
 									// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-									<Badge key={index} className="flex flex-row items-center gap-2">
-										{word}
-
-										<MdDelete
+									(<Badge key={index} className="flex flex-row items-center gap-2">
+                                        {word}
+                                        <MdDelete
 											size={16}
 											className="hover:cursor-pointer"
 											onClick={() => setKeyword(keyword.filter((_, i) => i !== index))}
 										/>
-									</Badge>
+                                    </Badge>)
 								))}
 							</div>
 
@@ -169,6 +168,6 @@ export default function DialogNotificationNews({
 					</DialogFooter>
 				</fetcher.Form>
 			</DialogContent>
-		</Dialog>
-	)
+        </Dialog>)
+    );
 }

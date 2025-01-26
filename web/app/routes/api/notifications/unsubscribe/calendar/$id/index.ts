@@ -1,4 +1,4 @@
-import type { ActionFunctionArgs } from "@remix-run/node"
+import type { ActionFunctionArgs } from "react-router";
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import { notificationEventSchema } from "@/schema/notifications"

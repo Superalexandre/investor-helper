@@ -1,4 +1,4 @@
-import type { MetaFunction } from "@remix-run/node"
+import type { MetaFunction } from "react-router";
 import Content from "./content.mdx"
 import BackButton from "../../components/button/backButton"
 

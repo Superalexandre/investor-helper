@@ -1,5 +1,6 @@
-import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
-import { Link, useFetcher, useLoaderData, useLocation } from "@remix-run/react"
+import type { LoaderFunctionArgs, MetaFunction } from "react-router";
+import { Link, useFetcher, useLoaderData } from "react-router";
+import { useLocation } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
 import { ScrollTop } from "@/components/scrollTop"
@@ -440,13 +441,13 @@ const News = memo(function News({
 		const skeletonArray = Array.from({ length: 10 })
 
 		return (
-			<div className="flex flex-col space-y-6">
-				{skeletonArray.map((_, index) => (
+            (<div className="flex flex-col space-y-6">
+                {skeletonArray.map((_, index) => (
 					// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-					<SkeletonNews key={index} />
+					(<SkeletonNews key={index} />)
 				))}
-			</div>
-		)
+            </div>)
+        );
 	}
 
 	if (error) {

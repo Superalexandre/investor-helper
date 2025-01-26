@@ -7,7 +7,7 @@ import { CartesianGrid, Cell, ComposedChart, Line, LineChart, Pie, PieChart, Res
 import { Skeleton } from "../../../components/ui/skeleton";
 import { TableData } from "./TableData";
 import { ChartData } from "./ChartData";
-import { Link } from "@remix-run/react";
+import { Link } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
 
 export function WalletData({ walletId }: { walletId: string }): ReactNode {

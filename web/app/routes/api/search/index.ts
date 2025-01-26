@@ -1,5 +1,5 @@
 import { searchNews } from "@/utils/news"
-import type { LoaderFunction, LoaderFunctionArgs } from "@remix-run/node"
+import type { LoaderFunction, LoaderFunctionArgs } from "react-router";
 import type { News } from "../../../../../db/schema/news"
 import type { RawSearchResult } from "../../../../types/Search"
 import type { Events } from "../../../../../db/schema/events"

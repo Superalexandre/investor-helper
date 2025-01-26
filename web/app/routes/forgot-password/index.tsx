@@ -1,9 +1,9 @@
-import { Form, useActionData } from "@remix-run/react";
+import { Form, useActionData } from "react-router";
 import { Card, CardContent, CardTitle } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Button } from "../../components/ui/button";
-import type { ActionFunction, LoaderFunction, MetaFunction } from "@remix-run/node";
+import type { ActionFunction, LoaderFunction, MetaFunction } from "react-router";
 import { SquareAsteriskIcon } from "lucide-react";
 import crypto from "node:crypto"
 import Database from "better-sqlite3";

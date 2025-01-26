@@ -1,16 +1,8 @@
-import type { LinksFunction, LoaderFunction, LoaderFunctionArgs } from "@remix-run/node"
+import type { LinksFunction, LoaderFunction, LoaderFunctionArgs } from "react-router";
 import {
-	isRouteErrorResponse,
-	Link,
-	// ClientLoaderFunctionArgs,
-	Links,
-	Meta,
-	Outlet,
-	Scripts,
-	ScrollRestoration,
-	useRouteError,
-	useRouteLoaderData
-} from "@remix-run/react"
+	isRouteErrorResponse, Link, // ClientLoaderFunctionArgs,
+	Links, Meta, Outlet, Scripts, ScrollRestoration, useRouteError, useRouteLoaderData
+} from "react-router";
 import { ManifestLink, useSWEffect } from "@remix-pwa/sw"
 import stylesheet from "@/tailwind.css?url"
 import Header from "@/components/header"
@@ -62,7 +54,7 @@ export const handle = {
 }
 
 export function Layout({ children }: { children: ReactNode }): ReactNode {
-	const data = useRouteLoaderData<typeof loader>("root")
+	const data = useRouteLoaderData("root")
 	const { i18n, t } = useTranslation("common")
 
 	useSWEffect()

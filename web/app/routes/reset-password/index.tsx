@@ -1,8 +1,9 @@
 import { LockKeyholeIcon, SquareAsteriskIcon } from "lucide-react";
 import { Card, CardContent, CardTitle } from "../../components/ui/card";
-import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import { Form, useActionData, useLoaderData } from "react-router";
 import { Button } from "../../components/ui/button";
-import { type ActionFunction, type LoaderFunction, type MetaFunction, redirect } from "@remix-run/node";
+import type { ActionFunction, LoaderFunction, MetaFunction } from "react-router";
+import { redirect } from "react-router";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
 import { resetPasswordEmailSchema } from "../../../../db/schema/password";

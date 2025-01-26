@@ -1,4 +1,4 @@
-import { Link, useParams } from "@remix-run/react"
+import { Link, useParams } from "react-router";
 import { ScrollTop } from "../../../../components/scrollTop"
 import { useQuery } from "@tanstack/react-query"
 import type { NewsSymbolsChildArticle } from "../../../../../types/News"
@@ -8,7 +8,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../../../.
 import formatDate from "../../../../../utils/formatDate"
 import DisplaySymbols from "../../../../components/displaySymbols"
 import BackButton from "../../../../components/button/backButton"
-import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
+import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useTranslation } from "react-i18next"
 import i18next from "../../../../i18next.server"
 import { DotSeparator } from "../../../../components/ui/separator"
@@ -73,18 +73,18 @@ export default function Index() {
 		const skeletonArray = Array.from({ length: 10 })
 
 		return (
-			<div>
-				<div className="flex flex-col items-center justify-center space-y-4">
+            (<div>
+                <div className="flex flex-col items-center justify-center space-y-4">
 					<p className="pt-4 text-center font-bold text-2xl">{t("couldBeInteresting")}</p>
 				</div>
-				<div className="flex flex-col space-y-6 p-4 lg:p-10">
+                <div className="flex flex-col space-y-6 p-4 lg:p-10">
 					{skeletonArray.map((_, index) => (
 						// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-						<SkeletonNews key={index} />
+						(<SkeletonNews key={index} />)
 					))}
 				</div>
-			</div>
-		)
+            </div>)
+        );
 	}
 
 	if (error) {

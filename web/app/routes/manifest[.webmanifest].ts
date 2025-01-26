@@ -1,5 +1,5 @@
 import type { WebAppManifest } from "@remix-pwa/dev"
-import { json } from "@remix-run/node"
+import { LoaderFunction } from "react-router";
 
 interface Manifest extends WebAppManifest {
 	id: string
@@ -135,8 +135,8 @@ const webAppManifest: Manifest = {
 	]
 }
 
-export const loader = () => {
-	return json(webAppManifest, {
+export const loader: LoaderFunction = () => {
+	return new Response(JSON.stringify(webAppManifest), {
 		headers: {
 			"Cache-Control": "public, max-age=600",
 			"Content-Type": "application/manifest+json"

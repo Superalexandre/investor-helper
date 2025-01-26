@@ -1,4 +1,4 @@
-import type { LoaderFunction } from "@remix-run/node"
+import type { LoaderFunction } from "react-router";
 import { addDays, formatISO, getDay, isWithinInterval, set } from "date-fns"
 import { toZonedTime } from "date-fns-tz"
 import type { MarketHolidays, MarketHours, MarketsHours, MarketStatus } from "../../../../types/Hours"

@@ -1,4 +1,4 @@
-import type { LoaderFunction } from "@remix-run/node"
+import type { LoaderFunction } from "react-router";
 import { fetchSymbol } from "../../../../../utils/tradingview/request"
 import { parse } from "node-html-parser"
 import getLanguage from "../../../../lib/getLanguage"

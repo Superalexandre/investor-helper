@@ -1,4 +1,4 @@
-import type { LoaderFunction } from "@remix-run/node"
+import type { LoaderFunction } from "react-router";
 import sharp, { type AvailableFormatInfo } from "sharp"
 import logger from "../../../../../../log"
 

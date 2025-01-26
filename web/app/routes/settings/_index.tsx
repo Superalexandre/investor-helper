@@ -2,9 +2,9 @@ import { useTranslation } from "react-i18next"
 import { Label } from "../../components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
 import { changeLanguage, type TFunction } from "i18next"
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "react-router";
 import i18next from "../../i18next.server"
-import { Form, useLoaderData, useSubmit } from "@remix-run/react"
+import { Form, useLoaderData, useSubmit } from "react-router";
 import { clearCache, getSession, getUser, setSession } from "../../session.server"
 import i18n from "../../i18n"
 import { getTheme } from "../../lib/getTheme"

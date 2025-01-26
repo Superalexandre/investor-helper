@@ -5,8 +5,9 @@ import { useDebounceValue } from "@/hooks/useDebounceValue"
 import { cn } from "@/lib/utils"
 import { normalizeSymbol, normalizeSymbolHtml } from "@/utils/normalizeSymbol"
 import type { News } from "@/schema/news"
-import { Link, useLocation, useNavigate } from "@remix-run/react"
-import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
+import { Link, useNavigate } from "react-router";
+import { useLocation } from "react-router-dom"
+import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useQuery } from "@tanstack/react-query"
 import { Skeleton } from "../../components/ui/skeleton"
 import { useTranslation } from "react-i18next"
@@ -83,8 +84,8 @@ export default function Index() {
 	}
 
 	return (
-		<div className="flex flex-col items-center justify-center p-4">
-			<div className="relative w-full">
+        (<div className="flex flex-col items-center justify-center p-4">
+            <div className="relative w-full">
 				<SearchInput
 					inputRef={inputRef}
 					setDebouncedValue={setDebouncedValue}
@@ -113,14 +114,14 @@ export default function Index() {
 						<div className="flex flex-col gap-2">
 							{Array.from({ length: 50 }).map((_, index) => (
 								// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-								<SkeletonSearch key={index} />
+								(<SkeletonSearch key={index} />)
 							))}
 						</div>
 					</div>
 				) : null}
 			</div>
-		</div>
-	)
+        </div>)
+    );
 }
 
 function getSearchParams(location: ReturnType<typeof useLocation>) {

@@ -1,8 +1,8 @@
-import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
+import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { usePWAManager } from "@remix-pwa/client"
-import { Link, useLoaderData, useNavigate } from "@remix-run/react"
+import { Link, useLoaderData, useNavigate } from "react-router";
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { differenceInSeconds, formatDistanceToNow } from "date-fns"
 import { useEffect, useState, memo, useMemo } from "react"
@@ -315,11 +315,11 @@ const DisplayBestLosers = memo(function DisplayBestLosers({
 	if (isPending) {
 		return new Array(10).fill(null).map((_, index) => (
 			// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={index}>
-				<CardTitle className="p-4 text-center">
+			(<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={index}>
+                <CardTitle className="p-4 text-center">
 					<Skeleton className="h-6 w-1/2" />
 				</CardTitle>
-				<CardContent className="flex flex-col gap-4 p-4">
+                <CardContent className="flex flex-col gap-4 p-4">
 					<Skeleton className="h-24 w-full" />
 
 					<div className="absolute bottom-0 left-0 flex w-full flex-col gap-2 p-4 text-muted-foreground">
@@ -327,8 +327,8 @@ const DisplayBestLosers = memo(function DisplayBestLosers({
 						<Skeleton className="h-4 w-1/2" />
 					</div>
 				</CardContent>
-			</Card>
-		))
+            </Card>)
+		));
 	}
 
 	if (!losers || losers.result.length <= 0) {
@@ -441,11 +441,11 @@ const DisplayBestGainers = memo(function DisplayBestGainers({
 	if (isPending) {
 		return new Array(10).fill(null).map((_, index) => (
 			// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={index}>
-				<CardTitle className="p-4 text-center">
+			(<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={index}>
+                <CardTitle className="p-4 text-center">
 					<Skeleton className="h-6 w-1/2" />
 				</CardTitle>
-				<CardContent className="flex flex-col gap-4 p-4">
+                <CardContent className="flex flex-col gap-4 p-4">
 					<Skeleton className="h-24 w-full" />
 
 					<div className="absolute bottom-0 left-0 flex w-full flex-col gap-2 p-4 text-muted-foreground">
@@ -453,8 +453,8 @@ const DisplayBestGainers = memo(function DisplayBestGainers({
 						<Skeleton className="h-4 w-1/2" />
 					</div>
 				</CardContent>
-			</Card>
-		))
+            </Card>)
+		));
 	}
 
 	if (!gainers || gainers.result.length <= 0) {
@@ -523,11 +523,11 @@ const DisplayLastNews = memo(function DisplayLastNews({
 	if (isPending) {
 		return new Array(10).fill(null).map((_, index) => (
 			// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={index}>
-				<CardTitle className="p-4 text-center">
+			(<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={index}>
+                <CardTitle className="p-4 text-center">
 					<Skeleton className="h-6 w-1/2" />
 				</CardTitle>
-				<CardContent className="flex flex-col gap-4 p-4">
+                <CardContent className="flex flex-col gap-4 p-4">
 					<Skeleton className="h-24 w-full" />
 
 					<div className="absolute bottom-0 left-0 flex w-full flex-col gap-2 p-4 text-muted-foreground">
@@ -535,8 +535,8 @@ const DisplayLastNews = memo(function DisplayLastNews({
 						<Skeleton className="h-4 w-1/2" />
 					</div>
 				</CardContent>
-			</Card>
-		))
+            </Card>)
+		));
 	}
 
 	if (!lastNews || lastNews?.length <= 0) {
@@ -597,11 +597,11 @@ const DisplayNextEvents = memo(function DisplayNextEvents({
 	if (isPending) {
 		return new Array(10).fill(null).map((_, index) => (
 			// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={index}>
-				<CardTitle className="p-4 text-center">
+			(<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={index}>
+                <CardTitle className="p-4 text-center">
 					<Skeleton className="h-6 w-1/2" />
 				</CardTitle>
-				<CardContent className="flex flex-col gap-4 p-4">
+                <CardContent className="flex flex-col gap-4 p-4">
 					<Skeleton className="h-24 w-full" />
 
 					<div className="absolute bottom-0 left-0 flex w-full flex-col gap-2 p-4 text-muted-foreground">
@@ -609,8 +609,8 @@ const DisplayNextEvents = memo(function DisplayNextEvents({
 						<Skeleton className="h-4 w-1/2" />
 					</div>
 				</CardContent>
-			</Card>
-		))
+            </Card>)
+		));
 	}
 
 	if (!nextEvents || nextEvents.length <= 0) {
@@ -686,11 +686,11 @@ const DisplayHours = memo(function DisplayHours({
 	if (isPending) {
 		return new Array(10).fill(null).map((_, index) => (
 			// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-			<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={index}>
-				<CardTitle className="p-4 text-center">
+			(<Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={index}>
+                <CardTitle className="p-4 text-center">
 					<Skeleton className="h-6 w-1/2" />
 				</CardTitle>
-				<CardContent className="flex flex-col gap-4 p-4">
+                <CardContent className="flex flex-col gap-4 p-4">
 					<Skeleton className="h-24 w-full" />
 
 					<div className="absolute bottom-0 left-0 flex w-full flex-col gap-2 p-4 text-muted-foreground">
@@ -698,8 +698,8 @@ const DisplayHours = memo(function DisplayHours({
 						<Skeleton className="h-4 w-1/2" />
 					</div>
 				</CardContent>
-			</Card>
-		))
+            </Card>)
+		));
 	}
 
 	if (!hours || hours?.length <= 0) {

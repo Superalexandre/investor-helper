@@ -1,4 +1,5 @@
-import { type ActionFunction, type LoaderFunction, type MetaFunction, redirect } from "@remix-run/node"
+import type { ActionFunction, LoaderFunction, MetaFunction } from "react-router";
+import { redirect } from "react-router"
 import logger from "../../../../../log"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
@@ -13,7 +14,7 @@ import { REGEXP_ONLY_DIGITS } from "input-otp"
 import { Button } from "../../../components/ui/button"
 import { Label } from "../../../components/ui/label"
 import { getValidatedFormData, useRemixForm } from "remix-hook-form"
-import { Form, useLoaderData } from "@remix-run/react"
+import { Form, useLoaderData } from "react-router";
 import { z as zod } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import i18next from "../../../i18next.server"

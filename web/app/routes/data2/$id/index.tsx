@@ -1,5 +1,5 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
-import { Form, redirect, useActionData, useLoaderData, useSubmit } from "@remix-run/react"
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "react-router";
+import { Form, redirect, useActionData, useLoaderData, useSubmit } from "react-router";
 import getPrices, { closeClient, type Period, type PeriodInfo } from "@/utils/getPrices"
 import { ClientOnly } from "remix-utils/client-only"
 import {

@@ -1,7 +1,8 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
+import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 // import { Link, useLocation, useNavigate } from "@remix-run/react"
-import { Link, useLocation } from "@remix-run/react"
+import { Link } from "react-router";
+import { useLocation } from "react-router-dom"
 import { ScrollTop } from "@/components/scrollTop"
 import TimeCounter from "../../../components/timeCounter"
 import { useQuery } from "@tanstack/react-query"
@@ -479,15 +480,15 @@ const EconomicCalendarList = memo(function EconomicCalendarList({
 		const skeletonArray = Array.from({ length: 10 })
 
 		return (
-			<div>
-				<div className="flex flex-col space-y-6">
+            (<div>
+                <div className="flex flex-col space-y-6">
 					{skeletonArray.map((_, index) => (
 						// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-						<SkeletonCalendar key={index} />
+						(<SkeletonCalendar key={index} />)
 					))}
 				</div>
-			</div>
-		)
+            </div>)
+        );
 	}
 
 	if (error) {

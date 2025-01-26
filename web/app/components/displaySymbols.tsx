@@ -1,7 +1,7 @@
 import { memo, useState } from "react"
 import type { NewsRelatedSymbol } from "../../../db/schema/news"
 import { normalizeSymbol } from "../../utils/normalizeSymbol"
-import { Link } from "@remix-run/react"
+import { Link } from "react-router";
 import { Badge } from "./ui/badge"
 import SymbolLogo from "./symbolLogo"
 import type { Symbol as SymbolType } from "@/schema/symbols"

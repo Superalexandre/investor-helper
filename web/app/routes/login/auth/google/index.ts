@@ -1,5 +1,5 @@
 import { authenticator } from "@/auth.server"
-import type { ActionFunction, LoaderFunction } from "@remix-run/node"
+import type { ActionFunction, LoaderFunction } from "react-router";
 import { getSession, sessionStorage } from "../../../../session.server"
 
 export const loader: LoaderFunction = async ({ request }) => {

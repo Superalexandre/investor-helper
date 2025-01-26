@@ -1,4 +1,4 @@
-import { Form, Link, useSearchParams } from "@remix-run/react"
+import { Form, Link, useSearchParams } from "react-router";
 import InputForm, { type FieldErrors } from "./inputForm"
 import { useEffect, useState } from "react"
 import { useRemixForm } from "remix-hook-form"

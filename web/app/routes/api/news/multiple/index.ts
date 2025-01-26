@@ -1,5 +1,5 @@
 // import { getLastImportantNews } from "@/utils/news"
-import type { LoaderFunction, LoaderFunctionArgs } from "@remix-run/node"
+import type { LoaderFunction, LoaderFunctionArgs } from "react-router";
 import { getNewsById } from "../../../../../utils/news"
 
 export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) => {

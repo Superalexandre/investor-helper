@@ -1,5 +1,5 @@
 import { getUser } from "@/session.server"
-import type { ActionFunction, ActionFunctionArgs } from "@remix-run/node"
+import type { ActionFunction, ActionFunctionArgs } from "react-router";
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import { walletSchema /*, walletSymbols as walletSymbolsSchema*/ } from "../../../../../../../db/schema/users"

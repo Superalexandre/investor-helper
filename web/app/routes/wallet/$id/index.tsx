@@ -1,5 +1,13 @@
-import type { MetaFunction } from "@remix-run/node"
-import { type ClientLoaderFunctionArgs, Form, Link, redirect, useLoaderData, useParams, useSubmit } from "@remix-run/react"
+import type { MetaFunction } from "react-router";
+import {
+    type ClientLoaderFunctionArgs,
+    Form,
+    Link,
+    redirect,
+    useLoaderData,
+    useParams,
+    useSubmit,
+} from "react-router";
 import getWalletById from "@/utils/getWallet"
 import {
 	Dialog,

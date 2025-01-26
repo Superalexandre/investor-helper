@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { useBadgeApi, useBatteryManager } from "@remix-pwa/client"
 import { usePush } from "@remix-pwa/push/client"
-import { useLoaderData } from "@remix-run/react"
+import { useLoaderData } from "react-router";
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 

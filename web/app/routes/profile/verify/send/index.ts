@@ -1,4 +1,4 @@
-import { type ActionFunction, redirect } from "@remix-run/node"
+import { type ActionFunction, redirect } from "react-router";
 import { getUser } from "../../../../session.server"
 import { sendAccountActivationEmail } from "../../../../../utils/email/email"
 import Database from "better-sqlite3"

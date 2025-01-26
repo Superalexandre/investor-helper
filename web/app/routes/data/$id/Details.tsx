@@ -3,7 +3,7 @@ import { useState, type ReactNode } from "react"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 import { Button } from "../../../components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../../../components/ui/dialog"
-import { Link } from "@remix-run/react"
+import { Link } from "react-router";
 
 export function Details({ symbol }: { symbol: string }): ReactNode {
 	const [open, setOpen] = useState(false)

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader } from "../ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Form } from "@remix-run/react"
+import { Form } from "react-router";
 
 export default function NewWallet({
 	className

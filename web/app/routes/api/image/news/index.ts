@@ -1,4 +1,4 @@
-import type { ClientLoaderFunctionArgs } from "@remix-run/react"
+import type { ClientLoaderFunctionArgs } from "react-router";
 
 export async function loader({ request }: ClientLoaderFunctionArgs) {
 	const requestUrl = new URL(request.url)

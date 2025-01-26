@@ -1,6 +1,6 @@
 import React from "react"
 import { cn } from "../lib/utils"
-import { Link } from "@remix-run/react"
+import { Link } from "react-router";
 import { Badge } from "./ui/badge"
 import SymbolLogo from "./symbolLogo"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"

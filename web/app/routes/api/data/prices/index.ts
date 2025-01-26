@@ -1,4 +1,4 @@
-import type { LoaderFunction } from "@remix-run/node"
+import type { LoaderFunction } from "react-router";
 import getPrices, { closeClient, type Period } from "../../../../../utils/getPrices"
 import { subDays, subMonths, subYears } from "date-fns"
 import currencies from "../../../../../../lang/currencies"

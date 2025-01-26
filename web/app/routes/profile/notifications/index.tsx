@@ -1,7 +1,7 @@
-import { type LoaderFunctionArgs, redirect } from "@remix-run/node"
+import { type LoaderFunctionArgs, redirect } from "react-router";
 import { getNotificationList } from "../../../../utils/notifications"
 import { getUser } from "../../../session.server"
-import { Link, useLoaderData } from "@remix-run/react"
+import { Link, useLoaderData } from "react-router";
 import { memo } from "react"
 import type { NotificationList } from "../../../../../db/schema/notifications"
 import { Card, CardContent, CardFooter, CardTitle } from "../../../components/ui/card"

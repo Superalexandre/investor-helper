@@ -1,7 +1,7 @@
 import Contact, { type FormData, resolver } from "../../components/form/contact"
 import { Card, CardContent, CardTitle } from "../../components/ui/card"
 import { getValidatedFormData } from "remix-hook-form"
-import type { ActionFunctionArgs } from "@remix-run/node"
+import type { ActionFunctionArgs } from "react-router";
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import { contactSchema } from "@/schema/contact"

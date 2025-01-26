@@ -1,4 +1,4 @@
-import type { LoaderFunction } from "@remix-run/node"
+import type { LoaderFunction } from "react-router";
 import {parse} from "node-html-parser"
 
 export const loader: LoaderFunction = async ({ request }) => {

@@ -1,8 +1,8 @@
 import { PassThrough } from "node:stream"
 
-import type { EntryContext } from "@remix-run/node"
-import { createReadableStreamFromReadable } from "@remix-run/node"
-import { RemixServer } from "@remix-run/react"
+import type { EntryContext } from "@remix-run/node";
+import { createReadableStreamFromReadable } from "@react-router/node";
+import { ServerRouter } from "react-router";
 import { isbot } from "isbot"
 import { renderToPipeableStream } from "react-dom/server"
 import { createInstance } from "i18next"
@@ -42,7 +42,7 @@ export default async function handleRequest(
 
 		const { pipe, abort } = renderToPipeableStream(
 			<I18nextProvider i18n={instance}>
-				<RemixServer context={remixContext} url={request.url} />
+				<ServerRouter context={remixContext} url={request.url} />
 			</I18nextProvider>,
 			{
 				[callbackName]: () => {
@@ -72,5 +72,5 @@ export default async function handleRequest(
 		)
 
 		setTimeout(abort, streamTimeout + 1000)
-	})
+	});
 }

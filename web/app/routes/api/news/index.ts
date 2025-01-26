@@ -1,5 +1,5 @@
 import { getNews } from "@/utils/news"
-import type { LoaderFunction, LoaderFunctionArgs } from "@remix-run/node"
+import type { LoaderFunction, LoaderFunctionArgs } from "react-router";
 
 export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) => {
 	// const language = await getLanguage(request)
