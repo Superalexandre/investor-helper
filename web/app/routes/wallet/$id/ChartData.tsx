@@ -51,7 +51,7 @@ export function ChartData({
         netValue: number
     }[]
 }): ReactNode {
-    const [displayValue, setDisplayValue] = useState<"value" | "netValue">("netValue")
+    const [displayValue, setDisplayValue] = useState<"value" | "netValue">("value")
 
     return (
         <div className="h-auto w-full">
@@ -105,8 +105,6 @@ export function ChartData({
                             <ChartTooltipContent
                                 indicator="dot"
                                 labelFormatter={(_value, dataLabel): string => {
-                                    console.log(dataLabel[0].payload)
-
                                     return new Date(dataLabel[0].payload.date).toLocaleString("fr-FR", {
                                         weekday: "long",
                                         day: "numeric",

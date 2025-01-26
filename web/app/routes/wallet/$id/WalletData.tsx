@@ -33,6 +33,7 @@ export function WalletData({ walletId }: { walletId: string }): ReactNode {
                 quantity: number,
                 performance: number,
                 performancePercentage: number
+                country: string,
             }[],
             portfolioWeights: {
                 symbol: string
@@ -88,9 +89,11 @@ export function WalletData({ walletId }: { walletId: string }): ReactNode {
 
     console.log(data.data)
 
+    console.log(data.data.prices.map((item) => item.country))
+
     return (
         <div className="flex w-full flex-col gap-4 p-4">
-            <Card className="w-full">
+            <Card className="w-full border-card-border">
                 <CardHeader>
                     <CardTitle>Portefeuille</CardTitle>
                 </CardHeader>
@@ -100,7 +103,7 @@ export function WalletData({ walletId }: { walletId: string }): ReactNode {
                 </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-card-border">
                 <CardHeader>
                     <CardTitle>Performance</CardTitle>
                 </CardHeader>
@@ -111,7 +114,7 @@ export function WalletData({ walletId }: { walletId: string }): ReactNode {
             </Card>
 
             <div className="flex w-full flex-col gap-4 md:flex-row">
-                <Card className="w-full">
+                <Card className="w-full border-card-border">
                     <CardHeader>
                         <CardTitle>Composition du portefeuille</CardTitle>
                     </CardHeader>
@@ -169,7 +172,7 @@ export function WalletData({ walletId }: { walletId: string }): ReactNode {
                     </CardContent>
                 </Card>
 
-                <Card className="w-full">
+                <Card className="w-full border-card-border">
                     <CardHeader>
                         <CardTitle>Composition des secteurs du portefeuille</CardTitle>
                     </CardHeader>
