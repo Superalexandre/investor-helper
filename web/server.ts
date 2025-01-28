@@ -30,9 +30,24 @@ app.use((c, next) => {
 
 app.route("/api/calendar", calendar)
 
-app.use("/*", serveStatic({ root: "./build/client" }))
-app.use("/build/*", serveStatic({ root: isDev ? "./public/build" : "./build/client" }))
-app.use("/assets/*", serveStatic({ root: isDev ? "./public/assets" : "./build/client/assets" }))
+app.use(
+	"*",
+	serveStatic({ root: "./build/client", onFound: (_path, c) => c.header("Cache-Control", "public, max-age=3600") })
+)
+// app.use(
+// 	"/build/*",
+// 	serveStatic({
+// 		root: isDev ? "./public/build" : "./build/client",
+// 		onFound: (_path, c) => c.header("Cache-Control", "public, immutable, max-age=31536000")
+// 	})
+// )
+app.use(
+	"/assets/*",
+	serveStatic({
+		root: isDev ? "./public/assets" : "./build/client/assets",
+		onFound: (_path, c) => c.header("Cache-Control", "public, immutable, max-age=31536000")
+	})
+)
 app.use(async (c, next) => {
 	const path = "./build/server/index.js"
 	const build = await import(path)
