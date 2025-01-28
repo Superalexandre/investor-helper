@@ -13,7 +13,7 @@ export function Details({ symbol }: { symbol: string }): ReactNode {
 		error
 	} = useQuery<{
 		data: {
-			top_holdings: Array<{ name: string, symbol: string, weight: number }>
+			top_holdings?: Array<{ name: string, symbol: string, weight: number }>
 		}
 	}>({
 		queryKey: [
@@ -40,7 +40,11 @@ export function Details({ symbol }: { symbol: string }): ReactNode {
 	}
 
 	if (!data) {
-		return <p>No prices</p>
+		return <p>Aucune donnée</p>
+	}
+
+	if (!data.data.top_holdings) {
+		return <p>Aucune donnée</p>
 	}
 
 	const colors = [

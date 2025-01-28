@@ -1,133 +1,146 @@
-import { useMemo, type ComponentType, type ReactNode } from "react";
+import { useMemo, useState, type ComponentType, type ReactNode } from "react";
 import type { Period } from "../../../utils/getPrices";
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "../../components/ui/chart";
-import { CartesianGrid, ComposedChart, Legend, Line, Tooltip, XAxis, YAxis } from "recharts";
+import { CartesianGrid, ComposedChart, Line, XAxis, YAxis } from "recharts";
 
-export function Chart({ symbols, timeframe, prices }: {
+export default function Chart({ symbols, timeframe, prices, maxValue, minValue }: {
     timeframe: string,
     symbols: string[],
-    prices: Period[][]
+    prices: { date: string, [key: string]: number | string }[][],
+    minValue: number,
+    maxValue: number
 }): ReactNode {
+
+    const [hidden, setHidden] = useState<string[]>([])
+
     const chartConfig: FullConfig = {
-        close: {
-            label: "Prix",
-            color: "hsl(var(--chart-1))"
-        },
-        time: {
+        // close: {
+        //     label: "Prix",
+        //     color: "hsl(var(--chart-1))"
+        // },
+        date: {
             label: "Date"
         }
     }
 
-    const formatDate = (timestamp: number): string => {
-        const date = new Date(timestamp * 1000)
-
-        if (timeframe === "1D") {
-            return date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
-        }
-
-        if (timeframe === "1W" || timeframe === "1M") {
-            return date.toLocaleDateString("fr-FR", { month: "short", day: "numeric" })
-        }
-
-        if (timeframe === "1Y" || timeframe === "all") {
-            return date.toLocaleDateString("fr-FR", { month: "short", year: "numeric" })
-        }
-
-        return date.toLocaleString("fr-FR")
-    }
-
-    // const maxValue = Math.max(...prices.map((price) => price.map((p) => Math.floor(p?.close)).reduce((acc, val) => acc.concat(val), [])))
-    const maxValue = Math.max(...prices.map((price) => Math.floor(price[0]?.close)))
-
     const yAxisWidth = Math.max(
-        maxValue.toString().length * 8,
+        (maxValue * 1.05).toFixed(0).toString().length * 8,
+        (minValue * 0.85).toFixed(0).toString().length * 8
     )
 
-    return (
-        <ChartContainer config={chartConfig} className="min-h-[400px] w-full overflow-hidden lg:h-[500px] lg:min-h-0">
-            <ComposedChart accessibilityLayer={true} margin={{ top: 0, left: 0, right: 0, bottom: 0 }} data={prices[0]}>
-                <CartesianGrid vertical={false} />
+    // From 1 to 5
+    const maxColor = 5
 
-                <YAxis
-                    dataKey="close"
-                    tickLine={false}
-                    axisLine={false}
-                    scale="auto"
-                    domain={[
-                        (dataMin: number) => Math.floor(dataMin * 0.85),
-                        (dataMax: number) => Math.ceil(dataMax * 1.05)
-                    ]}
-                    tickMargin={0}
-                    fontSize={12}
-                    width={yAxisWidth}
+    const memoizedLines = useMemo(() => {
+        return symbols.map((symbol, index) => {
+            return (
+                <Line
+                    key={symbol}
+                    dataKey={symbol}
+                    name={symbol}
+                    stroke={`hsl(var(--chart-${(index % maxColor) + 1}))`}
+                    strokeWidth={2}
+                    dot={false}
+                    hide={hidden.includes(symbol)}
+                    isAnimationActive={false}
                 />
+            );
+        });
+    }, [symbols, hidden]);
 
-                <XAxis
-                    dataKey="time"
-                    tickFormatter={formatDate}
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    scale="auto"
-                    allowDuplicatedCategory={false}
-                />
+    const memoizedChart = useMemo(() => {
 
-                {symbols.map((symbol, index) => (
-                    <Line
-                        key={`chart-line-${symbol}`}
-                        data={prices[index]}
-                        // yAxisId={`close-${symbol}`}
-                        // xAxisId={`time-${symbol}`}
-                        dataKey="close"
+        const formatDate = (dateToFormat: string): string => {
+            const date = new Date(dateToFormat)
 
-                        name={symbol}
-                        stroke="var(--color-close)"
-                        strokeWidth={2}
-                        dot={false}
-                        className="z-10"
+            if (timeframe === "1D") {
+                return date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+            }
+
+            if (timeframe === "1W" || timeframe === "1M") {
+                return date.toLocaleDateString("fr-FR", { month: "short", day: "numeric" })
+            }
+
+            if (timeframe === "1Y" || timeframe === "5Y" || timeframe === "all") {
+                return date.toLocaleDateString("fr-FR", { month: "short", year: "numeric" })
+            }
+
+            return date.toLocaleString("fr-FR")
+        }
+
+        return (
+            <ChartContainer config={chartConfig} className="min-h-[400px] w-full overflow-hidden lg:h-[500px] lg:min-h-0">
+                <ComposedChart accessibilityLayer={true} margin={{ top: 0, left: 0, right: 0, bottom: 0 }} data={prices}>
+                    <CartesianGrid vertical={false} />
+
+                    <YAxis
+                        tickLine={false}
+                        axisLine={false}
+                        scale="auto"
+                        domain={[
+                            (dataMin: number) => Math.floor(dataMin * 0.85),
+                            (dataMax: number) => Math.ceil(dataMax * 1.05)
+                        ]}
+                        tickMargin={0}
+                        fontSize={12}
+                        width={yAxisWidth + 4}
                     />
-                ))}
 
-                <Legend />
+                    <XAxis
+                        dataKey="date"
+                        tickFormatter={formatDate}
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        scale="auto"
+                        allowDuplicatedCategory={false}
+                    />
 
-                <Tooltip />
+                    {memoizedLines}
 
-                {/* <ChartLegend
-                    content={
-                        <ChartLegendContent
-                            renderHidden={true}
+                    <ChartLegend
+                        content={<ChartLegendContent
+                            formatter={(value): string => { return value }}
+                            onClick={(value): void => {
+                                console.log(value)
 
-                            onClick={(item): void => {
-                                const config = chartConfig[item.dataKey as string]
-
-                                if (config?.onClick) {
-                                    config.onClick()
+                                if (hidden.includes(value.value)) {
+                                    setHidden(hidden.filter((h) => h !== value.value))
+                                } else {
+                                    setHidden([...hidden, value.value])
                                 }
                             }}
-                        />
-                    }
-                /> */}
+                        />}
+                    />
 
-                {/* <ChartTooltip
-                    cursor={false}
-                    content={
-                        <ChartTooltipContent
-                            indicator="dot"
-                            labelFormatter={(_value, dataLabel): string => {
-                                return new Date(dataLabel[0].payload.time * 1000).toLocaleString("fr-FR", {
+                    <ChartTooltip
+                        wrapperStyle={{ outline: 'none' }}
+                        isAnimationActive={true}
+                        animationDuration={100}
+                        offset={20}
+                        position={{ y: 0 }}
+                        content={<ChartTooltipContent
+                            labelFormatter={(_, payload): string => {
+                                return new Date(payload[0].payload.date).toLocaleString("fr-FR", {
                                     weekday: "long",
                                     day: "numeric",
                                     month: "short",
                                     year: "numeric",
-                                    hour: "numeric",
-                                    minute: "numeric"
+                                    hour: ["1D", "1W", "1M"].includes(timeframe) ? "numeric" : undefined,
+                                    minute: ["1D", "1W", "1M"].includes(timeframe) ? "numeric" : undefined
                                 })
                             }}
-                        />
-                    }
-                /> */}
-            </ComposedChart>
-        </ChartContainer>
+                        />}
+                    />
+                </ComposedChart>
+            </ChartContainer>
+        )
+    }, [prices, hidden, memoizedLines, timeframe, yAxisWidth])
+
+    return (
+        <>
+            {memoizedChart}
+        </>
     )
 }
 

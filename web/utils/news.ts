@@ -27,7 +27,7 @@ async function getNews({
 	scores,
 	sources
 }: { page?: number; limit?: number; language?: string[]; scores?: number[][]; sources?: string[] }) {
-	// Score is an array of double array, the first element is the minimum score and the second element is the maximum score
+	// Fetch all news items with the given filters
 	const allNews = await db
 		.select()
 		.from(newsSchema)
@@ -49,41 +49,38 @@ async function getNews({
 		.offset(limit * (page - 1))
 		.orderBy(desc(newsSchema.published))
 
-	const news: NewsFull[] = []
+	// Extract the news IDs
+	const newsIds = allNews.map((newsItem) => newsItem.news.id)
 
-	// const startFor = Date.now()
-	// for (const newsItem of allNews) {
-	// 	const relatedSymbols = await db
-	// 		.select()
-	// 		.from(newsRelatedSymbolsSchema)
-	// 		.innerJoin(symbolsSchema, eq(newsRelatedSymbolsSchema.symbol, symbolsSchema.symbolId))
-	// 		.where(eq(newsRelatedSymbolsSchema.newsId, newsItem.news.id))
+	// Fetch all related symbols for the fetched news items in a single query
+	const relatedSymbols = await db
+		.select()
+		.from(newsRelatedSymbolsSchema)
+		.innerJoin(symbolsSchema, eq(newsRelatedSymbolsSchema.symbol, symbolsSchema.symbolId))
+		.where(inArray(newsRelatedSymbolsSchema.newsId, newsIds))
 
-	// 	news.push({
-	// 		news: newsItem.news,
-	// 		news_article: newsItem.news_article,
-	// 		relatedSymbols: relatedSymbols
-	// 	})
-	// }
-	// const endFor = Date.now()
+	// Group related symbols by news ID
+	const relatedSymbolsByNewsId = relatedSymbols.reduce(
+		(acc, symbol) => {
+			if (symbol.news_related_symbol.newsId && !acc[symbol.news_related_symbol.newsId]) {
+				acc[symbol.news_related_symbol.newsId] = []
+			}
 
-	await Promise.all(
-		allNews.map(async (newsItem) => {
-			const relatedSymbols = await db
-				.select()
-				.from(newsRelatedSymbolsSchema)
-				.innerJoin(symbolsSchema, eq(newsRelatedSymbolsSchema.symbol, symbolsSchema.symbolId))
-				.where(eq(newsRelatedSymbolsSchema.newsId, newsItem.news.id))
+			if (symbol.news_related_symbol.newsId) {
+				acc[symbol.news_related_symbol.newsId].push(symbol)
+			}
 
-			news.push({
-				news: newsItem.news,
-				news_article: newsItem.news_article,
-				relatedSymbols: relatedSymbols
-			})
-		})
+			return acc
+		},
+		{} as Record<string, typeof relatedSymbols>
 	)
 
-	// logger.info(`For loop: ${endFor - startFor}ms - Promise.all: ${endPromiseAll - startPromiseAll}ms - DB: ${endDb - startDb}ms`)
+	// Map related symbols to the corresponding news items
+	const news: NewsFull[] = allNews.map((newsItem) => ({
+		news: newsItem.news,
+		news_article: newsItem.news_article,
+		relatedSymbols: relatedSymbolsByNewsId[newsItem.news.id] || []
+	}))
 
 	return news
 }
@@ -92,7 +89,7 @@ async function getSourceList({
 	languages
 }: {
 	languages: string[]
-}) {
+}): Promise<string[]> {
 	const sources = await db
 		.selectDistinct({
 			source: newsSchema.source
@@ -127,7 +124,7 @@ async function getNewsById({ id }: { id: string }) {
 	}
 }
 
-async function getNewsBySymbol({ symbol, limit = 10 }: { symbol: string, limit?: number }) {
+async function getNewsBySymbol({ symbol, limit = 10 }: { symbol: string; limit?: number }) {
 	const newsResults = await db
 		.select({
 			news: newsSchema,
@@ -138,7 +135,7 @@ async function getNewsBySymbol({ symbol, limit = 10 }: { symbol: string, limit?:
 		.where(eq(newsRelatedSymbolsSchema.symbol, symbol))
 		.limit(limit)
 		.orderBy(desc(newsSchema.published))
-		// .innerJoin(newsArticleSchema, eq(newsSchema.id, newsArticleSchema.newsId))
+	// .innerJoin(newsArticleSchema, eq(newsSchema.id, newsArticleSchema.newsId))
 
 	return newsResults
 }

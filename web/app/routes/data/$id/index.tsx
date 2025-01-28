@@ -30,7 +30,7 @@ export const loader: LoaderFunction = async ({ params }) => {
 
 	const dataCurrency = info.currency as string
 	const prettyCurrency = currencies[dataCurrency]?.symbol_native ?? dataCurrency
-	
+
 	return {
 		name: info.description,
 		price: info.close,
@@ -145,7 +145,7 @@ export default function Index(): ReactNode {
 
 					<Skeleton className="top-0 right-0 m-4 h-9 w-24 lg:absolute " />
 				</div>
-				
+
 				<div className="flex flex-col items-center justify-center gap-4">
 					<div className="flex max-w-full flex-col items-center justify-center gap-2 px-10 lg:flex-row">
 						<Skeleton className="h-12 w-12 rounded-full" />
@@ -176,7 +176,7 @@ export default function Index(): ReactNode {
 				<Button
 					variant="outline"
 					className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-2 text-center lg:absolute"
-					onClick={() => setOpen(true)}
+					onClick={(): void => setOpen(true)}
 				>
 					Info
 
@@ -219,35 +219,54 @@ export default function Index(): ReactNode {
 			</div>
 
 			<Card className="mx-4 border-card-border">
-				<CardContent className="my-6">
+				<CardContent className="m-6 flex flex-col gap-4 p-0">
 					<FullChart
 						symbol={symbol}
 						setInfo={setInfo}
 					/>
-				</CardContent>
-			</Card>
 
-			<Card className="mx-4 border-card-border">
-				<CardHeader>
-					<CardTitle className="text-lg">Information sur l'entreprise</CardTitle>
-				</CardHeader>
-				<CardContent className="flex flex-col gap-4">
-					{data.info.additionalInfo.symbol.ast_business_description ? (
-						<ConvertJsonToReact json={JSON.stringify(data.info.additionalInfo.symbol.ast_business_description)} />
-					) : null}
+					<div className="flex w-full flex-row items-center justify-end">
+						<Button asChild={true}>
+							<Link to={`/compare?stocks=${symbol}`} className="flex flex-row items-center gap-2">
+								<p>Comparer</p>
 
-					<div className="grid grid-cols-2 gap-4">
-						<div>
-							<p className="font-semibold">Secteur</p>
-							<p>{data.info["sector.tr"]}</p>
-						</div>
-						<div>
-							<p className="font-semibold">Industrie</p>
-							<p>{data.info["industry.tr"]}</p>
-						</div>
+								<ExternalLinkIcon className="h-4 w-4" />
+							</Link>
+						</Button>
 					</div>
 				</CardContent>
 			</Card>
+
+			{data.info.additionalInfo.symbol.ast_business_description || data.info["sector.tr"] || data.info["industry.tr"] ? (
+				<Card className="mx-4 border-card-border">
+					<CardHeader>
+						<CardTitle className="text-lg">Information sur l'entreprise</CardTitle>
+					</CardHeader>
+					<CardContent className="flex flex-col gap-4">
+						{data.info.additionalInfo.symbol.ast_business_description ? (
+							<ConvertJsonToReact
+								json={JSON.stringify(data.info.additionalInfo.symbol.ast_business_description)}
+								// textClassName="max-h-40 truncate"
+							/>
+						) : null}
+
+						<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+							{data.info["sector.tr"] ? (
+								<div>
+									<p className="font-semibold">Secteur</p>
+									<p>{data.info["sector.tr"]}</p>
+								</div>
+							) : null}
+							{data.info["industry.tr"] ? (
+								<div>
+									<p className="font-semibold">Industrie</p>
+									<p>{data.info["industry.tr"]}</p>
+								</div>
+							) : null}
+						</div>
+					</CardContent>
+				</Card>
+			) : null}
 
 			<div className="mx-4 grid grid-cols-1 gap-4 md:grid-cols-3 lg:gap-8">
 				<Card className="border-card-border">
@@ -309,30 +328,32 @@ export default function Index(): ReactNode {
 				<DisplayRecommendation recommendation={data.info["Recommend.All|1W"]} />
 			</div>
 
-			<Card className="mx-4 border-card-border">
-				<CardHeader>
-					<CardTitle className="text-lg">Prévisions</CardTitle>
-				</CardHeader>
+			{data.info["Pivot.M.Fibonacci.S3"] && data.info["Pivot.M.Fibonacci.Middle"] && data.info["Pivot.M.Fibonacci.R3"] ? (
+				<Card className="mx-4 border-card-border">
+					<CardHeader>
+						<CardTitle className="text-lg">Prévisions</CardTitle>
+					</CardHeader>
 
-				<CardContent>
-					<div className="flex items-center justify-between">
-						<span className="truncate text-sm">Low: {data.info["Pivot.M.Fibonacci.S3"].toFixed(2)}</span>
-						<span className="truncate text-sm">Avg: {data.info["Pivot.M.Fibonacci.Middle"].toFixed(2)}</span>
-						<span className="truncate text-sm">High: {data.info["Pivot.M.Fibonacci.R3"].toFixed(2)}</span>
-					</div>
-					<div className="mt-2 h-2 rounded-full bg-secondary">
-						<div
-							className="h-full max-w-full rounded-full bg-primary"
-							style={{
-								width: `${((data.info["Pivot.M.Fibonacci.Middle"] - data.info["Pivot.M.Fibonacci.S3"]) /
-									(data.info["Pivot.M.Fibonacci.R3"] - data.info["Pivot.M.Fibonacci.S3"])) *
-									100
-									}%`,
-							}}
-						/>
-					</div>
-				</CardContent>
-			</Card>
+					<CardContent>
+						<div className="flex items-center justify-between">
+							<span className="truncate text-sm">Low: {data.info["Pivot.M.Fibonacci.S3"].toFixed(2)}</span>
+							<span className="truncate text-sm">Avg: {data.info["Pivot.M.Fibonacci.Middle"].toFixed(2)}</span>
+							<span className="truncate text-sm">High: {data.info["Pivot.M.Fibonacci.R3"].toFixed(2)}</span>
+						</div>
+						<div className="mt-2 h-2 rounded-full bg-secondary">
+							<div
+								className="h-full max-w-full rounded-full bg-primary"
+								style={{
+									width: `${((data.info["Pivot.M.Fibonacci.Middle"] - data.info["Pivot.M.Fibonacci.S3"]) /
+										(data.info["Pivot.M.Fibonacci.R3"] - data.info["Pivot.M.Fibonacci.S3"])) *
+										100
+										}%`,
+								}}
+							/>
+						</div>
+					</CardContent>
+				</Card>
+			) : null}
 
 			{data.info.news.length > 0 ? (
 				<Card className="mx-4 border-card-border">

@@ -27,7 +27,8 @@ interface FullSymbol {
 
 export function ConvertJsonToReact({
     json,
-}: { json: string; }): (string | JSX.Element)[] {
+    textClassName
+}: { json: string, textClassName?: string }): (string | JSX.Element)[] {
     if (!json) {
         return []
     }
@@ -37,7 +38,11 @@ export function ConvertJsonToReact({
     const Component: (string | JSX.Element)[] = []
 
     if (convertedJson?.children) {
-        const result = ParseComponent(convertedJson.children)
+        const result = ParseComponent(convertedJson.children, {
+            className: {
+                text: textClassName ?? ""
+            }
+        })
 
         Component.push(...result)
     }
@@ -124,7 +129,14 @@ export function ParseComponent(
                 additionalClassName.push("italic")
             }
 
-            Component.push(<p className={cn(className?.text, additionalClassName)}>{replacedChild}</p>)
+            Component.push(
+                <p
+                    key={`${replacedChild}-${Component.length}`} 
+                    className={cn(className?.text, additionalClassName)}
+                >
+                    {replacedChild}
+                </p>
+            )
 
             continue
         }

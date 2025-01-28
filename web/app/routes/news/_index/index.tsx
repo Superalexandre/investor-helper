@@ -358,7 +358,7 @@ const News = memo(function News({
 		],
 		queryFn: async () => {
 			const req = await fetch(
-				`/api/news?page=${actualPage}&limit=20&languages=${selectedLanguage.join(",")}&importances=${selectedImportance.join(",")}&sources=${selectedSource.join(",")}`
+				`/api/news?page=${actualPage}&limit=10&languages=${selectedLanguage.join(",")}&importances=${selectedImportance.join(",")}&sources=${selectedSource.join(",")}`
 			)
 			const json = await req.json()
 
