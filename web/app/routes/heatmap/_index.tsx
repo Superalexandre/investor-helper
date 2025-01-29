@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import logger from "../../../../log";
 import { cn } from "../../lib/utils";
+import SymbolLogo from "../../components/symbolLogo";
 
 const columns = [
     "close",
@@ -209,14 +210,32 @@ const CustomTooltip = ({ active, payload }: {
 }): ReactNode | null => {
     if (active && payload && payload.length > 0 && payload[0].payload) {
         const data = payload[0].payload as ProcessedDataType
+
+        const formattedMarketCap = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: data.currency || 'USD',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(data.market_cap_basic || 0)
+
+
         return (
-            <div className="rounded border border-gray-200 bg-white p-2 shadow" key={data.symbol}>
-                <p className="font-bold text-black">{data.description} ({data.symbol})</p>
-                <p className="text-black">Market Cap: ${((data.market_cap_basic || 0).toLocaleString())} billion</p>
-                <p className="text-black">Weight: {(data.size || 0).toFixed(2)}%</p>
-                <p className="text-black">Position: {data.index + 1}/{data.total}</p>
+            <div className="grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
+                <p className="font-bold">{data.description} ({data.symbol})</p>
+
+                <div className="grid gap-1.5">
+                    <div className="flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground">
+                        <div className="flex flex-1 flex-col justify-between gap-2 leading-none">
+                            <p>Change : {data.change?.toFixed(2)}%</p>
+                            <p>Weight: {(data.size || 0).toFixed(2)}%</p>
+                            <p>Position: {data.index + 1}/{data.total}</p>
+                            <p>Market cap : {formattedMarketCap}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         )
+
     }
     return null
 }
@@ -288,6 +307,8 @@ const CustomizedContent = (props: {
     const displayText = height > (fontSize * 3) + minImageSize && width > (description?.length / 2) * fontSize
     const bigImage = width < 50
 
+    const imageSize = Number(displayText ? width / 6 : (bigImage ? width : width / 2)).toFixed(0)
+
     return (
         <g>
             <rect x={x} y={y} width={width} height={height} fill={color.background} />
@@ -297,7 +318,7 @@ const CustomizedContent = (props: {
                     bigImage ? "p-2" : "p-3"
                 )}>
                     <img
-                        src={`/api/image/symbol?name=${logoid}`}
+                        src={`/api/image/symbol?name=${logoid}&width=${imageSize}&height=${imageSize}`}
                         alt={description || symbol || "Logo"}
                         className={cn(
                             "mx-auto rounded-full",
@@ -305,9 +326,22 @@ const CustomizedContent = (props: {
                         )}
                     />
 
+                    {/* <SymbolLogo
+                        symbol={logoid}
+                        width={imageSize}
+                        height={imageSize}
+                        alt={description || symbol || "Logo"}
+                        className={cn(
+                            "mx-auto rounded-full", 
+                            // `h-[${imageSize}px] w-[${imageSize}px]`
+                        )}
+                        // imageClassname="w-full h-full"
+                        // skeletonClassname={cn(`h-[${imageSize}px] w-[${imageSize}px]`)}
+                    /> */}
+
                     <div
                         className={cn(
-                            "flex flex-col items-center justify-center w-full",
+                            "flex w-full flex-col items-center justify-center",
                             displayText ? "block" : "hidden"
                         )}
                     >
@@ -357,10 +391,10 @@ export default function Index(): ReactNode {
 
             <Form className="absolute top-0 left-0" method="POST">
                 <div className="absolute top-0 left-0 z-10 m-4">
-                    <Select 
-                        name="market" 
-                        defaultValue={market} 
-                        onValueChange={(value) => handleSubmit(value)} 
+                    <Select
+                        name="market"
+                        defaultValue={market}
+                        onValueChange={(value) => handleSubmit(value)}
                         aria-label="Choisir un marché"
                     >
                         <SelectTrigger className="bg-background">

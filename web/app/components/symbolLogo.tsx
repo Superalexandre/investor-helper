@@ -10,6 +10,8 @@ import { cn } from "../lib/utils"
 export default function SymbolLogo({
 	symbol,
 	className,
+	imageClassname,
+	skeletonClassname,
 	alt,
 	fallback,
 	width,
@@ -23,11 +25,13 @@ export default function SymbolLogo({
 		  }
 		| undefined | string
 	className?: string
+	imageClassname?: string
+	skeletonClassname?: string
 	alt?: string
 	// React.ReactNode
 	fallback?: ReactNode,
-	width?: number,
-	height?: number,
+	width?: number | string,
+	height?: number | string,
 	format?: string
 }) {
 	if (!symbol) {
@@ -57,7 +61,7 @@ export default function SymbolLogo({
 
 	return (
 		<ImageContainer className={cn(className)}>
-			<ImageContent src={url.toString()} alt={alt || "Icon"} className="bg-transparent" />
+			<ImageContent src={url.toString()} alt={alt || "Icon"} className={cn("bg-transparent", imageClassname)} />
 			<ImageFallback className="bg-transparent">
 				<Skeleton className="size-full rounded-full bg-muted" />
 			</ImageFallback>

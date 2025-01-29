@@ -32,8 +32,16 @@ export const loader: LoaderFunction = async({ request }) => {
 
 	try {
 		const processedImageBuffer = await sharp(imageBuffer)
-			.resize(width, height)
-			.toFormat(format as unknown as AvailableFormatInfo)
+			.resize(width, height, {
+				fit: "contain",
+				position: "center",
+				withoutReduction: true
+			})
+			.toFormat(format as unknown as AvailableFormatInfo, {
+				quality: 100,
+				compressionLevel: 0
+				// compression
+			})
 			.toBuffer()
 
 		return new Response(processedImageBuffer, {
