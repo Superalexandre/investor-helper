@@ -166,6 +166,8 @@ export default function getPrices(
 		if (!chart) {
 			logger.error("Can't create a session")
 
+			reject("Can't create a session")
+
 			return
 		}
 
@@ -177,7 +179,12 @@ export default function getPrices(
 
 		chart.onError((...err: unknown[]) => {
 			logger.error("Chart error:", ...err)
+			
 			reject(err)
+
+			closeClient({ clientId: clientId as string })
+
+			return
 		})
 
 		// chart.onSymbolLoaded(() => {})
@@ -187,6 +194,8 @@ export default function getPrices(
 			if (!chart.periods[0]) {
 				logger.error("No price (no period)")
 
+				reject("No price (no period)")
+			
 				return
 			}
 

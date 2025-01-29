@@ -49,8 +49,6 @@ export default function Index(): ReactNode {
         return <p>Loading...</p>
     }
 
-    console.log(prices)
-
     // if (results.some((result) => result.isLoading)) {
     //     return (
     //         <p>Loading</p>
@@ -91,9 +89,9 @@ export default function Index(): ReactNode {
                             <Chart
                                 symbols={selectedStocks.map((stock) => stock)}
                                 timeframe={timeframe}
-                                prices={prices.prices}
-                                maxValue={prices.range.max}
-                                minValue={prices.range.min}
+                                prices={prices?.prices || []}
+                                maxValue={prices?.range?.max || 0}
+                                minValue={prices?.range?.min || 0}
                             />
                         </React.Suspense>
                         {/* 

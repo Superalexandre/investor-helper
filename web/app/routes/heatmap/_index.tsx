@@ -353,7 +353,7 @@ export default function Index(): ReactNode {
     const market = searchParams.get("market") || "SP500"
 
     return (
-        <div className="relative h-[calc(100vh-64px)] w-full overflow-hidden">
+        <div className="relative h-[calc(100dvh-64px)] w-full overflow-hidden">
 
             <Form className="absolute top-0 left-0" method="POST">
                 <div className="absolute top-0 left-0 z-10 m-4">

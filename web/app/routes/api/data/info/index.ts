@@ -116,8 +116,6 @@ async function getTechnicalInfo({ symbol }: { symbol: string }) {
 
 	const json = jsonContent[dynamicKey]
 
-	console.log(json)
-
 	return json
 }
 
