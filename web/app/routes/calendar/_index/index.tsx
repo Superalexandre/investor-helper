@@ -91,7 +91,7 @@ export default function Index() {
 					{isCalendar && fullScreen ? null : (
 						<div className="flex flex-col">
 							<div className="space-x-4">
-								<Button variant="outline" onClick={() => {
+								<Button variant="outline" onClick={(): void => {
 									setDisplay(display === "list" ? "calendar" : "list")
 									// startTransition(() => {
 									// 	setDisplay(display === "list" ? "calendar" : "list")
@@ -110,7 +110,7 @@ export default function Index() {
 							t={t}
 							language={i18n.language}
 							isFullScreen={fullScreen}
-							setFullScreen={() => setFullScreen(!fullScreen)}
+							setFullScreen={(): void => setFullScreen(!fullScreen)}
 						/>
 					)}
 
@@ -167,7 +167,7 @@ const EconomicCalendar = memo(function EconomicCalendar({
 
 	const defaultMonth = new Date().getMonth() as CalendarState["month"]
 	const [month, setMonth] = useQueryState("month", createParser<CalendarState["month"]>({
-		parse(queryValue) {
+		parse(queryValue): CalendarState["month"] | null {
 			if (Number.isNaN(Number(queryValue))) {
 				return null
 			}
@@ -180,14 +180,14 @@ const EconomicCalendar = memo(function EconomicCalendar({
 
 			return queryMonth as CalendarState["month"]
 		},
-		serialize(value) {
+		serialize(value): string {
 			return value.toString()
 		},
 	}).withDefault(defaultMonth).withOptions({ startTransition, shallow: false }))
 
 	const defaultYear = new Date().getFullYear() as CalendarState["year"]
 	const [year, setYear] = useQueryState("year", createParser<CalendarState["year"]>({
-		parse(queryValue) {
+		parse(queryValue): CalendarState["year"] | null {
 			if (Number.isNaN(Number(queryValue))) {
 				return null
 			}
@@ -200,7 +200,7 @@ const EconomicCalendar = memo(function EconomicCalendar({
 
 			return queryYear as CalendarState["year"]
 		},
-		serialize(value) {
+		serialize(value): string {
 			return value.toString()
 		}
 	}).withDefault(defaultYear).withOptions({ startTransition, shallow: false }))
@@ -408,7 +408,12 @@ const EconomicCalendar = memo(function EconomicCalendar({
 					>
 						{({ item }): ReactNode => (
 							<div className="ml-2 flex items-center gap-2" key={item.id}>
-								<button className="truncate" type="button" onClick={() => setFocusEvent(item)}>
+								<button className="flex flex-row items-center gap-2 truncate" type="button" onClick={() => setFocusEvent(item)}>
+									{/* <img
+										src={`https://flagcdn.com/${item.country.toLowerCase()}.svg`}
+										alt={countries[language][item.country]}
+										width="24"
+									/> */}
 									{item.title}
 								</button>
 							</div>

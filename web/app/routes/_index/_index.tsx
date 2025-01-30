@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { usePWAManager } from "@remix-pwa/client"
-import { Link, useLoaderData, useNavigate } from "@remix-run/react"
+import { Link, useLoaderData } from "@remix-run/react"
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { differenceInSeconds, formatDistanceToNow } from "date-fns"
 import { useEffect, useState, memo, useMemo } from "react"
@@ -24,7 +24,6 @@ import { format, toDate, fromZonedTime, } from "date-fns-tz"
 import type { MarketStatus } from "../../../types/Hours"
 import { CalendarDaysIcon, ChartSplineIcon, ClockIcon, DownloadIcon, NewspaperIcon } from "lucide-react"
 import { TriangleDownIcon, TriangleUpIcon } from "@radix-ui/react-icons"
-import { Footer } from "../../components/footer"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
 	if (!data) {
@@ -63,7 +62,6 @@ export const handle = {
 export default function Index() {
 	const { homePreferences } = useLoaderData<typeof loader>()
 	const { t, i18n } = useTranslation("home")
-	const navigate = useNavigate()
 
 	const { promptInstall } = usePWAManager()
 
@@ -176,8 +174,6 @@ export default function Index() {
 		}
 	]
 
-
-
 	// console.log(homePreferences)
 
 	const sortedPreferences = homePreferences.filter((pref) => pref.visible).sort((a, b) => a.position - b.position)
@@ -197,9 +193,6 @@ export default function Index() {
 						className="mx-auto size-32"
 						height="128"
 						width="128"
-						onDoubleClick={() => {
-							navigate("/testing")
-						}}
 					/>
 
 					<h1 className="font-bold text-xl">{t("welcome")}</h1>
