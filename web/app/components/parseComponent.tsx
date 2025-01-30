@@ -10,8 +10,9 @@ import { normalizeSymbol } from "../../utils/normalizeSymbol"
 import type { Symbol as SymbolType } from "@/schema/symbols"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip"
 import { ClockIcon } from "lucide-react"
-import { toZonedTime, format } from 'date-fns-tz';
+import { toZonedTime, format, fromZonedTime } from 'date-fns-tz';
 import { fr } from "date-fns/locale"
+import { parse } from "date-fns"
 // import { format } from 'date-fns';
 
 interface Params {
@@ -341,23 +342,19 @@ export function ParseComponent(
     return Component
 }
 
+/**
+ * Matches time strings in 12-hour (e.g., "10 am EST") or 24-hour format (e.g., "23:59 UTC").
+ * - Hours: 1-12 (12-hour) or 00-23 (24-hour).
+ * - Minutes: Optional (00-59).
+ * - AM/PM: Optional for 12-hour format.
+ * - Time zones: EST, ET, CST, PST, UTC, GMT, etc.
+ * Flags: Case-insensitive and global.
+**/
+// const timeRegex = /\b((1[0-2]|0?[1-9]):([0-5][0-9])\s*(am|pm)|([01]?[0-9]|2[0-3])[Hh:]?([0-5][0-9])?)\s*(EST|ET|CST|CT|MST|MT|PST|PT|UTC|GMT)\b/g;
+const timeRegex = /\b((1[0-2]|0?[1-9]):([0-5][0-9])\s*(a\.?m\.?|p\.?m\.?)|([01]?[0-9]|2[0-3])[Hh:]?([0-5][0-9])?)\s*(EST|ET|CST|CT|MST|MT|PST|PT|UTC|GMT)\b/g
+
 function ConvertTimezone(text: string): (string | JSX.Element)[] {
-
-
-    // 02:56 p.m. ET
-
-    /**
-     * Matches time strings in 12-hour (e.g., "10 am EST") or 24-hour format (e.g., "23:59 UTC").
-     * - Hours: 1-12 (12-hour) or 00-23 (24-hour).
-     * - Minutes: Optional (00-59).
-     * - AM/PM: Optional for 12-hour format.
-     * - Time zones: EST, ET, CST, PST, UTC, GMT, etc.
-     * Flags: Case-insensitive and global.
-    */
-    // const timeRegex = /\b((1[0-2]|0?[1-9]):?([0-5][0-9])?\s*(am|pm)|([01]?[0-9]|2[0-3]):?([0-5][0-9])?)\s*(EST|ET|CST|CT|MST|MT|PST|PT|UTC|GMT)\b/gi;
-    const timeRegex = /\b((1[0-2]|0?[1-9]):([0-5][0-9])\s*(am|pm)|([01]?[0-9]|2[0-3]):?([0-5][0-9])?)\s*(EST|ET|CST|CT|MST|MT|PST|PT|UTC|GMT)\b/g;
     const matches = [...text.matchAll(timeRegex)];
-
 
     // Split the text into parts, preserving the time strings
     let lastIndex = 0;
@@ -386,22 +383,21 @@ function ConvertTimezone(text: string): (string | JSX.Element)[] {
 
     return parts.map((part, index) => {
         if (timeRegex.test(part)) {
-            console.log("Time part", part);
-
             return (
-                <TooltipProvider>
+                // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                <TooltipProvider key={index}>
                     <Tooltip>
                         <TooltipTrigger asChild={true}>
                             <div className="inline-block">
-                                <p className="flex items-center flex-row gap-2">
+                                <p className="flex flex-row items-center gap-2">
                                     {part}
 
-                                    <ClockIcon />
+                                    <ClockIcon className="text-base" />
                                 </p>
                             </div>
                         </TooltipTrigger>
                         <TooltipContent>
-                            <span className="text-blue-500">
+                            <span>
                                 {convertToLocalTime(part)}
                             </span>
                         </TooltipContent>
@@ -414,69 +410,73 @@ function ConvertTimezone(text: string): (string | JSX.Element)[] {
     });
 }
 
-function convertToLocalTime(timeString: string, timezone = "Europe/Paris"): string {
-    const timeRegex = /(\d{1,2}):?(\d{2})?\s*(am|pm)?\s*(EST|ET|CST|CT|MST|MT|PST|PT|UTC|GMT)/i;
-    const match = timeString.match(timeRegex);
+function convertToLocalTime(timeString: string): string {
+    const timeRegex = /\b((1[0-2]|0?[1-9]):([0-5][0-9])\s*(a\.?m\.?|p\.?m\.?)|([01]?[0-9]|2[0-3])[Hh:]?([0-5][0-9])?)\s*(EST|ET|CST|CT|MST|MT|PST|PT|UTC|GMT)\b/g
+    const match = timeRegex.exec(timeString);
 
     if (!match) {
-        console.log("No match", timeString);
+        console.log("Invalid time string", timeString);
 
-        return timeString;
-        //   throw new Error('Invalid time format');
+        return timeString
     }
 
-    let [, hours, minutes, period, timeZone] = match;
-
-    // Default minutes to "00" if not provided
-    minutes = minutes || '00';
-
-    // Convert 12-hour format to 24-hour format
-    if (period) {
-        if (period.toLowerCase() === 'pm' && hours !== '12') {
-            hours = String(Number(hours) + 12);
-        }
-        if (period.toLowerCase() === 'am' && hours === '12') {
-            hours = '00';
-        }
-    }
-
-
-    // Create a date string in the specified time zone
-    const dateString = `1970-01-01T${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}:00`;
-    const timeZoneMap: Record<string, string> = {
+    const timeZones: Record<string, string> = {
+        // biome-ignore lint/style/useNamingConvention: 
         EST: 'America/New_York',
+        // biome-ignore lint/style/useNamingConvention: 
         ET: 'America/New_York',
+        // biome-ignore lint/style/useNamingConvention: 
         CST: 'America/Chicago',
+        // biome-ignore lint/style/useNamingConvention: 
         CT: 'America/Chicago',
+        // biome-ignore lint/style/useNamingConvention: 
         MST: 'America/Denver',
+        // biome-ignore lint/style/useNamingConvention: 
         MT: 'America/Denver',
+        // biome-ignore lint/style/useNamingConvention: 
         PST: 'America/Los_Angeles',
+        // biome-ignore lint/style/useNamingConvention: 
         PT: 'America/Los_Angeles',
+        // biome-ignore lint/style/useNamingConvention: 
         UTC: 'UTC',
-        GMT: 'GMT',
+        // biome-ignore lint/style/useNamingConvention: 
+        GMT: 'Etc/GMT',
     };
 
-    // Convert the date to the user's local time zone
-    // const localTime = new Intl.DateTimeFormat("fr-FR", {
-    //     hour: 'numeric',
-    //     minute: 'numeric',
-    //     // hour12: true,
-    //     timeZoneName: 'long',
-    //     timeZone: timezone
-    // }).format(date);
+    const timePart = match[1];
+    const meridian = match[4] || '';
+    const timeZoneAbbr = match[7];
+    const timeZone = timeZones[timeZoneAbbr];
 
-    // Get the IANA time zone for the input time zone abbreviation
-    const ianaTimeZone = timeZoneMap[timeZone.toUpperCase()] || 'UTC';
+    console.log({ timePart, meridian, timeZoneAbbr, timeZone });
 
-    // Convert the local time in the specified time zone to a UTC Date object
-    const utcDate = toZonedTime(dateString, ianaTimeZone);
+    // let date: Date;
+    // Split timePart with : or h or H
+    let [hours, minutes] = timePart.split(/:|h|H/);
 
-    // Format the UTC date in the desired time zone
-    const localTime = format(utcDate, 'HH:mm zzzz', {
-        
-        timeZone: timezone,
-        locale: fr
+    if (!minutes && hours && hours.length === 4) {
+        minutes = hours.slice(2);
+        hours = hours.slice(0, 2);
+    }
+
+    if (hours && minutes && minutes.length > 2) {
+        minutes = minutes.split(" ")[0]
+    }
+
+    console.log(hours, minutes)
+
+    const date = parse(`${hours} ${minutes}`, 'HH mm', new Date());
+
+    const dateTimezone = fromZonedTime(date, timeZone)
+
+    // Check if the date is valid
+    if (Number.isNaN(dateTimezone.getTime())) {
+        console.log("Invalid date", dateTimezone);
+
+        return timeString
+    }
+
+    return format(dateTimezone, "HH:mm zzzz", {
+        timeZone: "Europe/Paris"
     });
-
-    return localTime;
 }

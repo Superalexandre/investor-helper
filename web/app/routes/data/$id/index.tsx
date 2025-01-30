@@ -246,7 +246,7 @@ export default function Index(): ReactNode {
 						{data.info.additionalInfo.symbol.ast_business_description ? (
 							<ConvertJsonToReact
 								json={JSON.stringify(data.info.additionalInfo.symbol.ast_business_description)}
-								// textClassName="max-h-40 truncate"
+							// textClassName="max-h-40 truncate"
 							/>
 						) : null}
 
@@ -268,35 +268,37 @@ export default function Index(): ReactNode {
 				</Card>
 			) : null}
 
-			<div className="mx-4 grid grid-cols-1 gap-4 md:grid-cols-3 lg:gap-8">
-				<Card className="border-card-border">
-					<CardHeader>
-						<CardTitle>
-							52 Week Range
-						</CardTitle>
-					</CardHeader>
+			<div className="mx-4 flex flex-col items-center gap-4 lg:flex-row lg:gap-8">
+				{data.info.price_52_week_low || data.info.price_52_week_high ? (
+					<Card className="w-full border-card-border">
+						<CardHeader>
+							<CardTitle>
+								52 Week Range
+							</CardTitle>
+						</CardHeader>
 
-					<CardContent>
-						<div className="flex items-center justify-between">
-							<span className="text-sm">Low: {data.info.price_52_week_low.toFixed(2)}</span>
-							<span className="text-sm">High: {data.info.price_52_week_high.toFixed(2)}</span>
-						</div>
-						<div className="mt-2 h-2 rounded-full bg-secondary">
-							<div
-								className="h-full max-w-full rounded-full bg-primary"
-								style={{
-									width: `${((data.info.close - data.info.price_52_week_low) /
-										(data.info.price_52_week_high - data.info.price_52_week_low)) *
-										100
-										}%`,
-								}}
-							/>
-						</div>
-					</CardContent>
-				</Card>
+						<CardContent>
+							<div className="flex items-center justify-between">
+								<span className="text-sm">Low: {data.info.price_52_week_low.toFixed(2)}</span>
+								<span className="text-sm">High: {data.info.price_52_week_high.toFixed(2)}</span>
+							</div>
+							<div className="mt-2 h-2 rounded-full bg-secondary">
+								<div
+									className="h-full max-w-full rounded-full bg-primary"
+									style={{
+										width: `${((data.info.close - data.info.price_52_week_low) /
+											(data.info.price_52_week_high - data.info.price_52_week_low)) *
+											100
+											}%`,
+									}}
+								/>
+							</div>
+						</CardContent>
+					</Card>
+				) : null}
 
 				{data.info.market_cap_basic ? (
-					<Card className="border-card-border">
+					<Card className="w-full border-card-border">
 						<CardHeader>
 							<CardTitle className="text-lg">Market Cap</CardTitle>
 						</CardHeader>
@@ -311,7 +313,7 @@ export default function Index(): ReactNode {
 				) : null}
 
 				{!data.info.market_cap_basic && data.info.additionalInfo.symbol.aum ? (
-					<Card className="border-card-border">
+					<Card className="w-full border-card-border">
 						<CardHeader>
 							<CardTitle className="text-lg">Actif sous gestion</CardTitle>
 						</CardHeader>
@@ -416,7 +418,7 @@ function DisplayRecommendation({ recommendation }: { recommendation: number }): 
 	const recommendationText = getRecommendationText(recommendation)
 
 	return (
-		<Card className="border-card-border">
+		<Card className="w-full border-card-border">
 			<CardHeader>
 				<CardTitle className="text-lg">Recommendation</CardTitle>
 			</CardHeader>

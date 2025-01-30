@@ -10,6 +10,3 @@ db/migrations/
 !/extension/tailwind.config.js
 !/vite.config.js
 /log/logs/*
-
-/web/utils/parser/*.pdf
-/web/utils/parser/stocks.json
