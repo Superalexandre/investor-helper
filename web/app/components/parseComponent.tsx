@@ -186,7 +186,7 @@ export function ParseComponent(
                             hash: activeId ?? undefined
                         }}
                         key={`${child.params?.symbol}-${Component.length}`}
-                        className={cn("p-1", className?.badge)}
+                        className={cn("px-2 py-1", className?.badge)}
                     >
                         <Badge variant="outline" className="flex h-6 flex-row items-center justify-center gap-1.5 rounded-full border-card-border">
                             <SymbolLogo
