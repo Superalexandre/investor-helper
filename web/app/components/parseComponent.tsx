@@ -115,15 +115,14 @@ export function ParseComponent(
 
         if (typeof child === "string") {
             // Replace useless "(link)" that the text can contain
-            let replacedChild = child
-            if (child.match(/\(link\)/g)) {
-                replacedChild = child.replace(/\(link\)/g, "")
-            }
+            const formattedChild = child
+                .replace(/\(link\)/g, "")
+                .trim()
 
-            const newText = ConvertTimezone(replacedChild)
+            const convertedChild = ConvertTimezone(formattedChild)
 
             if (rawText) {
-                Component.push(...newText)
+                Component.push(...convertedChild)
 
                 continue
             }
@@ -139,10 +138,10 @@ export function ParseComponent(
 
             Component.push(
                 <p
-                    key={`${replacedChild}-${Component.length}`}
+                    key={`${formattedChild}-${Component.length}`}
                     className={cn(className?.text, additionalClassName)}
                 >
-                    {newText}
+                    {convertedChild}
                 </p>
             )
 
@@ -155,6 +154,29 @@ export function ParseComponent(
                 const symbolLink = normalizeSymbol(child.params?.symbol)
 
                 Component.push(
+                    // <Link
+                    //     to={{
+                    //         pathname: `/data/${symbolLink}`
+                    //     }}
+                    //     state={{
+                    //         // redirect: `/news/${newsId}`,
+                    //         hash: activeId ?? undefined
+                    //     }}
+                    //     key={`${child.params?.symbol}-${Component.length}`}
+                    //     className={className?.badge}
+                    // >
+                    //     <Badge variant="default" className="flex h-8 flex-row items-center justify-center">
+                    //         <SymbolLogo
+                    //             symbol={relatedSymbolsData?.symbol}
+                    //             className="mr-1.5 size-6 rounded-full"
+                    //             width={24}
+                    //             height={24}
+                    //             format="webp"
+                    //         />
+
+                    //         <span>{child.params?.symbol}</span>
+                    //     </Badge>
+                    // </Link>
                     <Link
                         to={{
                             pathname: `/data/${symbolLink}`
@@ -164,12 +186,12 @@ export function ParseComponent(
                             hash: activeId ?? undefined
                         }}
                         key={`${child.params?.symbol}-${Component.length}`}
-                        className={className?.badge}
+                        className={cn("p-1", className?.badge)}
                     >
-                        <Badge variant="default" className="flex h-8 flex-row items-center justify-center">
+                        <Badge variant="outline" className="flex h-6 flex-row items-center justify-center gap-1.5 rounded-full border-card-border">
                             <SymbolLogo
                                 symbol={relatedSymbolsData?.symbol}
-                                className="mr-1.5 size-6 rounded-full"
+                                className="size-4 rounded-full"
                                 width={24}
                                 height={24}
                                 format="webp"
@@ -242,7 +264,7 @@ export function ParseComponent(
                 Component.push(
                     <li
                         key={`${child.type}-${Component.length}-${child.children?.length}`}
-                        className="flex flex-row items-center"
+                        className="inline-block"
                     >
                         {ComponentResult}
                     </li>
