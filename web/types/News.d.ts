@@ -8,7 +8,11 @@ interface NewsSymbolsArticle {
 	published: number
 	source: string
 	urgency: number
-	provider: string
+	provider: {
+		id: string
+		name: string
+		logo_id: string
+	} | string
 	link: string
 	language: string
 	relatedSymbols: { symbol: string }[]

@@ -291,15 +291,29 @@ async function saveFetchNews() {
 
 		// Insert only if the news does not exist (to refresh the symbols)
 		if (exists.length === 0) {
+			let provider: string
+			let logoId: string
+			let source: string
+
+			if (news.provider && typeof news.provider !== "string") {
+				provider = news.provider.name
+				logoId = news.provider.logo_id
+				source = news.provider.name
+			} else {
+				provider = news.provider as string
+				logoId = ""
+				source = news.provider
+			}
+
 			newsValues.push({
 				id: news.id,
 				title: news.title,
 				storyPath: news.storyPath,
-				sourceLogoId: news.sourceLogoId,
+				sourceLogoId: logoId,
 				published: news.published,
-				source: news.source,
+				source: source,
 				urgency: news.urgency,
-				provider: news.provider,
+				provider: provider,
 				link: news.link,
 				mainSource: "tradingview",
 				lang: news.language,
@@ -340,15 +354,31 @@ async function saveFetchNews() {
 	}
 
 	if (newsValues.length > 0) {
-		await db.insert(newsSchema).values(newsValues)
+		try {
+			await db.insert(newsSchema).values(newsValues)
+		} catch (error) {
+			logger.error("Error inserting news", error)
+		}
 	}
 
 	if (newsRelatedSymbolsValues.length > 0) {
-		await db.insert(newsRelatedSymbolsSchema).values(newsRelatedSymbolsValues)
+		try {
+			const result = await db
+				.insert(newsRelatedSymbolsSchema)
+				.values(newsRelatedSymbolsValues)
+
+			console.log("relatedSymbols", result.changes)
+		} catch (error) {
+			logger.error("Error inserting related symbols", error)
+		}
 	}
 
 	if (newsArticleValues.length > 0) {
-		await db.insert(newsArticleSchema).values(newsArticleValues)
+		try {
+			await db.insert(newsArticleSchema).values(newsArticleValues)
+		} catch (error) {
+			logger.error("Error inserting news article", error)
+		}
 	}
 
 	if (allNotifications.length > 0) {
