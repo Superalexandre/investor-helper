@@ -363,11 +363,7 @@ async function saveFetchNews() {
 
 	if (newsRelatedSymbolsValues.length > 0) {
 		try {
-			const result = await db
-				.insert(newsRelatedSymbolsSchema)
-				.values(newsRelatedSymbolsValues)
-
-			console.log("relatedSymbols", result.changes)
+			await db.insert(newsRelatedSymbolsSchema).values(newsRelatedSymbolsValues)
 		} catch (error) {
 			logger.error("Error inserting related symbols", error)
 		}
