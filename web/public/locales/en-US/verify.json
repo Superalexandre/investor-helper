@@ -1,0 +1,14 @@
+{
+    "title": "Investor Helper - Verify your account",
+    "description": "Verify your Investor Helper account",
+
+    "verify": "Email verification",
+    "enterCode": "Enter the verification code received by email",
+    "submit": "Submit",
+
+    "errors": {
+        "codeLength": "The code must be 4 digits",
+        "codeRequired": "The code is required",
+        "codeInvalid": "The code is invalid"
+    }
+}

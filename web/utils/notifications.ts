@@ -6,13 +6,17 @@ import {
 	notificationSchema,
 	notificationSubscribedNewsSchema,
 	notificationSubscribedNewsKeywordsSchema,
-	notificationSubscribedNewsSymbolsSchema
+	notificationSubscribedNewsSymbolsSchema,
+	notificationListSchema,
+	type NotificationList
 } from "../../db/schema/notifications.js"
-import { and, eq, gte } from "drizzle-orm"
+import { and, count, desc, eq, gte } from "drizzle-orm"
 import { sendNotifications } from "@remix-pwa/push"
 import type { User } from "../../db/schema/users.js"
 import { eventsSchema } from "../../db/schema/events.js"
 import type { NotificationSubscribedFullNews } from "../types/Notifications.js"
+import { v4 as uuidv4 } from "uuid"
+import logger from "../../log/index.js"
 
 async function sendNotificationEvent() {
 	const actualEvent = await getEventsNow()
@@ -26,11 +30,25 @@ async function sendNotificationEvent() {
 			.from(notificationEventSchema)
 			.where(eq(notificationEventSchema.eventId, event.id))
 
+		const title = "Investor Helper"
+		const body = `L'événement ${event.title} est sur le point de commencer`
+		const url = `/calendar/${event.id}`
+
 		for (const notificationEvent of notificationsFromEvent) {
 			const notificationInfos = await db
 				.select()
 				.from(notificationSchema)
 				.where(eq(notificationSchema.userId, notificationEvent.userId))
+
+			// Insert into the database
+			addNotificationList({
+				userId: notificationEvent.userId,
+				title: title,
+				body: body,
+				url: url,
+				type: "event",
+				notificationFromId: notificationEvent.eventId
+			})
 
 			if (notificationInfos.length === 0) {
 				continue
@@ -104,7 +122,7 @@ function sendNotification({
 			options: {}
 		})
 	} catch (error) {
-		console.error("Error while sending notification", error)
+		logger.error("Error while sending notification", error)
 	}
 }
 
@@ -153,4 +171,80 @@ async function getUserNotifications(user: User) {
 	}
 }
 
-export { sendNotification, sendNotificationEvent, getUserNotifications }
+async function addNotificationList({
+	userId,
+	notificationFromId,
+	type,
+	title,
+	body,
+	url,
+	icon,
+	image
+}: {
+	userId: string
+	notificationFromId: string
+	type: "news" | "event"
+	title: string
+	body: string
+	url: string
+	icon?: string
+	image?: string
+}) {
+	const sqlite = new Database("../db/sqlite.db")
+	const db = drizzle(sqlite)
+
+	logger.info(`Inserting ${title} in ${userId} notifications`)
+
+	// Create new uuid
+	const notificationId = uuidv4()
+
+	// Insert notification
+	await db.insert(notificationListSchema).values({
+		userId: userId,
+		notificationId,
+		notificationFromId,
+		type,
+		title,
+		body,
+		url,
+		icon,
+		image,
+		isRead: false
+	})
+}
+
+async function getNotificationListNumber(userId: string) {
+	const sqlite = new Database("../db/sqlite.db")
+	const db = drizzle(sqlite)
+
+	const notificationsNumber = await db
+		.select({
+			count: count()
+		})
+		.from(notificationListSchema)
+		.where(eq(notificationListSchema.userId, userId))
+
+	return notificationsNumber[0].count
+}
+
+async function getNotificationList(userId: string, limit: number, offset: number) {
+	const sqlite = new Database("../db/sqlite.db")
+	const db = drizzle(sqlite)
+
+	const notifications = await db
+		.select()
+		.from(notificationListSchema)
+		.where(eq(notificationListSchema.userId, userId))
+		.limit(limit)
+		.offset(offset)
+		.orderBy(desc(notificationListSchema.createdAt))
+
+	const unread = notifications.filter((notification) => !notification.isRead)
+
+	return {
+		list: notifications,
+		unread: unread
+	}
+}
+
+export { sendNotification, sendNotificationEvent, getUserNotifications, addNotificationList, getNotificationList, getNotificationListNumber }

@@ -1,10 +1,6 @@
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
-import {
-	type User,
-	watchListSchema,
-	watchListSymbolsSchema
-} from "../../db/schema/users.js"
+import { type User, watchListSchema, watchListSymbolsSchema } from "../../db/schema/users.js"
 import { eq } from "drizzle-orm"
 
 async function getWatchlistByUser(user: User) {

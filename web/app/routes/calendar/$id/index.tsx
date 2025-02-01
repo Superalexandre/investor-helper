@@ -1,13 +1,5 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Link, redirect, useLoaderData } from "@remix-run/react"
-import {
-	MdAdd,
-	MdDelete,
-	MdMoreVert,
-	MdNotificationsActive,
-	MdOpenInNew,
-	MdOutlineNotificationAdd
-} from "react-icons/md"
 import { ScrollTop } from "@/components/scrollTop"
 import { getEventById } from "@/utils/events"
 import { cn } from "@/lib/utils"
@@ -15,7 +7,7 @@ import BackButton from "@/components/button/backButton"
 import { Button } from "@/components/ui/button"
 import { getUser } from "../../../session.server"
 import DialogAccount from "@/components/dialog/dialogAccount"
-import { useState } from "react"
+import { useState, memo } from "react"
 import {
 	Dialog,
 	DialogClose,
@@ -47,6 +39,7 @@ import i18next from "../../../i18next.server"
 import { useTranslation } from "react-i18next"
 import { countries } from "../../../i18n"
 import type { TFunction } from "i18next"
+import { BellDotIcon, BellPlusIcon, EllipsisVerticalIcon, PlusIcon, SquareArrowOutUpRightIcon, Trash2Icon } from "lucide-react"
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
 	const t = await i18next.getFixedT(request, "calendarId")
@@ -166,14 +159,6 @@ export default function Index() {
 
 			return
 		}
-
-		// fetch("/api/subscribe", {
-		// 	method: "POST",
-		// 	body: JSON.stringify({ event: event.id }),
-		// 	headers: {
-		// 		"Content-Type": "application/json"
-		// 	}
-		// })
 	}
 
 	return (
@@ -212,9 +197,9 @@ export default function Index() {
 
 				<div className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute">
 					<DropdownMenu>
-						<DropdownMenuTrigger asChild={true}>
+						<DropdownMenuTrigger asChild={true} name="More options" aria-label="More options">
 							<Button variant="ghost">
-								<MdMoreVert className="size-6" />
+								<EllipsisVerticalIcon className="size-6" />
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent className="mx-4">
@@ -228,12 +213,12 @@ export default function Index() {
 										{isSubscribed && hasNotification ? (
 											<p className="flex flex-row justify-start gap-1.5">
 												{t("editNotification")}
-												<MdNotificationsActive className="size-5" />
+												<BellDotIcon className="size-5" />
 											</p>
 										) : (
 											<p className="flex flex-row justify-start gap-1.5">
 												{t("addNotification")}
-												<MdOutlineNotificationAdd className="size-5" />
+												<BellPlusIcon className="size-5" />
 											</p>
 										)}
 									</Button>
@@ -265,12 +250,15 @@ export default function Index() {
 	)
 }
 
-function EventDetails({ event, t, language }: {
+const EventDetails = memo(function EventDetails({
+	event,
+	t,
+	language
+}: {
 	event: Events
 	t: TFunction
 	language: string
 }) {
-
 	const importance: Record<number, { name: string; color: string }> = {
 		[-1]: {
 			name: t("low"),
@@ -294,11 +282,10 @@ function EventDetails({ event, t, language }: {
 				<h2 className={cn(importance[event.importance].color, "text-center text-xl")}>
 					{t("importance")} {importance[event.importance].name}
 				</h2>
-				
 			</div>
 
 			<div className="flex w-full flex-col items-center gap-8">
-				<div className="flex w-full flex-col items-center">
+				<div className="flex w-2/3 flex-col items-center">
 					<h2 className="font-bold text-xl">{t("description")}</h2>
 					<p className="">{event?.comment ?? t("noDescription")}</p>
 				</div>
@@ -325,7 +312,11 @@ function EventDetails({ event, t, language }: {
 						</div>
 					</div>
 
-					{event.period ? <p>{t("period")} : {event.period}</p> : null}
+					{event.period ? (
+						<p>
+							{t("period")} : {event.period}
+						</p>
+					) : null}
 				</div>
 
 				{event.forecast || event.previous || event.actual ? (
@@ -354,12 +345,18 @@ function EventDetails({ event, t, language }: {
 
 					<div className="flex flex-col items-center gap-4">
 						<div className="flex flex-col items-center">
-							<p>{t("indicator")} : {event.indicator ?? t("noIndicator")}</p>
+							<p>
+								{t("indicator")} : {event.indicator ?? t("noIndicator")}
+							</p>
 						</div>
 
 						<div className="flex flex-col items-center">
-							<p>{t("country")} : {countries[language][event.country]}</p>
-							<p>{t("currency")} : {event.currency}</p>
+							<p>
+								{t("country")} : {countries[language][event.country]}
+							</p>
+							<p>
+								{t("currency")} : {event.currency}
+							</p>
 						</div>
 
 						<div className="flex flex-col items-center">
@@ -373,21 +370,30 @@ function EventDetails({ event, t, language }: {
 									>
 										{event.source && event.source !== "" ? event.source : event.sourceUrl}
 
-										<MdOpenInNew className="inline-block" />
+										<SquareArrowOutUpRightIcon className="inline-block" />
 									</Link>
 								</p>
 							) : null}
 
-							{!event.sourceUrl && event.source ? <p>{t("source")} : {event.source}</p> : null}
+							{!event.sourceUrl && event.source ? (
+								<p>
+									{t("source")} : {event.source}
+								</p>
+							) : null}
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
 	)
-}
+})
 
-function DisplayNumber({ number, unit, scale, t }: { number: number | null; unit: string | null; scale: string | null, t: TFunction }) {
+function DisplayNumber({
+	number,
+	unit,
+	scale,
+	t
+}: { number: number | null; unit: string | null; scale: string | null; t: TFunction }) {
 	if (number === null) {
 		return <span>{t("noData")}</span>
 	}
@@ -474,7 +480,11 @@ function DialogNewNotification({
 						className={cn("flex flex-row items-center justify-center gap-1.5")}
 						disabled={loading}
 					>
-						{loading ? <Loading className="size-5 border-2 dark:text-black" /> : <MdAdd className="size-5" />}
+						{loading ? (
+							<Loading className="size-5 border-2 dark:text-black" />
+						) : (
+							<PlusIcon className="size-5" />
+						)}
 						Ajouter
 					</Button>
 				</DialogFooter>
@@ -551,11 +561,19 @@ function DialogDeleteNotification({
 						className={cn("flex flex-row items-center justify-center gap-1.5")}
 						disabled={loading}
 					>
-						{loading ? <Loading className="size-5 border-2 dark:text-black" /> : <MdDelete className="size-5" />}
+						{loading ? (
+							<Loading className="size-5 border-2 dark:text-black" />
+						) : (
+							<Trash2Icon className="size-5" />
+						)}
 						Supprimer
 					</Button>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>
 	)
+}
+
+export {
+	EventDetails
 }

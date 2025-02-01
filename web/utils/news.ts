@@ -2,8 +2,7 @@ import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
 import { newsSchema, newsRelatedSymbolsSchema, newsArticleSchema } from "../../db/schema/news.js"
 import { symbolsSchema } from "../../db/schema/symbols.js"
-import { and, desc, eq, gte, inArray, like, lte, or } from "drizzle-orm"
-import config from "../../config.js"
+import { and, desc, eq, gt, gte, inArray, like, lt, lte, or } from "drizzle-orm"
 
 import refreshSymbol from "./refreshSymbol.js"
 import { parse } from "node-html-parser"
@@ -13,41 +12,97 @@ import {
 	notificationSubscribedNewsKeywordsSchema,
 	notificationSubscribedNewsSymbolsSchema
 } from "../../db/schema/notifications.js"
-import { sendNotification } from "./notifications.js"
-import type { NewsSymbols, NewsSymbolsArticle } from "../types/News.js"
+import { addNotificationList, sendNotification } from "./notifications.js"
+import type { NewsFull, NewsSymbolsArticle } from "../types/News.js"
+import i18n, { newsUrl } from "../app/i18n.js"
+import logger from "../../log/index.js"
 
-async function getNews({ page = 1, limit = 10 }: { page?: number; limit?: number }) {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
+const sqlite = new Database("../db/sqlite.db")
+const db = drizzle(sqlite)
 
+async function getNews({
+	page = 1,
+	limit = 10,
+	language,
+	scores,
+	sources
+}: { page?: number; limit?: number; language?: string[]; scores?: number[][]; sources?: string[] }) {
+	// Fetch all news items with the given filters
 	const allNews = await db
 		.select()
 		.from(newsSchema)
+		.innerJoin(newsArticleSchema, eq(newsSchema.id, newsArticleSchema.newsId))
+		.where(
+			and(
+				language ? inArray(newsSchema.lang, language) : undefined,
+				scores
+					? or(
+							...scores.map((score) =>
+								and(gt(newsSchema.importanceScore, score[0]), lt(newsSchema.importanceScore, score[1]))
+							)
+						)
+					: undefined,
+				sources ? inArray(newsSchema.source, sources) : undefined
+			)
+		)
 		.limit(limit)
 		.offset(limit * (page - 1))
 		.orderBy(desc(newsSchema.published))
 
-	const news: NewsSymbols[] = []
-	for (const newsItem of allNews) {
-		const relatedSymbols = await db
-			.select()
-			.from(newsRelatedSymbolsSchema)
-			.where(eq(newsRelatedSymbolsSchema.newsId, newsItem.id))
-			.innerJoin(symbolsSchema, eq(newsRelatedSymbolsSchema.symbol, symbolsSchema.symbolId))
+	// Extract the news IDs
+	const newsIds = allNews.map((newsItem) => newsItem.news.id)
 
-		news.push({
-			news: newsItem,
-			relatedSymbols: relatedSymbols
-		})
-	}
+	// Fetch all related symbols for the fetched news items in a single query
+	const relatedSymbols = await db
+		.select()
+		.from(newsRelatedSymbolsSchema)
+		.innerJoin(symbolsSchema, eq(newsRelatedSymbolsSchema.symbol, symbolsSchema.symbolId))
+		.where(inArray(newsRelatedSymbolsSchema.newsId, newsIds))
+
+	// Group related symbols by news ID
+	const relatedSymbolsByNewsId = relatedSymbols.reduce(
+		(acc, symbol) => {
+			if (symbol.news_related_symbol.newsId && !acc[symbol.news_related_symbol.newsId]) {
+				acc[symbol.news_related_symbol.newsId] = []
+			}
+
+			if (symbol.news_related_symbol.newsId) {
+				acc[symbol.news_related_symbol.newsId].push(symbol)
+			}
+
+			return acc
+		},
+		{} as Record<string, typeof relatedSymbols>
+	)
+
+	// Map related symbols to the corresponding news items
+	const news: NewsFull[] = allNews.map((newsItem) => ({
+		news: newsItem.news,
+		news_article: newsItem.news_article,
+		relatedSymbols: relatedSymbolsByNewsId[newsItem.news.id] || []
+	}))
 
 	return news
 }
 
-async function getNewsById({ id }: { id: string }) {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
+async function getSourceList({
+	languages
+}: {
+	languages: string[]
+}): Promise<string[]> {
+	const sources = await db
+		.selectDistinct({
+			source: newsSchema.source
+		})
+		.from(newsSchema)
+		.where(inArray(newsSchema.lang, languages))
 
+	const sourcesList = sources.map((source) => source.source)
+
+	return sourcesList
+}
+
+async function getNewsById({ id }: { id: string }) {
 	// Get the news from the database
 	const newsResults = await db
 		.select()
@@ -69,11 +124,26 @@ async function getNewsById({ id }: { id: string }) {
 	}
 }
 
-async function fetchNews() {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
+async function getNewsBySymbol({ symbol, limit = 10 }: { symbol: string; limit?: number }) {
+	const newsResults = await db
+		.select({
+			news: newsSchema,
+			relatedSymbols: newsRelatedSymbolsSchema
+		})
+		.from(newsSchema)
+		.innerJoin(newsRelatedSymbolsSchema, eq(newsSchema.id, newsRelatedSymbolsSchema.newsId))
+		.where(eq(newsRelatedSymbolsSchema.symbol, symbol))
+		.limit(limit)
+		.orderBy(desc(newsSchema.published))
+	// .innerJoin(newsArticleSchema, eq(newsSchema.id, newsArticleSchema.newsId))
 
-	const response = await fetch(config.url.news)
+	return newsResults
+}
+
+async function fetchNews(lang = "fr-FR") {
+	const urlLang = newsUrl[lang]
+
+	const response = await fetch(urlLang.news)
 	const data = await response.text()
 
 	const root = parse(data)
@@ -82,7 +152,9 @@ async function fetchNews() {
 	const rawNews = root.querySelector("div[data-id='react-root'] script[type='application/prs.init-data+json']")?.text
 
 	if (!rawNews) {
-		return console.error("No news found")
+		logger.error("No news found")
+
+		return []
 	}
 
 	const jsonNews = JSON.parse(rawNews)
@@ -91,17 +163,21 @@ async function fetchNews() {
 	const json = jsonNews[dynamicKey]
 
 	if (!json) {
-		return console.error("No news found")
+		logger.error("No news found (json)")
+
+		return []
 	}
 
 	const news = json.blocks[0].news.items
 
 	if (!news || news.length === 0) {
-		return console.error("No news found")
+		logger.error("No news found (news empty)")
+
+		return []
 	}
 
 	// Make a deep copy of the news array
-	const newsCopy = [...news]
+	const newsCopy: NewsSymbolsArticle[] = [...news]
 
 	for (const newsItem of newsCopy) {
 		const exists = await db.select().from(newsSchema).where(eq(newsSchema.id, newsItem.id))
@@ -110,12 +186,11 @@ async function fetchNews() {
 			continue
 		}
 
-		const url = new URL(config.url.originLocale + newsItem.storyPath)
+		const url = new URL(urlLang.originLocale + newsItem.storyPath)
 
 		const fullArticle = await fetch(url, {
 			headers: {
 				"User-Agent":
-					// biome-ignore lint/nursery/noSecrets: User agent
 					"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
 				// biome-ignore lint/style/useNamingConvention: Headers
 				Accept: "application/json, text/javascript, */*; q=0.01",
@@ -124,9 +199,9 @@ async function fetchNews() {
 				Connection: "keep-alive",
 
 				// biome-ignore lint/style/useNamingConvention: Headers
-				Referer: config.url.eventsOrigin,
+				Referer: urlLang.originLocale,
 				// biome-ignore lint/style/useNamingConvention: Headers
-				Origin: config.url.eventsOrigin
+				Origin: urlLang.originLocale
 			}
 		})
 
@@ -138,7 +213,9 @@ async function fetchNews() {
 		)?.text
 
 		if (!article) {
-			return console.error("No article found")
+			logger.error("No article found")
+
+			return []
 		}
 
 		const articleJson = JSON.parse(article)
@@ -147,7 +224,9 @@ async function fetchNews() {
 		const jsonArticle = articleJson[dynamicKeyArticle]
 
 		if (!jsonArticle) {
-			return console.error("No article found (jsonArticle)")
+			logger.error("No article found (jsonArticle)")
+
+			return []
 		}
 
 		const jsonDescription = JSON.stringify(jsonArticle.story.astDescription)
@@ -157,6 +236,8 @@ async function fetchNews() {
 			jsonArticle.story.astDescription,
 			newsItem.relatedSymbols
 		)
+
+		newsItem.language = lang
 
 		newsItem.article = {
 			// htmlDescription: htmlDescription,
@@ -173,13 +254,24 @@ async function fetchNews() {
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: TODO: Refactor this function
 async function saveFetchNews() {
-	console.log("Fetching news")
+	logger.info("Fetching news")
 
-	// const sqlite = new Database("./db/sqlite.db")
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
+	const languages = i18n.supportedLngs
 
-	const newsList = await fetchNews()
+	const newsList: NewsSymbolsArticle[] = []
+	await Promise.all(
+		languages.map(async (lang) => {
+			const news = await fetchNews(lang)
+
+			if (!news) {
+				return
+			}
+
+			newsList.push(...news)
+		})
+	)
+
+	// const newsList = await fetchNews()
 	if (!newsList) {
 		return
 	}
@@ -199,18 +291,32 @@ async function saveFetchNews() {
 
 		// Insert only if the news does not exist (to refresh the symbols)
 		if (exists.length === 0) {
+			let provider: string
+			let logoId: string
+			let source: string
+
+			if (news.provider && typeof news.provider !== "string") {
+				provider = news.provider.name
+				logoId = news.provider.logo_id
+				source = news.provider.name
+			} else {
+				provider = news.provider as string
+				logoId = ""
+				source = news.provider
+			}
+
 			newsValues.push({
 				id: news.id,
 				title: news.title,
 				storyPath: news.storyPath,
-				sourceLogoId: news.sourceLogoId,
+				sourceLogoId: logoId,
 				published: news.published,
-				source: news.source,
+				source: source,
 				urgency: news.urgency,
-				provider: news.provider,
+				provider: provider,
 				link: news.link,
 				mainSource: "tradingview",
-				lang: "fr-FR",
+				lang: news.language,
 				importanceScore: news.article.importanceScore
 			})
 		}
@@ -232,7 +338,7 @@ async function saveFetchNews() {
 			newsArticleValues.push({
 				newsId: news.id,
 				date: news.published,
-				jsonDescription: news.article.jsonDescription,
+				jsonDescription: news.article.jsonDescription || "",
 				shortDescription: news.article.shortDescription,
 				copyright: news.article.copyright
 			})
@@ -248,22 +354,34 @@ async function saveFetchNews() {
 	}
 
 	if (newsValues.length > 0) {
-		await db.insert(newsSchema).values(newsValues)
+		try {
+			await db.insert(newsSchema).values(newsValues)
+		} catch (error) {
+			logger.error("Error inserting news", error)
+		}
 	}
 
 	if (newsRelatedSymbolsValues.length > 0) {
-		await db.insert(newsRelatedSymbolsSchema).values(newsRelatedSymbolsValues)
+		try {
+			await db.insert(newsRelatedSymbolsSchema).values(newsRelatedSymbolsValues)
+		} catch (error) {
+			logger.error("Error inserting related symbols", error)
+		}
 	}
 
 	if (newsArticleValues.length > 0) {
-		await db.insert(newsArticleSchema).values(newsArticleValues)
+		try {
+			await db.insert(newsArticleSchema).values(newsArticleValues)
+		} catch (error) {
+			logger.error("Error inserting news article", error)
+		}
 	}
 
 	if (allNotifications.length > 0) {
 		reduceAndSendNotifications(allNotifications)
 	}
 
-	console.log(
+	logger.success(
 		`Inserted ${newsValues.length} news, ${newsRelatedSymbolsValues.length} related symbols and ${newsArticleValues.length} articles`
 	)
 }
@@ -285,9 +403,6 @@ interface NotificationToSend {
 }
 
 async function getNotificationNews(news: NewsSymbolsArticle) {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
-
 	const titleWords = news.title.split(" ").map((word) => word.toLowerCase())
 
 	let shortDescriptionWords: string[] = []
@@ -297,24 +412,9 @@ async function getNotificationNews(news: NewsSymbolsArticle) {
 
 	let longDescriptionWords: string[] = []
 	if (news.article?.jsonDescription) {
-		let articleText = ""
-		// biome-ignore lint/suspicious/noExplicitAny:
-		const flatten = (node: any) => {
-			// console.log(node)
-			if (typeof node === "string") {
-				articleText += node.toLowerCase()
+		const parsedJson = JSON.parse(news.article.jsonDescription)
 
-				return
-			}
-
-			if (node.children) {
-				for (const child of node.children) {
-					flatten(child)
-				}
-			}
-		}
-
-		flatten(JSON.parse(news.article.jsonDescription))
+		const articleText = flatten(parsedJson)
 
 		longDescriptionWords = articleText.split(" ")
 	}
@@ -369,9 +469,6 @@ async function getNotificationNews(news: NewsSymbolsArticle) {
 }
 
 async function reduceAndSendNotifications(notifications: NotificationToSend[] | undefined) {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
-
 	if (!notifications) {
 		return
 	}
@@ -433,6 +530,16 @@ async function reduceAndSendNotifications(notifications: NotificationToSend[] | 
 			notificationContent.data.url = `/news/focus/${newsIdsBase64}?utm_source=notification`
 		}
 
+		// Insert into the database
+		addNotificationList({
+			userId: notificationContent.userId,
+			title: notificationContent.title,
+			body: notificationContent.body,
+			url: notificationContent.data.url,
+			type: "news",
+			notificationFromId: notificationContent.notificationId
+		})
+
 		for (const notificationInfo of notificationsInfo) {
 			sendNotification({
 				title: notificationContent.title,
@@ -448,7 +555,7 @@ async function reduceAndSendNotifications(notifications: NotificationToSend[] | 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getNewsImportanceScore(
-	description: string,
+	description: string | undefined,
 	// biome-ignore lint/suspicious/noExplicitAny:
 	article: any,
 	relatedSymbols: unknown[]
@@ -458,42 +565,29 @@ function getNewsImportanceScore(
 	const importantKeywords = ["annonce", "décision", "plan", "changement", "crise"]
 
 	for (const keyword of importantKeywords) {
-		if (description.toLowerCase().includes(keyword)) {
+		if (description?.toLowerCase().includes(keyword)) {
 			score += 10
 		}
 	}
 
 	// Flatten the article tex
-	let articleText = ""
-	// biome-ignore lint/suspicious/noExplicitAny:
-	const flatten = (node: any) => {
-		// console.log(node)
-		if (typeof node === "string") {
-			articleText += node
-		}
-
-		if (node.children) {
-			for (const child of node.children) {
-				flatten(child)
-			}
-		}
-	}
-
-	flatten(article)
+	const articleText = flatten(article)
 
 	// biome-ignore lint/suspicious/noExplicitAny:
 	const getRelatedSymbols = (node: any) => {
-		if (node.type === "symbol") {
+		if (node && node.type === "symbol") {
 			score += 5
 
 			// symbolCount++
 		}
 
-		if (node.children) {
+		if (node?.children) {
 			for (const child of node.children) {
 				getRelatedSymbols(child)
 			}
 		}
+
+		return
 	}
 
 	getRelatedSymbols(article)
@@ -517,15 +611,46 @@ function getNewsImportanceScore(
 	// Add 5 points for each related symbol
 	score += relatedSymbols ? relatedSymbols.length * 5 : 0
 
-	// console.log(`Score: ${score}, word count: ${wordCount}, symbol count: ${symbolCount}, related symbols: ${relatedSymbols ? relatedSymbols.length : 0}`)
-
 	return score
 }
 
-async function searchNews(search: string, limit = 10) {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+function flatten(nodes: any) {
+	let text = ""
 
+	if (!nodes || !nodes.children) {
+		return text
+	}
+
+	if (nodes.type === "p") {
+		logger.info("nodes type p", nodes)
+
+		text += nodes.content.toLowerCase()
+	}
+
+	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+	const flattenNode = (node: any) => {
+		if (typeof node === "string") {
+			text += node.toLowerCase()
+
+			return
+		}
+
+		if (node.children) {
+			for (const child of node.children) {
+				flattenNode(child)
+			}
+		}
+	}
+
+	for (const node of nodes.children) {
+		flattenNode(node)
+	}
+
+	return text
+}
+
+async function searchNews(search: string, limit = 10) {
 	const news = await db
 		.select({
 			id: newsSchema.id,
@@ -557,9 +682,6 @@ async function searchNews(search: string, limit = 10) {
 }
 
 async function getNewsFromDates(from: number, to: number) {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
-
 	const news = await db
 		.select({
 			title: newsSchema.title,
@@ -582,9 +704,6 @@ async function getNewsFromDates(from: number, to: number) {
 }
 
 async function getLastImportantNews(from: Date, to: Date, importance: number, limit: number) {
-	const sqlite = new Database("../db/sqlite.db")
-	const db = drizzle(sqlite)
-
 	const fromConvert = from.getTime() / 1000
 	const toConvert = to.getTime() / 1000
 
@@ -608,6 +727,7 @@ async function getLastImportantNews(from: Date, to: Date, importance: number, li
 
 export default getNews
 export {
+	getSourceList,
 	getNews,
 	getNewsById,
 	fetchNews,
@@ -615,5 +735,6 @@ export {
 	getNewsImportanceScore,
 	searchNews,
 	getNewsFromDates,
-	getLastImportantNews
+	getLastImportantNews,
+	getNewsBySymbol
 }

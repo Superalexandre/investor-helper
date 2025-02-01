@@ -1,4 +1,4 @@
-import { useState, type Dispatch, type SetStateAction } from "react"
+import { useState, memo, type Dispatch, type SetStateAction } from "react"
 import {
 	Dialog,
 	DialogClose,
@@ -18,14 +18,24 @@ interface DialogNotificationProps {
 	setOpen: Dispatch<SetStateAction<boolean>>
 }
 
-export default function DialogNotification({ open, setOpen }: DialogNotificationProps) {
-	const { subscribeToPush, isSubscribed } = usePush()
+export default memo(function DialogNotification({ open, setOpen }: DialogNotificationProps) {
+	const { subscribeToPush, isSubscribed, requestPermission } = usePush()
 	// biome-ignore lint/suspicious/noExplicitAny: The error is an any type
 	const [error, setError] = useState<string | any>(null)
 
 	const subscribe = async () => {
 		if (isSubscribed) {
 			setOpen(false)
+
+			return
+		}
+
+		
+		// Check if the permission are blocked
+		if (Notification.permission === "denied") {
+			setError({
+				message: "Vous avez refusé les notifications"
+			})
 
 			return
 		}
@@ -50,15 +60,13 @@ export default function DialogNotification({ open, setOpen }: DialogNotification
 			(error) => {
 				console.error("error", error)
 
-				if (error instanceof Error) {
-					if (error.message === "Registration failed - permission denied") {
-						setError({
-							...error,
-							message: "Vous avez refusé les notifications"
-						})
+				if (error instanceof Error && error.message === "Registration failed - permission denied") {
+					setError({
+						...error,
+						message: "Vous avez refusé les notifications"
+					})
 
-						return
-					}
+					return
 				}
 
 				setError(error)
@@ -97,4 +105,4 @@ export default function DialogNotification({ open, setOpen }: DialogNotification
 			</DialogContent>
 		</Dialog>
 	)
-}
+})

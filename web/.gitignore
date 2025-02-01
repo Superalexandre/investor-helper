@@ -9,3 +9,7 @@ node_modules
 .million
 
 !postcss.config.js
+
+utils/parser/*.pdf
+utils/parser/stocks.json
+utils/parser/video/*.mp3

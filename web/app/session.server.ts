@@ -5,10 +5,11 @@ import { eq } from "drizzle-orm"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import { usersSchema, type User } from "../../db/schema/users"
 import "dotenv/config"
+import logger from "../../log"
 
 const SESSION_KEY = "token"
-// const MAX_AGE = 60 * 60 * 24 * 7 // 7 days
-const MAX_AGE = 60 * 60 * 24 * 30 // 30 days
+
+const COOKIE_EXPIRE_NEVER = 60 * 60 * 24 * 365 * 10
 
 const sessionStorage = createCookieSessionStorage({
 	cookie: {
@@ -17,8 +18,8 @@ const sessionStorage = createCookieSessionStorage({
 		path: "/",
 		sameSite: "lax",
 		secrets: [process.env.SESSION_SECRET as string],
-		// secure: process.env.NODE_ENV === "production",
-		secure: false
+		secure: process.env.NODE_ENV === "production",
+		maxAge: COOKIE_EXPIRE_NEVER
 	}
 })
 
@@ -30,9 +31,11 @@ export async function getSession(request: Request) {
 
 export async function logout(request: Request, redirectUrl = "/") {
 	const session = await getSession(request)
+	session.unset(SESSION_KEY)
+
 	return redirect(redirectUrl, {
 		headers: {
-			"Set-Cookie": await sessionStorage.destroySession(session)
+			"Set-Cookie": await sessionStorage.commitSession(session)
 		}
 	})
 }
@@ -49,22 +52,59 @@ export async function createUserSession({
 	const session = await getSession(request)
 	session.set(SESSION_KEY, token)
 
+	logger.info(`Creating session for token: ${token}`)
+
 	return redirect(redirectUrl, {
 		headers: {
-			"Set-Cookie": await sessionStorage.commitSession(session, {
-				maxAge: MAX_AGE
-			})
+			"Set-Cookie": await sessionStorage.commitSession(session)
 		}
 	})
 }
 
-export async function getUserToken(request: Request) {
+export async function setSession({
+	request,
+	key,
+	value,
+	redirectUrl = "/"
+}: {
+	request: Request
+	key: string
+	value: unknown
+	redirectUrl?: string
+}) {
+	const session = await getSession(request)
+	session.set(key, value)
+
+	return redirect(redirectUrl, {
+		headers: {
+			"Set-Cookie": await sessionStorage.commitSession(session)
+		}
+	})
+}
+
+export async function clearCache({
+	request,
+	redirectUrl = "/"
+}: {
+	request: Request
+	redirectUrl?: string
+}) {
+	const session = await getSession(request)
+
+	return redirect(redirectUrl, {
+		headers: {
+			"Set-Cookie": await sessionStorage.destroySession(session)
+		}
+	})
+}
+
+export async function getUserToken(request: Request): Promise<string | null> {
 	const session = await getSession(request)
 	const token: string = session.get(SESSION_KEY)
 	return token
 }
 
-export async function getUser(request: Request) {
+export async function getUser(request: Request): Promise<User | null> {
 	const token = await getUserToken(request)
 
 	if (!token) {
@@ -82,10 +122,12 @@ export async function getUser(request: Request) {
 
 	const user = users[0]
 
+	logger.success(`User found: ${user.username} (${user.id})`)
+
 	return user as User
 }
 
-export async function getUserByToken(token: string) {
+export async function getUserByToken(token: string): Promise<User | null> {
 	const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
 	const db = drizzle(sqlite)
 
@@ -97,5 +139,9 @@ export async function getUserByToken(token: string) {
 
 	const user = users[0]
 
+	logger.success(`User found by token: ${user.username} (${user.id})`)
+
 	return user as User
 }
+
+export { sessionStorage }

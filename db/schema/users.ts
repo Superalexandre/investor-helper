@@ -23,9 +23,14 @@ export const usersSchema = sqliteTable("user", {
 	avatar: text("avatar"),
 	firstName: text("first_name").notNull(),
 	lastName: text("last_name").notNull(),
-	email: text("email").unique(),
-	password: text("password").notNull(),
-	salt: text("salt").notNull(),
+	email: text("email").unique().notNull(),
+	emailVerified: int("email_verified", {
+		mode: "boolean"
+	})
+		.default(false)
+		.notNull(),
+	password: text("password"),
+	salt: text("salt"),
 	createdAt: text("created_at")
 		.notNull()
 		.$defaultFn(() => new Date().toISOString()),
@@ -36,6 +41,11 @@ export const usersSchema = sqliteTable("user", {
 		mode: "boolean"
 	})
 		.default(true)
+		.notNull(),
+	loggedWithGoogle: int("logged_with_google", {
+		mode: "boolean"
+	})
+		.default(false)
 		.notNull()
 })
 
@@ -77,6 +87,11 @@ export const walletSchema = sqliteTable("wallet", {
 			return uuidv4()
 		}),
 	name: text("name").notNull(),
+	private: int("private", {
+		mode: "boolean"
+	})
+		.default(false)
+		.notNull(),
 	description: text("description"),
 	createdAt: text("created_at")
 		.notNull()

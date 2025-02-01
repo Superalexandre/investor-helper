@@ -1,0 +1,19 @@
+{
+    "title": "Investor Helper - Settings",
+    "description": "Application settings",
+
+    "settings": "Settings",
+
+    "language": "Language",
+    "chooseLanguage": "Choose a language",
+
+    "theme": "Theme",
+    "chooseTheme": "Choose a theme",
+
+    "VeryDark": "Very Dark",
+    "dark": "Dark",
+    "light": "Light",
+
+    "success": "Settings saved successfully",
+    "error": "Error saving settings"
+}

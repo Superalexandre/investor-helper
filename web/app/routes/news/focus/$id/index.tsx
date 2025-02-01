@@ -11,9 +11,9 @@ import BackButton from "../../../../components/button/backButton"
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { useTranslation } from "react-i18next"
 import i18next from "../../../../i18next.server"
+import { DotSeparator } from "../../../../components/ui/separator"
 
 export async function loader({ request }: LoaderFunctionArgs) {
-
 	const t = await i18next.getFixedT(request, "newsFocus")
 
 	const title = t("title")
@@ -22,7 +22,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	return {
 		title: title,
 		description: description
-    }
+	}
 }
 
 export const meta: MetaFunction<typeof loader> = ({ data, params }) => {
@@ -38,8 +38,7 @@ export const meta: MetaFunction<typeof loader> = ({ data, params }) => {
 		{ name: "description", content: description },
 		{ name: "og:description", content: description },
 		{
-			name: "canonical",
-			content: `https://www.investor-helper.com/focus/${params.id}`
+			tagName: "link", rel: "canonical", href: `https://www.investor-helper.com/focus/${params.id}`
 		},
 		{ name: "robots", content: "noindex" }
 	]
@@ -63,7 +62,7 @@ export default function Index() {
 			const req = await fetch(`/api/news/multiple?id=${id}`)
 			const json = await req.json()
 
-			console.log(json)
+			// console.log(json)
 
 			return json
 		},
@@ -94,7 +93,7 @@ export default function Index() {
 
 	return (
 		<div className="relative w-full overflow-hidden">
-			<BackButton forceRedirect="/news" fallbackRedirect="/news" label={t("seeAll")} />
+			<BackButton fallbackRedirect="/news" label={t("seeAllNews")} />
 
 			<ScrollTop showBelow={250} />
 
@@ -112,7 +111,7 @@ export default function Index() {
 						<div className="relative" key={news.news.id} id={news.news.id}>
 							{news.news.importanceScore > 50 ? (
 								<ImportanceBadge
-									importance={news.news.importanceScore}
+									starNumber={Math.floor(news.news.importanceScore / 50)}
 									className="-right-[10px] -top-[10px] absolute"
 								/>
 							) : null}
@@ -141,13 +140,35 @@ export default function Index() {
 									/>
 								</CardContent>
 
-								<CardFooter>
+
+								<CardFooter className="flex flex-col flex-wrap justify-start gap-1 text-muted-foreground lg:flex-row lg:items-center lg:gap-2">
+									<span className="w-full lg:w-auto">
+										{news.news.source}
+									</span>
+
+									<DotSeparator className="hidden lg:block" />
+
+									<span className="w-full lg:w-auto">
+										{new Date(news.news.published * 1000 * 1000 || "").toLocaleDateString(i18n.language, {
+											hour: "numeric",
+											minute: "numeric",
+											year: "numeric",
+											month: "long",
+											day: "numeric",
+											timeZoneName: "shortOffset",
+											weekday: "long"
+										})}
+									</span>
+								</CardFooter>
+
+								{/* <CardFooter>
 									<p className="text-muted-foreground">
 										{formatDate(news.news.published * 1000, {
 											locale: i18n.language
-										})} - {news.news.source}
+										})}
+										- {news.news.source}
 									</p>
-								</CardFooter>
+								</CardFooter> */}
 							</Card>
 						</div>
 					))

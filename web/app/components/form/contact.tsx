@@ -4,12 +4,12 @@ import { z as zod } from "zod"
 import InputForm, { type FieldErrors } from "./inputForm"
 import { useRemixForm } from "remix-hook-form"
 import { Button } from "../ui/button"
-import { MdSend } from "react-icons/md"
 import { Textarea } from "../ui/textarea"
 import { Label } from "../ui/label"
 import { useEffect } from "react"
 import { toast as sonner } from "sonner"
 import Loading from "../loading"
+import { SendHorizonalIcon } from "lucide-react"
 
 const schema = zod.object({
 	name: zod.string().min(3).max(32).trim(),
@@ -34,7 +34,6 @@ export default function Contact() {
 		},
 		resolver
 	})
-
 
 	useEffect(() => {
 		if (isSubmitSuccessful) {
@@ -88,12 +87,7 @@ export default function Contact() {
 					className={`${isSubmitting ? "opacity-50" : "hover:bg-green-700"} flex flex-row items-center justify-center gap-2 rounded bg-green-500 p-4 text-white`}
 					disabled={isSubmitting}
 				>
-					{isSubmitting ? (
-						<Loading className="size-5 border-2" />
-					) : (
-						<MdSend size={20} />
-					)}
-					
+					{isSubmitting ? <Loading className="size-5 border-2" /> : <SendHorizonalIcon size={20} />}
 					Envoyer
 				</Button>
 			</div>

@@ -89,3 +89,30 @@ export const notificationSubscribedNewsSymbolsSchema = sqliteTable("notification
 })
 
 export type NotificationSubscribedNewsSymbols = typeof notificationSubscribedNewsSymbolsSchema.$inferSelect
+
+export const notificationListSchema = sqliteTable("notification_list", {
+	userId: text("user_id")
+		.references(() => usersSchema.id)
+		.notNull(),
+	notificationId: text("notification_id").unique().notNull(),
+	notificationFromId: text("notification_from_id").notNull(),
+	type: text("type", {
+		enum: ["news", "event"]
+	}).notNull(),
+
+	title: text("title").notNull(),
+	body: text("body").notNull(),
+	url: text("url").notNull(),
+	icon: text("icon"),
+	image: text("image"),
+
+	isRead: int("is_read", {
+		mode: "boolean"
+	})
+		.notNull()
+		.default(false),
+
+	createdAt: text("created_at").$defaultFn(() => new Date().toISOString())
+})
+
+export type NotificationList = typeof notificationListSchema.$inferSelect

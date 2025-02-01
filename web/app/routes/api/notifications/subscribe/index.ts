@@ -1,8 +1,7 @@
-import { type ActionFunctionArgs, json } from "@remix-run/node"
+import type { ActionFunctionArgs } from "@remix-run/node"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import { notificationSchema } from "@/schema/notifications"
-// import { generateSubscriptionId } from "@remix-pwa/push"
 import { v4 as uuid } from "uuid"
 import { getUser } from "../../../../session.server"
 import { and, eq } from "drizzle-orm"
@@ -25,19 +24,19 @@ export async function action({ request }: ActionFunctionArgs) {
 	const user = await getUser(request)
 
 	if (!user) {
-		return json({
+		return {
 			success: false,
 			error: true,
 			message: "User not found"
-		})
+		}
 	}
 
 	if (!body.endpoint || !body.keys.p256dh || !body.keys.auth) {
-		return json({
+		return {
 			success: false,
 			error: true,
 			message: "Missing endpoint, p256dh or auth"
-		})
+		}
 	}
 
 	const isSubscribed = await db
@@ -53,11 +52,11 @@ export async function action({ request }: ActionFunctionArgs) {
 		)
 
 	if (isSubscribed.length > 0) {
-		return json({
+		return {
 			success: false,
 			error: true,
 			message: "Already subscribed"
-		})
+		}
 	}
 
 	await db.insert(notificationSchema).values({
@@ -68,10 +67,10 @@ export async function action({ request }: ActionFunctionArgs) {
 		auth: body.keys.auth
 	})
 
-	return json({
+	return {
 		success: true,
 		error: false,
 		message: "Notification push",
 		subscriptionId
-	})
+	}
 }

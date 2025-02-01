@@ -8,8 +8,13 @@ interface NewsSymbolsArticle {
 	published: number
 	source: string
 	urgency: number
-	provider: string
+	provider: {
+		id: string
+		name: string
+		logo_id: string
+	} | string
 	link: string
+	language: string
 	relatedSymbols: { symbol: string }[]
 	article: {
 		jsonDescription: string
@@ -32,10 +37,10 @@ interface NewsSymbols {
 }
 
 interface NewsFull {
-    news: News
-    news_article: NewsArticleSchema
-    // biome-ignore lint/suspicious/noExplicitAny: TODO: Type
-    relatedSymbols: any
+	news: News
+	news_article: NewsArticleSchema
+	// biome-ignore lint/suspicious/noExplicitAny: TODO: Type
+	relatedSymbols: any
 }
 
 interface NewsSymbolsChildArticle {
@@ -43,14 +48,8 @@ interface NewsSymbolsChildArticle {
 		news: News
 		news_article: NewsArticleSchema
 	}
-    // biome-ignore lint/suspicious/noExplicitAny: TODO: Type
+	// biome-ignore lint/suspicious/noExplicitAny: TODO: Type
 	relatedSymbols: any
 }
 
-export type {
-    NewsSymbolsArticle,
-    NewsArticle,
-    NewsSymbols,
-    NewsFull,
-	NewsSymbolsChildArticle
-}
+export type { NewsSymbolsArticle, NewsArticle, NewsSymbols, NewsFull, NewsSymbolsChildArticle }

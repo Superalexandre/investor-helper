@@ -195,7 +195,7 @@ const ChartTooltipContent = React.forwardRef<
 
                         return (
                             <div
-                                key={item.dataKey}
+                                key={key}
                                 className={cn(
                                     "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
                                     indicator === "dot" && "items-center"
@@ -264,15 +264,15 @@ const ChartLegend = RechartsPrimitive.Legend
 const ChartLegendContent = React.forwardRef<
     HTMLDivElement,
     React.ComponentProps<"div"> &
-    Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
+    Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign" | "formatter"> & {
         hideIcon?: boolean
         nameKey?: string,
         onClick?: (item: any) => void
-        renderHidden?: boolean
+        renderHidden?: boolean,
     }
 >(
     (
-        { className, hideIcon = false, payload, verticalAlign = "bottom", nameKey, onClick, renderHidden },
+        { className, hideIcon = false, payload, verticalAlign = "bottom", nameKey, onClick, renderHidden, formatter },
         ref
     ) => {
         const { config } = useChart()
@@ -290,7 +290,7 @@ const ChartLegendContent = React.forwardRef<
                     className
                 )}
             >
-                {payload.map((item) => {
+                {payload.map((item, index) => {
                     const key = `${nameKey || item.dataKey || "value"}`
                     const itemConfig = getPayloadConfigFromPayload(config, item, key)
 
@@ -316,9 +316,20 @@ const ChartLegendContent = React.forwardRef<
                                 />
                             )}
                             <span 
-                                className={renderHidden && configFromItem["display"] === false ? "line-through" : ""}
+                                className={cn(
+                                    renderHidden && configFromItem["display"] === false ? "line-through" : "",
+                                    item?.inactive ? "line-through" : ""
+                                )}
                             >
-                                {itemConfig?.label}
+                                {/* formatter(item.value, item.name, item, index, item.payload) */}
+                                {formatter ? formatter(item.value, {
+                                    value: item.value,
+                                    // name: item.name,
+                                    color: item.color,
+                                    payload: item.payload
+                                }, index) : itemConfig?.label}
+
+                                {/* {itemConfig?.label} */}
                             </span>
                         </div>
                     )

@@ -1,114 +1,46 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
-import { Form, redirect, useActionData, useLoaderData, useSubmit } from "@remix-run/react"
-import getPrices, { closeClient, type Period, type PeriodInfo } from "@/utils/getPrices"
-import { ClientOnly } from "remix-utils/client-only"
-import {
-	ChartContainer,
-	ChartLegend,
-	ChartLegendContent,
-	ChartTooltip,
-	ChartTooltipContent
-} from "@/components/ui/chart"
-import { Bar, CartesianGrid, ComposedChart, Line, XAxis, YAxis } from "recharts"
-import getSymbolData from "@/utils/getSymbol"
-// import { format } from "date-fns"
-import { TZDate } from "@date-fns/tz"
+import type { LoaderFunction, MetaFunction } from "@remix-run/node"
+import { Link, redirect, useParams } from "@remix-run/react"
 import SymbolLogo from "@/components/symbolLogo"
-import { type ComponentType, type ReactNode, useState } from "react"
-import { Select } from "@/components/ui/select"
-import { SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { fr } from "date-fns/locale"
-import { format, formatDistanceStrict } from "date-fns"
-import currencies from "@/lang/currencies"
-import { useWindowSize } from "usehooks-ts"
+import { type ReactNode, useState } from "react"
 import BackButton from "@/components/button/backButton"
+import { Button } from "../../../components/ui/button"
+import { useQuery } from "@tanstack/react-query"
+import { ArrowDownIcon, ArrowUpIcon, ExternalLinkIcon, InfoIcon } from "lucide-react"
+import { Skeleton } from "../../../components/ui/skeleton"
+import { getInfo } from "../../api/data/info"
+import { FullChart } from "./Chart"
+import { DialogInfo } from "./DialogInfo"
+import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card"
+import { Details } from "./Details"
+import { ConvertJsonToReact } from "../../../components/parseComponent"
+import { cn } from "../../../lib/utils"
+import type { NewsSymbols } from "../../../../types/News"
+import currencies from "../../../../../lang/currencies"
 
-function differences(prices: Period[]) {
-	const differencePrice = prices[0].close - prices[prices.length - 1].close
-
-	// Difference in percent can be up to 100% (double the price)
-	const differencePercent = (differencePrice / prices[0].close) * 100
-
-	const from = prices[0].time * 1000
-	const to = prices[prices.length - 1].time * 1000
-
-	const differenceTime = formatDistanceStrict(from, to, {
-		locale: fr
-	})
-
-	return {
-		differencePrice: differencePrice.toFixed(2),
-		differencePercent: differencePercent.toFixed(2),
-		differenceTime
-	}
-}
-
-export async function loader({ params }: LoaderFunctionArgs) {
+export const loader: LoaderFunction = async ({ params }) => {
 	if (!params.id) {
 		return redirect("/")
 	}
 
-	const { period: prices, periodInfo: marketInfo } = await getPrices(params.id, {
-		timeframe: "30",
-		range: 192
-	})
+	const info = await getInfo({ symbol: params.id })
 
-	closeClient()
-
-	const symbol = await getSymbolData(params.id)
-
-	if (!(symbol && prices && marketInfo)) {
-		return redirect("/")
+	if (!info) {
+		return null
 	}
 
-	const { differencePrice, differencePercent, differenceTime } = differences(prices)
-
-	const prettySymbol = currencies[symbol.currency]?.symbol_native ?? symbol.currency
+	const dataCurrency = info.currency as string
+	const prettyCurrency = currencies[dataCurrency]?.symbol_native ?? dataCurrency
 
 	return {
-		prices: prices.reverse(),
-		symbol,
-		prettySymbol,
-		marketInfo,
-		differencePrice,
-		differencePercent,
-		differenceTime
-	}
-}
-
-export async function action({ params, request }: ActionFunctionArgs) {
-	if (!params.id) {
-		return redirect("/")
-	}
-
-	const body = await request.formData()
-	if (!body.get("timeframe")) {
-		return redirect("/")
-	}
-
-	const [timeframe, range] = body.get("timeframe")?.toString().split("-") ?? ["1D", "100"]
-
-	const { period: prices, periodInfo: marketInfo } = await getPrices(params.id, {
-		timeframe: timeframe as string,
-		range: Number.parseInt(range)
-	})
-
-	closeClient()
-
-	const { differencePrice, differencePercent, differenceTime } = differences(prices)
-
-	return {
-		prices: prices.reverse(),
-		marketInfo,
-		differencePrice,
-		differencePercent,
-		differenceTime
+		name: info.description,
+		price: info.close,
+		currency: prettyCurrency
 	}
 }
 
 export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
-	const title = `Investor Helper - Information sur ${data?.symbol.description}`
-	const description = `Graphique des prix pour ${data?.symbol.description} sur le marché ${data?.marketInfo.name}. Dernier prix ${data?.prices[data?.prices.length - 1].close}${data?.prettySymbol}.`
+	const title = `Investor Helper - Information sur ${data?.name ?? "l'entreprise"}`
+	const description = `Graphique des prix pour ${data?.name ?? ""}. Dernier prix ${data?.price ?? ""}${data?.currency ?? ""}.`
 
 	return [
 		{ title: title },
@@ -123,361 +55,410 @@ export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
 	]
 }
 
-export default function Index() {
-	const { prices, symbol, marketInfo, differencePrice, differencePercent, differenceTime, prettySymbol } =
-		useLoaderData<typeof loader>()
+export default function Index(): ReactNode {
+	const params = useParams()
 
-	const data = useActionData<typeof action>()
-	const submit = useSubmit()
-
-	const diffPrice = data?.differencePrice ?? differencePrice
-	const diffPercent = data?.differencePercent ?? differencePercent
-	const diffTime = data?.differenceTime ?? differenceTime
-
-	const isPositive = Number.parseInt(diffPrice) > 0
-
-	const priceClass = isPositive ? "text-green-500" : "text-red-500"
-
-	const formattedDiffPrice = `${isPositive ? "+" : ""}${diffPrice}`
-	const formattedDiffPercent = `${isPositive ? "+" : ""}${diffPercent}%`
-
-	const lastClose = data?.prices[data?.prices.length - 1].close ?? prices[prices.length - 1].close
-
-	const handleSubmit = (value: string) => {
-		const formData = new FormData()
-
-		formData.append("timeframe", value)
-
-		submit(formData, { method: "post" })
-	}
-
-	return (
-		<div className="relative">
-			<BackButton />
-
-			<div className="flex flex-col items-center justify-center gap-4 pt-4">
-				<div className="flex flex-col items-center justify-center gap-2 lg:flex-row">
-					<SymbolLogo symbol={symbol} className="size-12 rounded-full" alt={symbol.description} />
-
-					<h1 className="text-center text-2xl">Graphique pour {symbol.description}</h1>
-				</div>
-
-				<DisplaySession marketInfo={marketInfo} />
-
-				<div className="flex flex-col items-center justify-center gap-2">
-					<div className="flex flex-row items-center justify-center gap-1">
-						<p className={priceClass}>
-							{formattedDiffPrice}
-							{prettySymbol} ({formattedDiffPercent})
-						</p>
-						<p>sur {diffTime}</p>
-					</div>
-				</div>
-
-				<p>
-					Dernier prix {lastClose}
-					{prettySymbol}
-				</p>
-			</div>
-
-			<Form className="flex w-full items-center justify-center lg:justify-start" method="POST">
-				<div className="mx-4 w-80">
-					<Select name="timeframe" defaultValue="30-192" onValueChange={(value) => handleSubmit(value)}>
-						<SelectTrigger>
-							<SelectValue placeholder="Choisir un intervalle" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="1-360">Intervale 1 minutes sur 24h</SelectItem>
-							<SelectItem value="1-720">Intervale 1 minutes sur 48h</SelectItem>
-
-							<SelectItem value="30-48">Intervale 30min sur 24h</SelectItem>
-							<SelectItem value="30-96">Intervale 30min sur 48h</SelectItem>
-							<SelectItem value="30-144">Intervale 30min sur 72h</SelectItem>
-							<SelectItem value="30-192">Intervale 30min sur 96h</SelectItem>
-
-							<SelectItem value="60-24">Intervale 1h sur 24h</SelectItem>
-							<SelectItem value="60-48">Intervale 1h sur 48h</SelectItem>
-							<SelectItem value="60-72">Intervale 1h sur 72h</SelectItem>
-							<SelectItem value="60-96">Intervale 1h sur 96h</SelectItem>
-
-							<SelectItem value="120-12">Intervale 2h sur 24h</SelectItem>
-							<SelectItem value="120-24">Intervale 2h sur 48h</SelectItem>
-							<SelectItem value="120-36">Intervale 2h sur 72h</SelectItem>
-							<SelectItem value="120-48">Intervale 2h sur 96h</SelectItem>
-
-							<SelectItem value="120-85">Dernière semaine</SelectItem>
-							<SelectItem value="1D-31">Dernier mois</SelectItem>
-							<SelectItem value="1D-365">Dernière année</SelectItem>
-							<SelectItem value="12M-100">Tout les temps</SelectItem>
-						</SelectContent>
-					</Select>
-				</div>
-			</Form>
-
-			<ClientOnly fallback={<p>Chargement...</p>}>
-				{() => <FullChart prices={data?.prices ?? prices} />}
-			</ClientOnly>
-		</div>
-	)
-}
-
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: TODO: Refactor
-function DisplaySession({ marketInfo }: { marketInfo: PeriodInfo }) {
-	const [, city] = marketInfo.timezone.split("/")
-
-	const sessionFrench: Record<string, string> = {
-		regular: "Marché ouvert",
-		premarket: "Pré-marché",
-		postmarket: "Post-marché",
-		extended: "Marché fermé"
-	}
-
-	const date = new TZDate(new Date(), marketInfo.timezone)
-	const prettyDate = format(date, "HH:mm", {
-		locale: fr
+	const [open, setOpen] = useState(false)
+	const [info, setInfo] = useState<{
+		change?: number,
+		price?: number,
+		loading: boolean
+	}>({
+		change: undefined,
+		price: undefined,
+		loading: true
 	})
 
-	const orderSessions = ["premarket", "regular", "postmarket", "extended"]
-
-	const orderedSessions = orderSessions
-		.map((session) => {
-			return marketInfo.subsessions.find((subsession) => subsession.id === session)
-		})
-		.filter((session) => session !== undefined)
-
-	// Display the active session
-	const activeSession =
-		marketInfo.type !== "spot"
-			? orderedSessions.find((session) => {
-					if (!session) {
-						return false
-					}
-
-					const [start, end] = session.session.split("-")
-					const now = date.getHours() * 100 + date.getMinutes()
-
-					return now >= Number.parseInt(start) && now <= Number.parseInt(end)
-				})
-			: orderedSessions[0]
-
-	const regularSession = orderedSessions.find((session) => session.id === "regular") ?? orderedSessions[0]
-
-	// Check if the market will open or close soon
-	const typeFrench: Record<string, string> = {
-		open: "Ouverture",
-		close: "Fermeture"
+	if (!params.id) {
+		return <p>Symbol not found</p>
 	}
-	const type = activeSession?.id === "regular" ? "close" : "open"
 
-	// let timeUntil: number = 0
-	let prettyTimeUntil = ""
+	const symbol = params.id
 
-	if (marketInfo.type !== "spot") {
-		if (type === "open") {
-			const [start] = regularSession.session.split("-")
-			const marketOpen = Number.parseInt(start)
-
-			const marketOpenHours = Math.floor(marketOpen / 100)
-			const marketOpenMinutes = marketOpen % 100
-
-			const currentHours = date.getHours()
-			const currentMinutes = date.getMinutes()
-
-			let hoursUntilOpen = marketOpenHours - currentHours
-			let minutesUntilOpen = marketOpenMinutes - currentMinutes
-
-			if (minutesUntilOpen < 0) {
-				hoursUntilOpen -= 1
-				minutesUntilOpen += 60
+	const {
+		data,
+		isPending,
+		error,
+	} = useQuery<{
+		error: boolean,
+		info: {
+			"Recommend.All|1W": number,
+			description: string,
+			country?: string,
+			country_code_fund: string,
+			isin?: string,
+			exchange: string,
+			name: string,
+			change: number,
+			close: number,
+			"sector.tr"?: string,
+			"industry.tr"?: string,
+			prettyCurrency: string,
+			currency: string
+			type?: string,
+			price_52_week_high: number,
+			price_52_week_low: number,
+			market_cap_basic?: number,
+			"Pivot.M.Fibonacci.S3": number,
+			"Pivot.M.Fibonacci.S2": number,
+			"Pivot.M.Fibonacci.S1": number,
+			"Pivot.M.Fibonacci.Middle": number,
+			"Pivot.M.Fibonacci.R1": number,
+			"Pivot.M.Fibonacci.R2": number,
+			"Pivot.M.Fibonacci.R3": number,
+			news: NewsSymbols[],
+			additionalInfo: {
+				symbol: {
+					aum?: number,
+					ast_business_description: any
+				}
 			}
-
-			if (hoursUntilOpen < 0 || (hoursUntilOpen === 0 && minutesUntilOpen < 0)) {
-				hoursUntilOpen += 24
-			}
-
-			// timeUntil = hoursUntilOpen * 60 + minutesUntilOpen
-			prettyTimeUntil = `${hoursUntilOpen}h ${minutesUntilOpen}m`
-		} else {
-			const [, end] = regularSession.session.split("-")
-			const marketClose = Number.parseInt(end)
-
-			const marketCloseHours = Math.floor(marketClose / 100)
-			const marketCloseMinutes = marketClose % 100
-
-			const currentHours = date.getHours()
-			const currentMinutes = date.getMinutes()
-
-			let hoursRemaining = marketCloseHours - currentHours
-			let minutesRemaining = marketCloseMinutes - currentMinutes
-
-			if (minutesRemaining < 0) {
-				hoursRemaining -= 1
-				minutesRemaining += 60
-			}
-
-			// timeUntil = hoursRemaining * 60 + minutesRemaining
-			prettyTimeUntil = `${hoursRemaining}h ${minutesRemaining}m`
 		}
+	}>({
+		queryKey: [
+			"data",
+			{
+				symbol: symbol
+			}
+		],
+		queryFn: async () => {
+			const req = await fetch(
+				`/api/data/info?symbol=${symbol}`
+			)
+			const json = await req.json()
+
+			// Fake loading
+			// await new Promise((resolve) => setTimeout(resolve, 500_000))
+
+			return json
+		},
+		refetchOnWindowFocus: true
+	})
+
+	console.log(data)
+
+	if (isPending) {
+		return (
+			<div className="relative flex flex-col gap-4">
+				<div className="relative flex w-full flex-row items-center justify-between">
+					<BackButton />
+
+					<Skeleton className="top-0 right-0 m-4 h-9 w-24 lg:absolute " />
+				</div>
+
+				<div className="flex flex-col items-center justify-center gap-4">
+					<div className="flex max-w-full flex-col items-center justify-center gap-2 px-10 lg:flex-row">
+						<Skeleton className="h-12 w-12 rounded-full" />
+
+						<div className="flex flex-col items-center">
+							<Skeleton className="h-5 w-80" />
+						</div>
+					</div>
+					<div className="flex flex-row items-center justify-center gap-2">
+						<Skeleton className="h-7 w-16" />
+
+						<DisplayChange price={0} change={0} loading={isPending} currency="€" />
+					</div>
+				</div>
+			</div>
+		)
+	}
+
+	if (!data || data.error) {
+		return <p>Symbol not found</p>
 	}
 
 	return (
-		<div className="flex flex-col items-center justify-start">
-			<p className="">
-				Il est {prettyDate} à {city}
-			</p>
-			<p>Session active : {sessionFrench[activeSession?.id ?? "extended"]}</p>
+		<div className="relative mb-4 flex flex-col gap-4">
+			<div className="relative flex w-full flex-row items-center justify-between">
+				<BackButton />
 
-			{prettyTimeUntil !== "" ? (
-				<p>
-					{typeFrench[type]} dans {prettyTimeUntil}
-				</p>
+				<Button
+					variant="outline"
+					className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-2 text-center lg:absolute"
+					onClick={(): void => setOpen(true)}
+				>
+					Info
+
+					<InfoIcon />
+				</Button>
+			</div>
+
+			<DialogInfo
+				open={open}
+				setOpen={setOpen}
+				description={data.info.description}
+				currency={data.info.currency}
+				prettyCurrency={data.info.prettyCurrency}
+				country={data.info.country}
+				countryCode={data.info.country_code_fund}
+				isin={data.info.isin}
+				exchange={data.info.exchange}
+				name={data.info.name}
+				sector={data.info["sector.tr"]}
+			/>
+
+			<div className="flex flex-col items-center justify-center gap-4">
+				<div className="flex max-w-full flex-col items-center justify-center gap-2 px-10 lg:flex-row">
+					<SymbolLogo symbol={data.info} className="size-12 rounded-full" alt={data.info.description} />
+
+					<div className="flex w-full flex-col items-center">
+						<h1 className="w-full truncate font-bold">{data.info.description}</h1>
+						{/* <p className="w-full truncate text-muted-foreground">{data.info.exchange} - {data.info.name}</p> */}
+					</div>
+				</div>
+				<div className="flex flex-row items-center justify-center gap-2">
+					{info.loading ? (
+						<Skeleton className="h-7 w-16" />
+					) : (
+						<p className="font-bold text-xl">{data.info.close}{data.info.prettyCurrency}</p>
+					)}
+
+					<DisplayChange price={info.price ?? data.info.close} change={info.change ?? data.info.change} loading={info.loading} currency={data.info.prettyCurrency} />
+				</div>
+			</div>
+
+			<Card className="mx-4 border-card-border">
+				<CardContent className="m-6 flex flex-col gap-4 p-0">
+					<FullChart
+						symbol={symbol}
+						setInfo={setInfo}
+					/>
+
+					<div className="flex w-full flex-row items-center justify-end">
+						<Button asChild={true}>
+							<Link to={`/compare?stocks=${symbol}`} className="flex flex-row items-center gap-2">
+								<p>Comparer</p>
+
+								<ExternalLinkIcon className="h-4 w-4" />
+							</Link>
+						</Button>
+					</div>
+				</CardContent>
+			</Card>
+
+			{data.info.additionalInfo.symbol.ast_business_description || data.info["sector.tr"] || data.info["industry.tr"] ? (
+				<Card className="mx-4 border-card-border">
+					<CardHeader>
+						<CardTitle className="text-lg">Information sur l'entreprise</CardTitle>
+					</CardHeader>
+					<CardContent className="flex flex-col gap-4">
+						{data.info.additionalInfo.symbol.ast_business_description ? (
+							<ConvertJsonToReact
+								json={JSON.stringify(data.info.additionalInfo.symbol.ast_business_description)}
+							// textClassName="max-h-40 truncate"
+							/>
+						) : null}
+
+						<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+							{data.info["sector.tr"] ? (
+								<div>
+									<p className="font-semibold">Secteur</p>
+									<p>{data.info["sector.tr"]}</p>
+								</div>
+							) : null}
+							{data.info["industry.tr"] ? (
+								<div>
+									<p className="font-semibold">Industrie</p>
+									<p>{data.info["industry.tr"]}</p>
+								</div>
+							) : null}
+						</div>
+					</CardContent>
+				</Card>
+			) : null}
+
+			<div className="mx-4 flex flex-col items-center gap-4 lg:flex-row lg:gap-8">
+				{data.info.price_52_week_low || data.info.price_52_week_high ? (
+					<Card className="w-full border-card-border">
+						<CardHeader>
+							<CardTitle>
+								52 Week Range
+							</CardTitle>
+						</CardHeader>
+
+						<CardContent>
+							<div className="flex items-center justify-between">
+								<span className="text-sm">Low: {data.info.price_52_week_low.toFixed(2)}</span>
+								<span className="text-sm">High: {data.info.price_52_week_high.toFixed(2)}</span>
+							</div>
+							<div className="mt-2 h-2 rounded-full bg-secondary">
+								<div
+									className="h-full max-w-full rounded-full bg-primary"
+									style={{
+										width: `${((data.info.close - data.info.price_52_week_low) /
+											(data.info.price_52_week_high - data.info.price_52_week_low)) *
+											100
+											}%`,
+									}}
+								/>
+							</div>
+						</CardContent>
+					</Card>
+				) : null}
+
+				{data.info.market_cap_basic ? (
+					<Card className="w-full border-card-border">
+						<CardHeader>
+							<CardTitle className="text-lg">Market Cap</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<p className="font-bold text-2xl">{data.info.market_cap_basic.toLocaleString("fr-FR", {
+								style: "currency",
+								currency: data.info.currency,
+								notation: "compact"
+							})}</p>
+						</CardContent>
+					</Card>
+				) : null}
+
+				{!data.info.market_cap_basic && data.info.additionalInfo.symbol.aum ? (
+					<Card className="w-full border-card-border">
+						<CardHeader>
+							<CardTitle className="text-lg">Actif sous gestion</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<p className="font-bold text-2xl">{data.info.additionalInfo.symbol.aum.toLocaleString("fr-FR", {
+								style: "currency",
+								currency: data.info.currency,
+								notation: "compact"
+							})}</p>
+						</CardContent>
+					</Card>
+				) : null}
+
+				<DisplayRecommendation recommendation={data.info["Recommend.All|1W"]} />
+			</div>
+
+			{data.info["Pivot.M.Fibonacci.S3"] && data.info["Pivot.M.Fibonacci.Middle"] && data.info["Pivot.M.Fibonacci.R3"] ? (
+				<Card className="mx-4 border-card-border">
+					<CardHeader>
+						<CardTitle className="text-lg">Prévisions</CardTitle>
+					</CardHeader>
+
+					<CardContent>
+						<div className="flex items-center justify-between">
+							<span className="truncate text-sm">Low: {data.info["Pivot.M.Fibonacci.S3"].toFixed(2)}</span>
+							<span className="truncate text-sm">Avg: {data.info["Pivot.M.Fibonacci.Middle"].toFixed(2)}</span>
+							<span className="truncate text-sm">High: {data.info["Pivot.M.Fibonacci.R3"].toFixed(2)}</span>
+						</div>
+						<div className="mt-2 h-2 rounded-full bg-secondary">
+							<div
+								className="h-full max-w-full rounded-full bg-primary"
+								style={{
+									width: `${((data.info["Pivot.M.Fibonacci.Middle"] - data.info["Pivot.M.Fibonacci.S3"]) /
+										(data.info["Pivot.M.Fibonacci.R3"] - data.info["Pivot.M.Fibonacci.S3"])) *
+										100
+										}%`,
+								}}
+							/>
+						</div>
+					</CardContent>
+				</Card>
+			) : null}
+
+			{data.info.news.length > 0 ? (
+				<Card className="mx-4 border-card-border">
+					<CardHeader>
+						<CardTitle className="text-lg">Dernières news pour {data.info.description}</CardTitle>
+					</CardHeader>
+
+					<CardContent className="flex flex-col gap-3">
+						{data.info.news.map((news: NewsSymbols) => (
+							<div key={news.news.id} className="flex flex-col">
+								<Button variant="link" asChild={true} className="h-auto justify-start p-0">
+									<Link to={`/news/${news.news.id}`} className="flex flex-row items-center gap-2">
+										<h2 className="truncate font-bold">{news.news.title}</h2>
+
+										<ExternalLinkIcon className="h-4 w-4" />
+									</Link>
+								</Button>
+
+								<p className="text-muted-foreground text-sm">{new Date(news.news.published * 1000).toLocaleDateString("fr-FR", {
+									month: "short",
+									day: "numeric",
+								})}</p>
+							</div>
+						))}
+					</CardContent>
+				</Card>
+			) : null}
+
+			{data.info.type && data.info.type === "fund" ? (
+				<Card className="mx-4 border-card-border">
+					<CardHeader>
+						<CardTitle className="text-lg">ETF Composition</CardTitle>
+					</CardHeader>
+					<CardContent className="flex flex-col items-center justify-center md:flex-row">
+						<Details symbol={symbol} />
+					</CardContent>
+				</Card>
 			) : null}
 		</div>
 	)
 }
 
-interface FullConfig {
-	[x: string]: {
-		label?: ReactNode
-		icon?: ComponentType
-	} & (
-		| {
-				color?: string
-				theme?: never
-		  }
-		| {
-				color?: never
-				theme: Record<"light" | "dark", string>
-		  }
-	) &
-		(
-			| {
-					display?: boolean
-					onClick?: () => void
-			  }
-			| {
-					display?: never
-					onClick?: never
-			  }
-		)
+function DisplayRecommendation({ recommendation }: { recommendation: number }): ReactNode {
+	const getRecommendationText = (value: number): string => {
+		if (value >= 0.5) { return "Strong Buy"; }
+		if (value >= 0.2) { return "Buy"; }
+		if (value >= -0.2) { return "Neutral"; }
+		if (value >= -0.5) { return "Sell"; }
+		return "Strong Sell";
+	}
+
+	const color: Record<string, string> = {
+		"Buy": "text-green-500",
+		"Strong Buy": "text-green-500",
+		"Neutral": "text-yellow-500",
+		"Sell": "text-red-500",
+		"Strong Sell": "text-red-500"
+	}
+
+	const recommendationText = getRecommendationText(recommendation)
+
+	return (
+		<Card className="w-full border-card-border">
+			<CardHeader>
+				<CardTitle className="text-lg">Recommendation</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<p
+					className={cn("font-bold text-2xl", color[recommendationText])}
+				>
+					{recommendationText}
+				</p>
+			</CardContent>
+		</Card>
+	)
 }
 
-function FullChart({ prices }: { prices: Period[] }) {
-	const [displayVolume, setDisplayVolume] = useState(false)
-	const { width = 0 } = useWindowSize()
+function DisplayChange({ currency, price, change, loading }: { currency: string, price: number, change: number, loading: boolean }): ReactNode {
+	if (loading) {
+		return (
+			<Skeleton className="h-7 w-12" />
+		)
+	}
 
-	const isMobile = width < 640
+	if (change > 0) {
+		return (
+			<div className="flex flex-row items-center justify-center gap-1 text-green-500">
+				<ArrowUpIcon className="size-5" />
 
-	const chartConfig: FullConfig = {
-		close: {
-			label: "Prix",
-			color: "hsl(var(--chart-1))"
-		},
-		time: {
-			label: "Date"
-		},
-		volume: {
-			label: "Volume",
-			color: "hsl(var(--chart-2))",
-			display: displayVolume,
-			onClick: () => {
-				setDisplayVolume(!displayVolume)
-			}
-		}
+				<p className="text-sm">
+					{Number(price * (change / 100)).toFixed(2)}{currency} ({Number(change).toFixed(2)}%)
+				</p>
+			</div>
+		)
 	}
 
 	return (
-		<ChartContainer config={chartConfig} className="min-h-[400px] w-full overflow-hidden lg:h-[500px] lg:min-h-0">
-			<ComposedChart data={prices} accessibilityLayer={true}>
-				<CartesianGrid vertical={false} />
+		<div className="flex flex-row items-center justify-center gap-1 text-red-500">
+			<ArrowDownIcon className="size-5" />
 
-				<XAxis
-					hide={isMobile}
-					dataKey="time"
-					tickFormatter={(timestamp) => new Date(timestamp * 1000).toLocaleString("fr-FR")}
-					tickLine={false}
-					axisLine={false}
-					tickMargin={8}
-					scale="auto"
-				/>
-
-				<YAxis
-					hide={isMobile}
-					dataKey="close"
-					yAxisId="close"
-					tickLine={false}
-					axisLine={false}
-					scale="auto"
-					domain={[
-						(dataMin: number) => Math.floor(dataMin * 0.85),
-						(dataMax: number) => Math.ceil(dataMax * 1.05)
-					]}
-				/>
-
-				<YAxis
-					dataKey="volume"
-					yAxisId="volume"
-					orientation="right"
-					hide={true}
-					includeHidden={!displayVolume}
-					domain={[
-						(dataMin: number) => Math.floor(dataMin * 0.5),
-						(dataMax: number) => Math.ceil(dataMax * 2)
-					]}
-				/>
-
-				<Bar
-					layout="vertical"
-					yAxisId="volume"
-					dataKey="volume"
-					fill="var(--color-volume)"
-					radius={8}
-					hide={!displayVolume}
-				/>
-
-				<Line
-					yAxisId="close"
-					dataKey="close"
-					// type="basis"
-					stroke="var(--color-close)"
-					strokeWidth={2}
-					dot={false}
-					className="z-10"
-				/>
-
-				<ChartLegend
-					content={
-						<ChartLegendContent
-							renderHidden={true}
-							onClick={(item) => {
-								const config = chartConfig[item.dataKey as string]
-
-								if (config?.onClick) {
-									config.onClick()
-								}
-							}}
-						/>
-					}
-				/>
-				<ChartTooltip
-					cursor={false}
-					content={
-						<ChartTooltipContent
-							indicator="dot"
-							labelFormatter={(_value, dataLabel) => {
-								return new Date(dataLabel[0].payload.time * 1000).toLocaleString("fr-FR", {
-									weekday: "long",
-									day: "numeric",
-									month: "short",
-									year: "numeric",
-									hour: "numeric",
-									minute: "numeric"
-								})
-							}}
-						/>
-					}
-				/>
-			</ComposedChart>
-		</ChartContainer>
+			<p className="text-sm">
+				{Number(price * (change / 100)).toFixed(2)}{currency} ({Number(change).toFixed(2)}%)
+			</p>
+		</div>
 	)
 }

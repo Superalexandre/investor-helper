@@ -25,6 +25,4 @@ interface EventRaw {
 	scale: string | null
 }
 
-export type {
-    EventRaw
-}
+export type { EventRaw }

@@ -1,7 +1,10 @@
 import { searchNews } from "@/utils/news"
-import { json, type LoaderFunction, type LoaderFunctionArgs } from "@remix-run/node"
+import type { LoaderFunction, LoaderFunctionArgs } from "@remix-run/node"
 import type { News } from "../../../../../db/schema/news"
 import type { RawSearchResult } from "../../../../types/Search"
+import type { Events } from "../../../../../db/schema/events"
+import { searchEvents } from "../../../../utils/events"
+import logger from "../../../../../log"
 
 export async function searchSymbol(search: string, searching = "undefined") {
 	const url = new URL(
@@ -39,16 +42,14 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 	const searching = url.searchParams.get("searching")
 
 	if (!search) {
-		return json(
-			{ error: "Missing search parameter" },
-			{
-				status: 400
-			}
-		)
+		return {
+			error: "Missing search parameter"
+		}
 	}
 
 	const symbolsResult: RawSearchResult[] = []
 	const newsResult: News[] = []
+	const eventsResult: Events[] = []
 
 	if (searching && ["allSymbol", "stocks", "crypto"].includes(searching)) {
 		const symbols = await searchSymbol(search, searching === "allSymbol" ? "undefined" : searching)
@@ -59,17 +60,31 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 
 		newsResult.push(...news)
 	} else if (searching && ["all"].includes(searching)) {
-		const symbols = await searchSymbol(search, "undefined")
-		const news = await searchNews(search)
+
+		const [symbols, news, events] = await Promise.all([
+			searchSymbol(search, "undefined"),
+			searchNews(search),
+			searchEvents(search)
+		])
+
+		// const symbols = await searchSymbol(search, "undefined")
+		// const news = await searchNews(search)
+		// const events = await searchEvents(search)
 
 		newsResult.push(...news)
 		symbolsResult.push(...symbols.symbols)
+		eventsResult.push(...events)
+	} else if (searching && ["events"].includes(searching)) {
+		const events = await searchEvents(search, -1)
+
+		eventsResult.push(...events)
 	} else {
-		console.error("Unknown searching parameter", searching)
+		logger.warn(`Unknown searching parameter ${searching}`)
 	}
 
-	return json({
+	return {
 		symbols: symbolsResult,
-		news: newsResult
-	})
+		news: newsResult,
+		events: eventsResult
+	}
 }

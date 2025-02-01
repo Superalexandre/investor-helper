@@ -8,5 +8,7 @@
     "medium": "moyen",
     "high": "élevée",
 
-    "importance": "Importance"
+    "importance": "Importance",
+
+    "noEvents": "Aucun événement à afficher"
 }

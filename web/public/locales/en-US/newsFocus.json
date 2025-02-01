@@ -1,7 +1,9 @@
 {
     "title": "Investor Helper - News",
     "description": "News that might interest you",
-    "seeAll": "See all news",
+    "seeAllNews": "See all news",
+    "seeAll": "See all",
+    "seeLess": "See less",
     "couldBeInteresting": "News that might interest you",
     "noNews": "No news found"
 }

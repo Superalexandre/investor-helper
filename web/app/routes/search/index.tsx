@@ -6,13 +6,14 @@ import { cn } from "@/lib/utils"
 import { normalizeSymbol, normalizeSymbolHtml } from "@/utils/normalizeSymbol"
 import type { News } from "@/schema/news"
 import { Link, useLocation, useNavigate } from "@remix-run/react"
-import { MdClose } from "react-icons/md"
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { useQuery } from "@tanstack/react-query"
 import { Skeleton } from "../../components/ui/skeleton"
 import { useTranslation } from "react-i18next"
 import type { TFunction } from "i18next"
 import i18next from "../../i18next.server"
+import type { Events } from "../../../../db/schema/events"
+import { XIcon } from "lucide-react"
 
 interface SelectSymbolType {
 	symbol: string
@@ -26,10 +27,10 @@ interface SelectSymbolType {
 	prefix?: string
 }
 
-type SearchType = "all" | "allSymbol" | "stocks" | "crypto" | "news"
+type SearchType = "all" | "allSymbol" | "stocks" | "crypto" | "news" | "events"
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const t = await i18next.getFixedT(request, "register")
+	const t = await i18next.getFixedT(request, "search")
 
 	const title = t("title")
 	const description = t("description")
@@ -52,12 +53,12 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 		{ name: "og:title", content: title },
 		{ name: "description", content: description },
 		{ name: "og:description", content: description },
-		{ name: "canonical", content: "https://www.investor-helper.com/search" }
+		{ tagName: "link", rel: "canonical", href: "https://www.investor-helper.com/search" }
 	]
 }
 
 export const handle = {
-	i18n: "search",
+	i18n: "search"
 }
 
 export default function Index() {
@@ -95,16 +96,14 @@ export default function Index() {
 
 				{hidden ? null : (
 					<div className="absolute top-full left-0 z-10 mt-2 flex w-full flex-col gap-1 overflow-x-hidden">
-						<Filter
-							searchingIn={searchingIn}
-							setSearchingIn={setSearchingIn}
-							t={t}
-						/>
+						<Filter searchingIn={searchingIn} setSearchingIn={setSearchingIn} t={t} />
 
 						<div className={cn(hidden ? "hidden" : "flex flex-col")}>
 							{!isPending && data.news.length > 0 ? <DisplayNews news={data.news} /> : null}
 
 							{!isPending && data.symbols.length > 0 ? <DisplaySymbols symbols={data.symbols} /> : null}
+
+							{!isPending && data.events.length > 0 ? <DisplayEvents events={data.events} /> : null}
 						</div>
 					</div>
 				)}
@@ -131,8 +130,13 @@ function getSearchParams(location: ReturnType<typeof useLocation>) {
 	return { searchParam, searchInParam }
 }
 
-function useInvalidSearchParamRedirect(searchInParam: string | null, searchParam: string | null, pathname: string, navigate: ReturnType<typeof useNavigate>) {
-	const validParams = ["all", "allSymbol", "stocks", "crypto", "news"]
+function useInvalidSearchParamRedirect(
+	searchInParam: string | null,
+	searchParam: string | null,
+	pathname: string,
+	navigate: ReturnType<typeof useNavigate>
+) {
+	const validParams = ["all", "allSymbol", "stocks", "crypto", "news", "events"]
 	if (searchInParam && !validParams.includes(searchInParam)) {
 		let url = pathname
 
@@ -146,8 +150,13 @@ function useInvalidSearchParamRedirect(searchInParam: string | null, searchParam
 	}
 }
 
-function useSearchQuery(debouncedValue: string, searchingIn: SearchType, pathname: string, navigate: ReturnType<typeof useNavigate>) {
-	return useQuery<{ symbols: SelectSymbolType[]; news: News[] }>({
+function useSearchQuery(
+	debouncedValue: string,
+	searchingIn: SearchType,
+	pathname: string,
+	navigate: ReturnType<typeof useNavigate>
+) {
+	return useQuery<{ symbols: SelectSymbolType[]; news: News[]; events: Events[] }>({
 		queryKey: ["search", debouncedValue, searchingIn],
 		queryFn: async () => {
 			console.log("searching", debouncedValue, searchingIn)
@@ -205,6 +214,8 @@ function SearchInput({
 				{hidden ? null : (
 					<Button
 						variant="ghost"
+						name="clear"
+						aria-label="Clear"
 						onClick={() => {
 							if (inputRef.current) {
 								inputRef.current.value = ""
@@ -214,7 +225,7 @@ function SearchInput({
 						}}
 						className="absolute top-0 right-0"
 					>
-						<MdClose className="size-6" />
+						<XIcon className="size-6" />
 					</Button>
 				)}
 			</div>
@@ -228,7 +239,7 @@ function Filter({
 	t
 }: {
 	searchingIn: SearchType
-	setSearchingIn: (searchingIn: SearchType) => void,
+	setSearchingIn: (searchingIn: SearchType) => void
 	t: TFunction
 }) {
 	return (
@@ -245,6 +256,10 @@ function Filter({
 
 			<Button variant={searchingIn === "news" ? "default" : "outline"} onClick={() => setSearchingIn("news")}>
 				{t("filters.news")}
+			</Button>
+
+			<Button variant={searchingIn === "events" ? "default" : "outline"} onClick={() => setSearchingIn("events")}>
+				Event
 			</Button>
 
 			<Button
@@ -313,6 +328,25 @@ function DisplayNews({ news }: { news: News[] }) {
 					>
 						<p className="overflow-hidden">{news.title}</p>
 						<p className="pl-10">{news.source}</p>
+					</Button>
+				</Link>
+			))}
+		</div>
+	)
+}
+
+function DisplayEvents({ events }: { events: Events[] }) {
+	return (
+		<div className="flex flex-col gap-1">
+			{events.map((event) => (
+				<Link to={`/events/${event.id}`} key={event.id}>
+					<Button
+						variant="outline"
+						key={event.id}
+						className="flex w-full flex-row items-center justify-between border-none p-2 "
+					>
+						<p className="overflow-hidden">{event.title}</p>
+						<p className="pl-10">{event.source}</p>
 					</Button>
 				</Link>
 			))}

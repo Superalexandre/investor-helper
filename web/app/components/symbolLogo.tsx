@@ -1,43 +1,70 @@
 import type { ReactNode } from "react"
-import { Avatar as ImageContainer, AvatarFallback as ImageFallback, AvatarImage as ImageContent } from "@/components/ui/avatar"
+import {
+	Avatar as ImageContainer,
+	AvatarFallback as ImageFallback,
+	AvatarImage as ImageContent
+} from "@/components/ui/avatar"
 import { Skeleton } from "./ui/skeleton"
 import { cn } from "../lib/utils"
-import Loading from "./loading"
 
 export default function SymbolLogo({
 	symbol,
 	className,
+	imageClassname,
+	skeletonClassname,
 	alt,
-	fallback
+	fallback,
+	width,
+	height,
+	format
 }: {
 	symbol:
-	| {
-		// biome-ignore lint/suspicious/noExplicitAny: This is a valid type.
-		[key: string]: any
-	}
-	| undefined
+		| {
+				// biome-ignore lint/suspicious/noExplicitAny: This is a valid type.
+				[key: string]: any
+		  }
+		| undefined | string
 	className?: string
+	imageClassname?: string
+	skeletonClassname?: string
 	alt?: string
 	// React.ReactNode
-	fallback?: ReactNode
+	fallback?: ReactNode,
+	width?: number | string,
+	height?: number | string,
+	format?: string
 }) {
 	if (!symbol) {
 		return fallback || null
 	}
 
-	const source = symbol.logoid || symbol.base_currency_logoid
+	const source = typeof symbol === "string" ? symbol : symbol.logoid || symbol.base_currency_logoid
 
 	if (!source) {
 		return fallback || null
 	}
 
+	// const url = new URL(`/api/image/symbol?name=${source}`)
+	let url = `/api/image/symbol?name=${source}`
+
+	if (width) {
+		url += `&width=${width}`
+	}
+
+	if (height) {
+		url += `&height=${height}`
+	}
+
+	if (format) {
+		url += `&format=${format}`
+	}
+
 	return (
 		<ImageContainer className={cn(className)}>
-			<ImageContent src={`/api/image/symbol?name=${source}`} alt={alt || "Icon"} className="bg-transparent" />
+			<ImageContent src={url.toString()} alt={alt || "Icon"} className={cn("bg-transparent", imageClassname)} />
 			<ImageFallback className="bg-transparent">
 				<Skeleton className="size-full rounded-full bg-muted" />
 			</ImageFallback>
 		</ImageContainer>
-
 	)
 }

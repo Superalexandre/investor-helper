@@ -1,8 +1,7 @@
-import { type ActionFunctionArgs, json } from "@remix-run/node"
+import type { ActionFunctionArgs } from "@remix-run/node"
 import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import { notificationSubscribedNewsKeywordsSchema, notificationSubscribedNewsSchema } from "@/schema/notifications"
-// import { generateSubscriptionId } from "@remix-pwa/push"
 import { getUser } from "../../../../../../session.server"
 import { and, eq } from "drizzle-orm"
 
@@ -11,15 +10,15 @@ export function loader() {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-    const formData = await request.formData()
+	const formData = await request.formData()
 
 	const { id } = params
 	if (!id) {
-		return json({
+		return {
 			success: false,
 			error: true,
 			message: "News id not found"
-		})
+		}
 	}
 
 	const sqlite = new Database("../db/sqlite.db")
@@ -27,63 +26,62 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 	const user = await getUser(request)
 	if (!user) {
-		return json({
+		return {
 			success: false,
 			error: true,
 			message: "User not found"
-		})
+		}
 	}
 
-    // Update the keyWords
-    // const keysWords = request.body.get("keywords") ? request.body.get("keywords") as string : null
-    const keysWords = formData.get("keywords") ? formData.get("keywords") as string : ""
+	// Update the keyWords
+	// const keysWords = request.body.get("keywords") ? request.body.get("keywords") as string : null
+	const keysWords = formData.get("keywords") ? (formData.get("keywords") as string) : ""
 
-    const actualKeywords = await db
-        .select()
-        .from(notificationSubscribedNewsKeywordsSchema)
-        .where(eq(notificationSubscribedNewsKeywordsSchema.notificationId, id))
+	const actualKeywords = await db
+		.select()
+		.from(notificationSubscribedNewsKeywordsSchema)
+		.where(eq(notificationSubscribedNewsKeywordsSchema.notificationId, id))
 
-    const keys = keysWords.split(",")
-    for (const key of keys) {
-        if (!actualKeywords.find(k => k.keyword === key.trim())) {
-            await db.insert(notificationSubscribedNewsKeywordsSchema)
-                .values({
-                    notificationId: id,
-                    keyword: key.trim(),
-                })
-        }
-    }
+	const keys = keysWords.split(",")
+	for (const key of keys) {
+		if (!actualKeywords.find((k) => k.keyword === key.trim())) {
+			await db.insert(notificationSubscribedNewsKeywordsSchema).values({
+				notificationId: id,
+				keyword: key.trim()
+			})
+		}
+	}
 
-    for (const key of actualKeywords) {
-        if (!keys.find(k => k.trim() === key.keyword)) {
-            await db
-                .delete(notificationSubscribedNewsKeywordsSchema)
-                .where(
-                    and(
-                        eq(notificationSubscribedNewsKeywordsSchema.notificationId, id),
-                        eq(notificationSubscribedNewsKeywordsSchema.keyword, key.keyword)
-                    )
-                )
-        }
-    }
-    
-    // Update the name
-    const name = formData.get("name") as string
+	for (const key of actualKeywords) {
+		if (!keys.find((k) => k.trim() === key.keyword)) {
+			await db
+				.delete(notificationSubscribedNewsKeywordsSchema)
+				.where(
+					and(
+						eq(notificationSubscribedNewsKeywordsSchema.notificationId, id),
+						eq(notificationSubscribedNewsKeywordsSchema.keyword, key.keyword)
+					)
+				)
+		}
+	}
 
-    await db
-        .update(notificationSubscribedNewsSchema)
-        .set({ name })
-        .where(
-            and(
-                eq(notificationSubscribedNewsSchema.userId, user.id),
-                eq(notificationSubscribedNewsSchema.notificationId, id)
-            )
-        )
+	// Update the name
+	const name = formData.get("name") as string
 
-    return json({
+	await db
+		.update(notificationSubscribedNewsSchema)
+		.set({ name })
+		.where(
+			and(
+				eq(notificationSubscribedNewsSchema.userId, user.id),
+				eq(notificationSubscribedNewsSchema.notificationId, id)
+			)
+		)
+
+	return {
 		success: true,
 		error: false,
 		message: "Notification push updated"
 		// subscriptionId
-	})
+	}
 }

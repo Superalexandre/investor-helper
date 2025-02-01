@@ -7,15 +7,33 @@
     "lastNews": "Latest important news",
     "seeMore": "See more",
     "nextEvents": "Upcoming important events",
+    "bestGainers": "Best gainers",
+    "bestLosers": "Best losers",
     "by": "By",
     "country": "Country",
     "importance": "Importance",
     "errors": {
         "loading": "Error while loading data",
         "emptyNews": "No important news",
-        "emptyEvents": "No important events"
+        "emptyEvents": "No important events",
+        "emptyGainers": "No best gainers"
     },
     "low": "low",
     "medium": "medium",
-    "high": "high"
+    "high": "high",
+    "recommendations": {
+        "strongBuy": "Strong buy",
+        "buy": "Buy",
+        "hold": "Hold",
+        "sell": "Sell",
+        "strongSell": "Strong sell"
+    },
+    "marketHours": "Market hours",
+    "open": "Open",
+    "closed": "Closed",
+    "closingAt": "Closing at",
+    "openingAt": "Opening at",
+    "localTime": "Local time",
+    "in": "In",
+    "hourIndicator": "h"
 }

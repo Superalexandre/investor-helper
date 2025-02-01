@@ -6,15 +6,27 @@ import { ScrollTop } from "@/components/scrollTop"
 import TimeCounter from "../../../components/timeCounter"
 import { useQuery } from "@tanstack/react-query"
 import type { Events } from "../../../../../db/schema/events"
-import { memo, useEffect, useRef } from "react"
+import { memo, type ReactNode, startTransition, useEffect, useRef, useState, useTransition } from "react"
 import SkeletonCalendar from "../../../components/skeletons/skeletonCalendar"
 import { useTranslation } from "react-i18next"
 import i18next from "../../../i18next.server"
 import type { TFunction } from "i18next"
 import { countries } from "../../../i18n"
+import ImportanceBadge from "../../../components/importanceBadge"
+import { DotSeparator } from "../../../components/ui/separator"
+import { Button } from "../../../components/ui/button"
+import { CalendarBody, CalendarDate, CalendarDatePagination, CalendarDatePicker, CalendarHeader, CalendarMonthPicker, CalendarProvider, type CalendarState, CalendarYearPicker, useCalendar } from "../../../components/ui/calendar"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../../../components/ui/dialog"
+import { EventDetails } from "../$id"
+import { Alert, AlertDescription, AlertTitle } from "../../../components/ui/alert"
+import { Skeleton } from "../../../components/ui/skeleton"
+import { addDays, startOfMonth } from "date-fns"
+import { Maximize2Icon, Minimize2Icon } from "lucide-react"
+import { cn } from "../../../lib/utils"
 // import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs"
 // import { useState } from "react"
 // import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { createParser, parseAsBoolean, parseAsInteger, parseAsString, parseAsStringEnum, parseAsStringLiteral, useQueryState } from 'nuqs'
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const t = await i18next.getFixedT(request, "calendar")
@@ -26,7 +38,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		title: title,
 		description: description
 	}
-
 }
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -51,29 +62,60 @@ export const handle = {
 
 export default function Index() {
 	const { t, i18n } = useTranslation("calendar")
+	// const [display, setDisplay] = useState("calendar")
+	// const [fullScreen, setFullScreen] = useState(false)
+
+	const [display, setDisplay] = useQueryState("display", parseAsStringLiteral(["calendar", "list"]).withDefault("calendar"))
+	const [fullScreen, setFullScreen] = useQueryState("fullScreen", parseAsBoolean.withDefault(false))
+
+	const isCalendar = display === "calendar"
 
 	return (
-		<div>
-			<ScrollTop showBelow={250} />
+		<div className="h-[calc(100vh-64px)]">
+			<div className="flex h-full flex-col items-center">
+				<ScrollTop showBelow={250} />
 
-			<div className="flex flex-col items-center justify-center space-y-4">
-				<p className="pt-4 text-center font-bold text-2xl">{t("events")}</p>
-			</div>
+				{isCalendar && fullScreen ? null : (
+					<div className="flex flex-col items-center justify-center space-y-4 pt-4">
+						<p className="text-center font-bold text-2xl">{t("events")}</p>
+					</div>
+				)}
 
-			{/* <Accordion type="single" collapsible className="px-4 lg:px-10">
-                <AccordionItem value="item-1">
-                    <AccordionTrigger>Événements important passés aujourd'hui</AccordionTrigger>
-                    <AccordionContent>
-                        TOUT LES ÉVÉNEMENTS PASSÉS
-                    </AccordionContent>
-                </AccordionItem>
-            </Accordion> */}
+				{/* px-4 pt-4 lg:px-10 lg:pt-10 */}
+				{/* w-full flex-col space-y-6 px-4 pt-4 lg:px-10 lg:pt-10 */}
+				<div
+					className={cn(
+						"flex h-full min-h-0 w-full flex-col space-y-6",
+						isCalendar && fullScreen ? "px-0 pt-0" : "px-4 pt-4 lg:px-10 lg:pt-10"
+					)}>
+					{isCalendar && fullScreen ? null : (
+						<div className="flex flex-col">
+							<div className="space-x-4">
+								<Button variant="outline" onClick={(): void => {
+									setDisplay(display === "list" ? "calendar" : "list")
+									// startTransition(() => {
+									// 	setDisplay(display === "list" ? "calendar" : "list")
+									// })
+								}}>
+									{display === "list" ? "Calendrier" : "Liste"}
+								</Button>
+							</div>
+						</div>
+					)}
 
-			<div className="w-full px-4 pt-4 lg:px-10 lg:pt-10">
-				<EconomicCalendar 
-					t={t}
-					language={i18n.language}
-				/>
+					{display === "list" ? (
+						<EconomicCalendarList t={t} language={i18n.language} />
+					) : (
+						<EconomicCalendar
+							t={t}
+							language={i18n.language}
+							isFullScreen={fullScreen}
+							setFullScreen={(): void => setFullScreen(!fullScreen)}
+						/>
+					)}
+
+				</div>
+
 			</div>
 			{/* <Tabs
 				defaultValue={tab}
@@ -100,15 +142,294 @@ export default function Index() {
 					<p>Test</p>
 				</TabsContent>
 			</Tabs> */}
-		</div>
+		</div >
 	)
 }
 
 const EconomicCalendar = memo(function EconomicCalendar({
 	t,
-	language
+	language,
+	isFullScreen,
+	setFullScreen
 }: {
 	t: TFunction,
+	language: string
+	isFullScreen: boolean,
+	setFullScreen: () => void
+}) {
+	const { t: tCalendar } = useTranslation("calendarId")
+	const [focusEvent, setFocusEvent] = useState<Events | null>(null)
+	const [isLoading, startTransition] = useTransition()
+	// const calendar = useCalendar()
+
+	const minYear = 2024
+	const maxYear = 2025
+
+	const defaultMonth = new Date().getMonth() as CalendarState["month"]
+	const [month, setMonth] = useQueryState("month", createParser<CalendarState["month"]>({
+		parse(queryValue): CalendarState["month"] | null {
+			if (Number.isNaN(Number(queryValue))) {
+				return null
+			}
+
+			const queryMonth = Number(queryValue)
+
+			if (queryMonth < 0 || queryMonth > 11) {
+				return null
+			}
+
+			return queryMonth as CalendarState["month"]
+		},
+		serialize(value): string {
+			return value.toString()
+		},
+	}).withDefault(defaultMonth).withOptions({ startTransition, shallow: false }))
+
+	const defaultYear = new Date().getFullYear() as CalendarState["year"]
+	const [year, setYear] = useQueryState("year", createParser<CalendarState["year"]>({
+		parse(queryValue): CalendarState["year"] | null {
+			if (Number.isNaN(Number(queryValue))) {
+				return null
+			}
+
+			const queryYear = Number(queryValue)
+
+			if (queryYear < minYear || queryYear > maxYear) {
+				return null
+			}
+
+			return queryYear as CalendarState["year"]
+		},
+		serialize(value): string {
+			return value.toString()
+		}
+	}).withDefault(defaultYear).withOptions({ startTransition, shallow: false }))
+
+	const {
+		data: events,
+		isPending,
+		error
+	} = useQuery<Events[]>({
+		queryKey: ["events", month, year],
+		queryFn: async () => {
+			const req = await fetch(`/api/calendar/economic?month=${month}&year=${year}`)
+
+			const json = await req.json()
+
+			return json
+		},
+		refetchOnWindowFocus: true
+	})
+
+	if (isPending || isLoading) {
+		const startMonth = startOfMonth(new Date(year, month))
+
+		const skeletonArray = Array.from({ length: 31 }).map((_, index) => {
+			const newDate = addDays(startMonth, index)
+
+			return {
+				endAt: newDate.toISOString(),
+			}
+		})
+
+		return (
+			<div className="flex h-full min-h-0 w-full items-center justify-center">
+				<div className="relative h-full w-full rounded-md border bg-background">
+					<CalendarProvider locale={language}>
+						<CalendarDate className="flex-col gap-2 sm:flex-row">
+							<CalendarDatePicker className="w-full justify-between sm:w-auto">
+								<CalendarMonthPicker
+									month={month}
+									setMonth={setMonth}
+								/>
+								<CalendarYearPicker
+									start={2024}
+									end={2025}
+									year={year}
+									setYear={setYear}
+								/>
+							</CalendarDatePicker>
+
+
+							<div className="flex w-full flex-col items-center justify-between sm:w-auto sm:flex-row">
+								<CalendarDatePagination className="flex w-full flex-row justify-between"
+									month={month}
+									setMonth={setMonth}
+									year={year}
+									setYear={setYear}
+								/>
+
+								<Button
+									variant="ghost"
+									onClick={setFullScreen}
+									className="flex flex-row items-center justify-center gap-2"
+									name="fullScreen"
+									aria-label={isFullScreen ? "Minimiser" : "Maximiser"}
+								>
+									{isFullScreen ? (
+										<>
+											<span className="block sm:hidden">Minimiser</span>
+											<Minimize2Icon size={16} />
+										</>
+									) : (
+										<>
+											<span className="block sm:hidden">Maximiser</span>
+											<Maximize2Icon size={16} />
+										</>
+									)}
+								</Button>
+							</div>
+						</CalendarDate>
+						<CalendarHeader textDirection="center" />
+						<CalendarBody
+							items={skeletonArray}
+							maxItems={10}
+							month={month}
+							year={year}
+						>
+							{({ item }): ReactNode => (
+								<Skeleton
+									key={item.endAt}
+									className="h-full w-full"
+								/>
+							)}
+						</CalendarBody>
+					</CalendarProvider>
+				</div>
+			</div>
+		)
+	}
+
+	if (error) {
+		throw error
+	}
+
+	return (
+		<div className="flex h-full min-h-0 w-full items-center justify-center sm:p-0">
+			<Dialog
+				open={!!focusEvent}
+				onOpenChange={(open) => open ? null : setFocusEvent(null)}
+			>
+				<DialogContent className="max-h-[91%] w-11/12 max-w-[91%] overflow-auto lg:max-w-fit">
+					<DialogHeader>
+						<DialogTitle>Informations sur l'événements</DialogTitle>
+						<DialogDescription>
+							Informations détaillées sur l'événement {focusEvent?.title || ""}
+						</DialogDescription>
+					</DialogHeader>
+
+					<div className="relative">
+						<div className="flex w-full items-center justify-center lg:justify-end">
+							<Button asChild={true} variant="default">
+								<Link to={`/calendar/${focusEvent?.id}`}>
+									Ouvrir la page de l'événement
+								</Link>
+							</Button>
+
+						</div>
+
+						{focusEvent ? (
+							<EventDetails
+								event={focusEvent}
+								language={language}
+								t={tCalendar}
+							/>
+						) : null}
+					</div>
+				</DialogContent>
+			</Dialog>
+
+			<div className="relative h-full w-full rounded-md border bg-background">
+				<CalendarProvider locale={language} className="relative">
+					<CalendarDate className="flex-col gap-2 sm:flex-row">
+						<CalendarDatePicker className="w-full justify-between sm:w-auto">
+							<CalendarMonthPicker
+								month={month}
+								setMonth={setMonth}
+							/>
+							<CalendarYearPicker
+								start={2024}
+								end={2025}
+								year={year}
+								setYear={setYear}
+							/>
+						</CalendarDatePicker>
+
+						<div className="flex w-full flex-col items-center justify-between sm:w-auto sm:flex-row">
+							<CalendarDatePagination
+								className="flex w-full flex-row justify-between"
+								month={month}
+								year={year}
+								setMonth={setMonth}
+								setYear={setYear}
+							/>
+
+							<Button
+								variant="ghost"
+								onClick={setFullScreen}
+								className="flex flex-row items-center justify-center gap-2"
+							>
+								{isFullScreen ? (
+									<>
+										<span className="block sm:hidden">Minimiser</span>
+										<Minimize2Icon size={16} />
+									</>
+								) : (
+									<>
+										<span className="block sm:hidden">Maximiser</span>
+										<Maximize2Icon size={16} />
+									</>
+								)}
+							</Button>
+						</div>
+
+					</CalendarDate>
+					<CalendarHeader
+						textDirection="center"
+					/>
+
+					{!events || events.length === 0 ? (
+						<Alert variant="destructive" className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 z-10 flex h-1/2 w-1/2 transform flex-col items-center justify-center bg-destructive">
+							<AlertTitle className="text-destructive-foreground">
+								Aucun événement
+							</AlertTitle>
+							<AlertDescription className="text-destructive-foreground">
+								Aucun événement n'a été trouvé pour ce mois
+							</AlertDescription>
+						</Alert>
+
+					) : null}
+
+					<CalendarBody
+						items={events.map((event) => ({ ...event, endAt: event.date || "" }))}
+						maxItems={10}
+						month={month}
+						year={year}
+					>
+						{({ item }): ReactNode => (
+							<div className="ml-2 flex items-center gap-2" key={item.id}>
+								<button className="flex flex-row items-center gap-2 truncate" type="button" onClick={() => setFocusEvent(item)}>
+									{/* <img
+										src={`https://flagcdn.com/${item.country.toLowerCase()}.svg`}
+										alt={countries[language][item.country]}
+										width="24"
+									/> */}
+									{item.title}
+								</button>
+							</div>
+						)}
+					</CalendarBody>
+				</CalendarProvider>
+			</div>
+		</div>
+	)
+})
+
+const EconomicCalendarList = memo(function EconomicCalendarList({
+	t,
+	language
+}: {
+	t: TFunction
 	language: string
 }) {
 	const location = useLocation()
@@ -141,18 +462,21 @@ const EconomicCalendar = memo(function EconomicCalendar({
 		}
 	}, [location.hash, events])
 
-	const importance: Record<number, { name: string; color: string }> = {
+	const importance: Record<number, { name: string; color: string, stars: number }> = {
 		[-1]: {
 			name: t("low"),
-			color: "text-green-500"
+			color: "text-green-500",
+			stars: 1
 		},
 		0: {
 			name: t("medium"),
-			color: "text-orange-500"
+			color: "text-orange-500",
+			stars: 2
 		},
 		1: {
 			name: t("high"),
-			color: "text-red-500"
+			color: "text-red-500",
+			stars: 3
 		}
 	}
 
@@ -175,13 +499,29 @@ const EconomicCalendar = memo(function EconomicCalendar({
 		throw error
 	}
 
+	if (!events || events.length === 0) {
+		return (
+			<p className="text-center text-lg">{t("noEvents")}</p>
+		)
+	}
+
 	return (
 		<div className="flex flex-col space-y-6">
 			{events.map((event) => (
-				<div className="relative" key={event.id} id={event.id} ref={(element) => {
-					calendarRefs.current[event.id] = element
-				}}>
-					<Card>
+				<div
+					className="relative"
+					key={event.id}
+					id={event.id}
+					ref={(element) => {
+						calendarRefs.current[event.id] = element
+					}}
+				>
+					<ImportanceBadge
+						starNumber={importance[event.importance].stars}
+						className="-right-[10px] -top-[10px] absolute"
+					/>
+
+					<Card className="border-card-border">
 						<Link
 							to={`/calendar/${event.id}`}
 							state={{
@@ -193,20 +533,24 @@ const EconomicCalendar = memo(function EconomicCalendar({
 							<CardHeader>
 								<CardTitle>
 									<span>{event.title}</span>
-									<span> - </span>
+									{/* <span> - </span>
 									<span className={importance[event.importance].color}>
 										{t("importance")} {importance[event.importance].name}
-									</span>
+									</span> */}
 								</CardTitle>
 							</CardHeader>
 						</Link>
 
 						<CardContent>{event.comment}</CardContent>
 
-						<CardFooter className="flex flex-col items-center justify-start gap-1 lg:flex-row lg:gap-2">
-							<span className="text-center">{countries[language][event.country]}</span>
-							<span className="hidden lg:block">-</span>
-							<span className="text-center">
+						<CardFooter className="flex flex-col flex-wrap justify-start gap-1 text-muted-foreground lg:flex-row lg:items-center lg:gap-2">
+							<span className="w-full lg:w-auto">
+								{countries[language][event.country]}
+							</span>
+
+							<DotSeparator className="hidden lg:block" />
+
+							<span className="w-full lg:w-auto">
 								{new Date(event.date || "").toLocaleDateString(language, {
 									hour: "numeric",
 									minute: "numeric",
@@ -217,6 +561,7 @@ const EconomicCalendar = memo(function EconomicCalendar({
 									weekday: "long"
 								})}
 							</span>
+
 							<TimeCounter date={event.date} diff={20 * 60 * 1000} />
 						</CardFooter>
 					</Card>

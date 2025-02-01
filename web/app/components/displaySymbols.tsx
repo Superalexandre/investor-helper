@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { memo, useState } from "react"
 import type { NewsRelatedSymbol } from "../../../db/schema/news"
 import { normalizeSymbol } from "../../utils/normalizeSymbol"
 import { Link } from "@remix-run/react"
@@ -13,7 +13,7 @@ interface FullSymbol {
 	news_related_symbol: NewsRelatedSymbol
 }
 
-export default function DisplaySymbols({
+export default memo(function DisplaySymbols({
 	symbolList,
 	redirect,
 	hash,
@@ -52,7 +52,13 @@ export default function DisplaySymbols({
 						variant="default"
 						className="flex h-8 flex-row items-center justify-center"
 					>
-						<SymbolLogo symbol={symbol.symbol} className="mr-1.5 size-6 rounded-full" />
+						<SymbolLogo 
+							symbol={symbol.symbol} 
+							className="mr-1.5 size-6 rounded-full" 
+							width={24}
+							height={24}
+							format="webp"
+						/>
 
 						{symbol.symbol.name}
 					</Badge>
@@ -79,4 +85,4 @@ export default function DisplaySymbols({
 			) : null}
 		</div>
 	)
-}
+})

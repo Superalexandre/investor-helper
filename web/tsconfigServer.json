@@ -20,7 +20,8 @@
         "forceConsistentCasingInFileNames": true,
         "baseUrl": ".",
         "paths": {
-            "@/*": ["*"]
+            "@/*": ["*"],
+			"@/log/*": ["../log/*"]
         },
         "types": [
             "@remix-run/node",

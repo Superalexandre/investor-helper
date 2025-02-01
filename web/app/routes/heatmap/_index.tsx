@@ -1,217 +1,178 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
-import { Form, useActionData, useLoaderData, useNavigate, useSearchParams, useSubmit } from "@remix-run/react"
-import { ClientOnly } from "remix-utils/client-only"
-import { Stage, Layer, Rect, Text, Image, Group } from "react-konva"
-import { type RefObject, useRef, useState } from "react";
-import type { KonvaEventObject } from "konva/lib/Node";
-import Konva from "konva";
+import type { ActionFunction, LoaderFunction, MetaFunction } from "@remix-run/node";
+import { Form, useActionData, useLoaderData, useNavigate, useSearchParams, useSubmit } from "@remix-run/react";
+import { ResponsiveContainer, Tooltip, Treemap } from "recharts";
+import { fetchScreener } from "../../../utils/tradingview/request";
+import { and, type ColumnScreenerMappingType, type ColumnTypeScreener, createFilterExpression, createFilterOperation } from "../../../utils/tradingview/filter";
+import { TransformWrapper, TransformComponent, type ReactZoomPanPinchState } from 'react-zoom-pan-pinch'
+import type { ReactNode } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
+import logger from "../../../../log";
+import { cn } from "../../lib/utils";
+import SymbolLogo from "../../components/symbolLogo";
 
-interface SymbolData {
-    name: string
+const columns = [
+    "close",
+    "currency",
+    "exchange",
+    "change",
+    "logoid",
+    "market_cap_basic",
+
+    "description"
+] satisfies ColumnTypeScreener[]
+
+type FilteredColumnMapping<TColumns extends readonly ColumnTypeScreener[]> = {
+    // [K in TColumns[number]]: ColumnTypeMappingType[K];
+    [K in TColumns[number]]: ColumnScreenerMappingType[K];
+};
+
+type ResultTyped<TColumns extends readonly ColumnTypeScreener[]> = FilteredColumnMapping<TColumns>;
+type ResultType = ResultTyped<typeof columns> & {
     symbol: string
-    color: {
-        background: string
-    }
-    price: number
-    currency: string
-    exchange: string
-    change: number
-    logo: string
+};
+
+type ProcessedDataType = ResultType & {
+    size: number
+    color: string
+    index: number
+    total: number
 }
 
-interface ItemData extends SymbolData {
-    columnIndex: number
-    rowIndex: number
-}
-
-type ColumnData = ItemData[]
-
-interface AllItemsData extends ItemData {
-    x: number
-    y: number
-    rectHeight: number
-    rectWidth: number
-}
-
-interface Markets {
-    [key: string]: {
-        url: string
-        symbolset: string[]
-        markets: string[]
-    }
-}
-
-const colors = {
-    "darkGreen": {
-        background: "#16a34a", // text-green-600
-    },
-    "green": {
-        background: "#22c55e", // text-green-500
-    },
-    "lightGreen": {
-        background: "#4ade80", // text-green-400
-    },
-    "gray": {
-        background: "#9ca3af", //text-gray-500
-    },
-
-    "darkRed": {
-        background: "#dc2626", // red-600
-    },
-    "red": {
-        background: "#ef4444", // red-500
-    },
-    "lightRed": {
-        background: "#f87171" // red-400
-    }
-}
-
-const textConfig = {
-    fontFamily: "Arial",
-    fontStyle: "bold",
-    fill: "#333",
-}
-
-async function getData(market = "SP500") {
-
+type Market = "SP500" | "CAC40" | "NASDAQ100"
+type Markets = {
+    [key in Market]: {
+        country: string
+        symbolset: string[];
+        markets: string[];
+        range: [number, number]
+    };
+};
+async function getData(market: Market = "SP500") {
     const markets: Markets = {
         "SP500": {
-            "url": "https://scanner.tradingview.com/america/scan?label-product=heatmap-stock",
-            "symbolset": [
-                "SYML:SP;SPX"
-            ],
-            "markets": [
-                "america"
-            ]
+            country: "america",
+            symbolset: ["SYML:SP;SPX"],
+            markets: ["america"],
+            range: [0, 300]
         },
         "CAC40": {
-            "url": "https://scanner.tradingview.com/france/scan?label-product=heatmap-stock",
-            "symbolset": [
-                "SYML:EURONEXT;PX1"
-            ],
-            "markets": [
-                "france"
-            ]
+            country: "france",
+            symbolset: ["SYML:EURONEXT;PX1"],
+            markets: ["france"],
+            range: [0, 40]
+        },
+        "NASDAQ100": {
+            country: "america",
+            symbolset: ["SYML:NASDAQ;NDX"],
+            markets: ["america"],
+            range: [0, 300]
         }
     }
 
-    const body = {
-        "columns": [
-            "close",
-            "currency",
-            "exchange",
-            "change",
-            "logoid",
-
-            "description"
-        ],
-        // biome-ignore lint/style/useNamingConvention: <explanation>
-        "ignore_unknown_fields": false,
-        "options": {
-            "lang": "fr"
-        },
-        "range": [
-            0,
-            100
-        ],
-        "sort": {
-            "sortBy": "market_cap_basic",
-            "sortOrder": "desc"
-        },
-        "symbols": {
-            "symbolset": markets[market].symbolset
-        },
-        "markets": markets[market].markets,
-        "filter": [
+    /*
+    [
             {
-                "left": "market_cap_basic",
-                "operation": "nempty"
+                left: "market_cap_basic",
+                operation: "nempty"
             },
             {
-                "left": "is_blacklisted",
-                "operation": "equal",
-                "right": false
+                left: "is_blacklisted",
+                operation: "equal",
+                right: false
             },
             {
-                "left": "name",
-                "operation": "not_in_range",
-                "right": [
-                    "GOOG"
-                ]
+                left: "name",
+                operation: "not_in_range",
+                right: ["GOOG"]
             }
         ]
-    }
+            */
 
-    const res = await fetch(markets[market].url, {
-        method: "POST",
-        body: JSON.stringify(body)
+    const selectedMarket = markets[market] || markets.SP500
+
+    const filter = and(
+        createFilterOperation("market_cap_basic", "nempty"),
+        // @ts-ignore
+        createFilterExpression("is_blacklisted", "equal", false),
+        createFilterExpression("name", "not_in_range", ["GOOG"]),
+    )
+
+    const { parsedResult } = await fetchScreener({
+        labelProduct: "heatmap-stock",
+        country: selectedMarket.country,
+        columns: columns,
+        filter: filter,
+        sort: {
+            sortBy: "market_cap_basic",
+            sortOrder: "desc"
+        },
+        // biome-ignore lint/style/useNamingConvention: <explanation>
+        ignore_unknown_fields: false,
+        options: {
+            lang: "fr"
+        },
+        range: selectedMarket.range,
+        markets: selectedMarket.markets,
+        symbols: {
+            symbolset: selectedMarket.symbolset
+        }
     })
 
-    const json = await res.json()
-    const data: SymbolData[] = []
+    if (!parsedResult) {
+        logger.error(`No result for ${market} in heatmap`)
 
-    for (const item of json.data) {
-        const change = item.d[3]
-
-        let color = colors.gray
-        if (change >= 3) {
-            color = colors.darkGreen
-        } else if (change >= 1.5) {
-            color = colors.green
-        } else if (change >= 0.5) {
-            color = colors.lightGreen
-        } else if (change <= -3) {
-            color = colors.darkRed
-        } else if (change <= -1.5) {
-            color = colors.red
-        } else if (change < -0.5) {
-            color = colors.lightRed
-        }
-
-        data.push({
-            name: item.d[5],
-            symbol: item.s,
-            color: color,
-            price: item.d[0],
-            currency: item.d[1],
-            exchange: item.d[2],
-            change: item.d[3] ? item.d[3].toFixed(2) : 0,
-            logo: item.d[4]
-        })
+        return []
     }
 
-
-    return data
+    return parsedResult as ResultType[]
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export const loader: LoaderFunction = async ({ request }) => {
+
     const url = new URL(request.url)
 
-    const data = await getData(url.searchParams.get("market") ?? undefined)
+    const market = url.searchParams.get("market") as Market | undefined
+
+    const result = await getData(market)
 
     return {
-        data
+        result
     }
+
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-    let market = "SP500"
+export const action: ActionFunction = async ({ request }) => {
     const body = await request.formData()
+    let market: Market = "SP500"
+
     if (body.get("market")) {
-        market = body.get("market") as string
+        market = body.get("market") as Market
     }
 
-    const data = await getData(market)
+    const result = await getData(market)
 
     return {
-        data
+        result
     }
 }
 
 export const meta: MetaFunction = () => {
+    // if (!data) {
+    // 	return []
+    // }
+
+    // const { title, description } = data
+
+    // return [
+    // 	{ title: title },
+    // 	{ name: "og:title", content: title },
+    // 	{ name: "description", content: description },
+    // 	{ name: "og:description", content: description },
+    // 	{ name: "canonical", content: "https://www.investor-helper.com/login" }
+    // ]
+
     const title = "Investor Helper - Heatmap"
-    const description = ""
+    const description = "Visualisation de la capitalisation boursière des entreprises du S&P 500, CAC 40 et NASDAQ 100."
 
     return [
         { title: title },
@@ -222,17 +183,198 @@ export const meta: MetaFunction = () => {
     ]
 }
 
-export default function Index() {
-    const { data } = useLoaderData<typeof loader>()
-    const lastData = useActionData<typeof action>()
-    
+const processData = (data: ResultType[] = []): ProcessedDataType[] => {
+    if (!Array.isArray(data) || data.length === 0) {
+        return []
+    }
+    const totalMarketCap = data.reduce((sum, stock) => sum + (stock.market_cap_basic || 0), 0)
+    const colors = ['#4299E1', '#48BB78', '#F6AD55', '#9F7AEA', '#F687B3', '#ED64A6', '#4FD1C5', '#ECC94B', '#90CDF4', '#E9D8FD']
+
+    const processed = data.map((stock, index) => ({
+        ...stock,
+        size: totalMarketCap > 0 ? ((stock.market_cap_basic || 0) / totalMarketCap) * 100 : 0,
+        color: colors[index % colors.length],
+        index,
+        total: data.length
+    }))
+
+    return processed
+}
+
+const CustomTooltip = ({ active, payload }: {
+    active: boolean,
+    payload: {
+        payload: ProcessedDataType
+    }[],
+    transformState: ReactZoomPanPinchState
+}): ReactNode | null => {
+    if (active && payload && payload.length > 0 && payload[0].payload) {
+        const data = payload[0].payload as ProcessedDataType
+
+        const formattedMarketCap = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: data.currency || 'USD',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(data.market_cap_basic || 0)
+
+
+        return (
+            <div className="grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
+                <p className="font-bold">{data.description} ({data.symbol})</p>
+
+                <div className="grid gap-1.5">
+                    <div className="flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground">
+                        <div className="flex flex-1 flex-col justify-between gap-2 leading-none">
+                            <p>Change : {data.change?.toFixed(2)}%</p>
+                            <p>Weight: {(data.size || 0).toFixed(2)}%</p>
+                            <p>Position: {data.index + 1}/{data.total}</p>
+                            <p>Market cap : {formattedMarketCap}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+
+    }
+    return null
+}
+
+const CustomizedContent = (props: {
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    value: number,
+    description: ProcessedDataType["description"],
+    symbol: ProcessedDataType["symbol"],
+    change: ProcessedDataType["change"],
+    logoid: ProcessedDataType["logoid"],
+    transformState: ReactZoomPanPinchState
+} | null): ReactNode => {
+    if (!props) {
+        return null
+    }
+
+    const { x, y, width, height, description, symbol, change, logoid } = props
+
+    const colors = {
+        darkGreen: {
+            background: "#16a34a" // text-green-600
+        },
+        green: {
+            background: "#22c55e" // text-green-500
+        },
+        lightGreen: {
+            background: "#4ade80" // text-green-400
+        },
+        gray: {
+            background: "#9ca3af" //text-gray-500
+        },
+
+        darkRed: {
+            background: "#dc2626" // red-600
+        },
+        red: {
+            background: "#ef4444" // red-500
+        },
+        lightRed: {
+            background: "#f87171" // red-400
+        }
+    }
+
+    const getColor = (change: number): {
+        background: string
+    } => {
+        const thresholds = [
+            { limit: 3, color: colors.darkGreen },
+            { limit: 1.5, color: colors.green },
+            { limit: 0.5, color: colors.lightGreen },
+            { limit: -0.5, color: colors.gray },
+            { limit: -1.5, color: colors.lightRed },
+            { limit: -3, color: colors.red },
+            { limit: Number.NEGATIVE_INFINITY, color: colors.darkRed }
+        ];
+
+        return thresholds.find(({ limit }) => change >= limit)?.color || colors.gray;
+    };
+
+    const color = getColor(change || 0)
+
+    const fontSize = 24
+    const minImageSize = width / 6
+
+    const displayText = height > (fontSize * 3) + minImageSize && width > (description?.length / 2) * fontSize
+    const bigImage = width < 50
+
+    const imageSize = Number(displayText ? width / 6 : (bigImage ? width : width / 2)).toFixed(0)
+
+    return (
+        <g>
+            <rect x={x} y={y} width={width} height={height} fill={color.background} />
+            <foreignObject x={x} y={y} width={width} height={height}>
+                <div className={cn(
+                    "flex size-full flex-col items-center justify-center",
+                    bigImage ? "p-2" : "p-3"
+                )}>
+                    <img
+                        src={`/api/image/symbol?name=${logoid}&width=${imageSize}&height=${imageSize}`}
+                        alt={description || symbol || "Logo"}
+                        className={cn(
+                            "mx-auto rounded-full",
+                            displayText ? "w-1/6" : (bigImage ? "w-full" : "w-1/2")
+                        )}
+                    />
+
+                    {/* <SymbolLogo
+                        symbol={logoid}
+                        width={imageSize}
+                        height={imageSize}
+                        alt={description || symbol || "Logo"}
+                        className={cn(
+                            "mx-auto rounded-full", 
+                            // `h-[${imageSize}px] w-[${imageSize}px]`
+                        )}
+                        // imageClassname="w-full h-full"
+                        // skeletonClassname={cn(`h-[${imageSize}px] w-[${imageSize}px]`)}
+                    /> */}
+
+                    <div
+                        className={cn(
+                            "flex w-full flex-col items-center justify-center",
+                            displayText ? "block" : "hidden"
+                        )}
+                    >
+                        <p className="truncate text-center">{description}</p>
+                        <p className="truncate text-center">{symbol}</p>
+                        <p className="truncate text-center">{change?.toFixed(2)}%</p>
+                    </div>
+                </div>
+            </foreignObject>
+        </g>
+    );
+}
+
+export default function Index(): ReactNode {
+    const { result } = useLoaderData<typeof loader>()
+    const resultAction = useActionData<typeof action>()
+
     const submit = useSubmit()
     const navigate = useNavigate()
     const [searchParams] = useSearchParams()
 
-    const containerRef = useRef<HTMLDivElement>(null)
+    if (!result || (resultAction && !resultAction.result)) {
+        return <p>No Data</p>
+    }
 
-    const handleSubmit = (value: string) => {
+    const processedData = processData(resultAction?.result ?? result as ResultType[])
+
+    if (!processedData || processedData.length === 0) {
+        return <p>No Data (processed)</p>
+    }
+
+
+    const handleSubmit = (value: string): void => {
         const formData = new FormData()
 
         formData.append("market", value)
@@ -242,361 +384,67 @@ export default function Index() {
         navigate(`/heatmap?market=${value}`)
     }
 
-    // Get the search market from the URL
     const market = searchParams.get("market") || "SP500"
 
     return (
-        <div className="h-full flex-1" ref={containerRef}>
-            <ClientOnly fallback={<p>Chargement</p>}>
-                {() => (
-                    <Form className="relative" method="POST">
-                        <div className="absolute top-0 left-0 z-10 m-4">
+        <div className="relative h-[calc(100dvh-64px)] w-full overflow-hidden">
 
-                            <Select name="market" defaultValue={market} onValueChange={(value) => handleSubmit(value)}>
-                                <SelectTrigger className="bg-background">
-                                    <SelectValue placeholder="Choisir un marché" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="SP500">S&P 500</SelectItem>
-                                    <SelectItem value="CAC40">CAC 40</SelectItem>
-                                </SelectContent>
-                            </Select>
+            <Form className="absolute top-0 left-0" method="POST">
+                <div className="absolute top-0 left-0 z-10 m-4">
+                    <Select
+                        name="market"
+                        defaultValue={market}
+                        onValueChange={(value) => handleSubmit(value)}
+                        aria-label="Choisir un marché"
+                    >
+                        <SelectTrigger className="bg-background">
+                            <SelectValue placeholder="Choisir un marché" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="SP500">S&P 500</SelectItem>
+                            <SelectItem value="CAC40">CAC 40</SelectItem>
+                            <SelectItem value="NASDAQ100">NASDAQ 100</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </Form>
+
+            <div className="h-full w-full">
+                <TransformWrapper
+                    initialScale={1}
+                    initialPositionX={0}
+                    initialPositionY={0}
+                >
+                    {({ instance }): ReactNode => (
+                        <div className="h-full w-full">
+                            {/* <div className="absolute top-4 left-4 z-10 space-x-2">
+                                <button onClick={() => zoomIn()} className="bg-blue-500 text-white px-4 py-2 rounded">Zoom In</button>
+                                <button onClick={() => zoomOut()} className="bg-blue-500 text-white px-4 py-2 rounded">Zoom Out</button>
+                                <button onClick={() => resetTransform()} className="bg-blue-500 text-white px-4 py-2 rounded">Reset</button>
+                                <button onClick={() => console.log(instance.transformState)} className="bg-blue-500 text-white px-4 py-2 rounded">Instance</button>
+                            </div> */}
+                            <TransformComponent contentClass="!w-full !h-full" wrapperClass="!w-full !h-full">
+                                <div className="h-full w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <Treemap
+                                            isAnimationActive={false}
+                                            data={processedData}
+                                            dataKey="size"
+                                            aspectRatio={4 / 3}
+                                            // @ts-expect-error - Props are automatically passed to the content component
+                                            content={<CustomizedContent transformState={instance.transformState} />}
+                                        >
+                                            {/* @ts-expect-error - Props are automatically passed to the content component */}
+                                            <Tooltip content={<CustomTooltip transformState={instance.transformState} />} />
+                                        </Treemap>
+                                    </ResponsiveContainer>
+
+                                </div>
+                            </TransformComponent>
                         </div>
-
-                        <Heatmap data={lastData ? lastData.data : data} containerRef={containerRef} />
-
-                        <div className="absolute bottom-0 left-0 m-4 flex flex-row items-center gap-4">
-                            <img src="/logo-1024-1024.webp" alt="Investor Helper" className="h-16 w-16" />
-
-                            <p className="font-bold text-lg">Investor Helper</p>
-                        </div>
-                    </Form>
-                )}
-            </ClientOnly>
+                    )}
+                </TransformWrapper>
+            </div>
         </div>
-    );
-}
-
-const wheelHandler = (e: KonvaEventObject<WheelEvent>, height: number, width: number) => {
-    const scaleBy = 1.1
-    const stage = e.target.getStage()
-
-    if (!stage) {
-        return
-    }
-
-    const oldScale = stage.scaleX()
-    const pointer = stage.getPointerPosition()
-
-    if (!pointer) {
-        return
-    }
-
-    const mousePointTo = {
-        x: pointer.x / oldScale - stage.x() / oldScale,
-        y: pointer.y / oldScale - stage.y() / oldScale
-    }
-
-    const newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy
-
-    if (newScale > 3 || newScale < 0.5) {
-        return
-    }
-
-    stage.scale({ x: newScale, y: newScale })
-
-    let newX = -(mousePointTo.x - pointer.x / newScale) * newScale
-    let newY = -(mousePointTo.y - pointer.y / newScale) * newScale
-
-    if (newX > 0) {
-        newX = 0
-    }
-
-    if (newY > 0) {
-        newY = 0
-    }
-
-    if (newX < -width) {
-        newX = -width
-    }
-
-    if (newY < -height) {
-        newY = -height
-    }
-
-    return {
-        scale: newScale,
-        x: newX,
-        y: newY
-    }
-}
-
-const dragHandler = (e: KonvaEventObject<DragEvent>, height: number, width: number) => {
-
-    if (e.target.x() > 0) {
-        e.target.x(0)
-    }
-
-    if (e.target.y() > 0) {
-        e.target.y(0)
-    }
-
-    if (e.target.x() < -width) {
-        e.target.x(-width)
-    }
-
-    if (e.target.y() < -height) {
-        e.target.y(-height)
-    }
-
-    return {
-        x: e.target.x(),
-        y: e.target.y()
-    }
-
-}
-
-const calculateTextHeight = (
-    text: string,
-    fontSize: number,
-    fontFamily = "Arial",
-    fontStyle = "normal"
-) => {
-    // Crée un objet Text temporaire pour mesurer la hauteur
-    const tempText = new Konva.Text({
-        text,
-        fontSize,
-        fontFamily,
-        fontStyle,
-    });
-
-    // Récupère la hauteur du texte
-    const textHeight = tempText.height();
-
-    // Libère l'objet temporaire en le supprimant (si nécessaire)
-    tempText.destroy();
-
-    return textHeight;
-};
-
-function Heatmap({
-    data,
-    containerRef
-}: {
-    data: SymbolData[],
-    containerRef: RefObject<HTMLDivElement>
-}) {
-    const fillWidth = false
-
-    const navigate = useNavigate()
-
-    const [scale, setScale] = useState(1)
-    const [position, setPosition] = useState({ x: 0, y: 0 })
-
-    const containerSize = containerRef.current?.getBoundingClientRect()
-
-    const width = containerSize?.width || 0;
-    const height = containerSize?.height || 0;
-
-    // Calculer le nombre optimal de colonnes et de lignes pour que les rectangles couvrent bien l'espace
-    const totalItems = data.length;
-    const rectSize = Math.sqrt((width * height) / totalItems) * 1
-
-    let columnsCount = Math.floor(width / rectSize) - 1;
-    columnsCount = Math.max(columnsCount, 1);
-
-    const rectWidth = fillWidth ? width / columnsCount : rectSize * 1.5;
-
-    const items: ItemData[] = []
-
-    // let lastX = 0
-    let lastY = 0
-    let columnIndex = 0
-    let rowIndex = 0
-
-    for (let i = 0; i < data.length; i++) {
-        const scaleFactor = Math.max(0.2, 3 * Math.exp(-i / (totalItems / 4)))
-
-        lastY += rectSize * scaleFactor
-
-        if (lastY >= height) {
-            lastY = 0
-
-            columnIndex++
-            rowIndex = 0
-        }
-
-        items.push({
-            ...data[i],
-            columnIndex,
-            rowIndex
-        })
-
-        rowIndex++
-    }
-
-    // Group items by column
-    // [
-    //      Column 0: [item1, item2, item3],
-    //      Column 1: [item4, item5, item6],
-    //    ...
-    // ]
-    const columns = items.reduce((acc, item) => {
-        if (!acc[item.columnIndex]) {
-            acc[item.columnIndex] = []
-        }
-
-        acc[item.columnIndex].push(item)
-
-        return acc
-    }, [] as ColumnData[])
-
-    // Map the columns and calculate the position of each item and the height and width, based on the number of items in the column
-    const allItems: AllItemsData[] = []
-    for (const column of columns) {
-        const totalColItems = column.length
-        const rectHeight = height / totalColItems
-
-        let lastY = 0
-        // let rowIndex = 0
-
-        for (const item of column) {
-            const x = item.columnIndex * rectWidth
-            const y = lastY
-
-            allItems.push({
-                ...item,
-                x,
-                y,
-                rectHeight,
-                rectWidth
-            })
-
-            lastY += rectHeight
-        }
-
-    }
-
-    return (
-        <Stage width={width} height={height}>
-            <Layer
-                draggable={true}
-                scaleX={scale}
-                scaleY={scale}
-                x={position.x}
-                y={position.y}
-
-                onDragMove={(e) => {
-                    const newPos = dragHandler(e, height, width)
-
-                    if (newPos) {
-                        setPosition(newPos)
-                    }
-                }}
-
-                onWheel={(e) => {
-                    const newPos = wheelHandler(e, height, width)
-
-                    if (newPos) {
-                        setPosition({
-                            x: newPos.x,
-                            y: newPos.y
-                        })
-
-                        setScale(newPos.scale)
-                    }
-                }}
-            >
-                {allItems.map((item) => {
-                    const text = `${item.name}\n${item.price}€\n${item.change}%`
-                    const smallText = `${item.name}`
-                    const fontSize = 20
-
-                    const textHeight = calculateTextHeight(text, fontSize, textConfig.fontFamily, textConfig.fontStyle)
-                    const smallTextHeight = calculateTextHeight(smallText, fontSize, textConfig.fontFamily, textConfig.fontStyle)
-
-                    const image = new window.Image()
-                    image.src = `/api/image/symbol?name=${item.logo}`
-
-                    // const imageSize = 40
-                    const imageSize = fontSize * 2
-                    const imageX = item.rectWidth / 2 - imageSize / 2
-                    const imageY = item.rectHeight / 2 - imageSize * 1.5
-
-                    const width = item.rectWidth;
-                    const height = item.rectHeight;
-
-                    return (
-                        <Group
-                            key={item.symbol}
-
-                            x={item.x}
-                            y={item.y}
-                            clip={{
-                                x: 0,
-                                y: 0,
-                                width: width,
-                                height: height,
-                            }}
-
-                            onClick={() => {
-                                navigate(`/data/${item.symbol}`)
-                            }}
-
-
-                        // onMouseOver={(e) => {
-                        //     hoverHandler(e, item)
-                        // }}
-                        >
-                            <Rect
-                                height={height}
-                                width={width}
-                                fill={item.color.background}
-                            />
-
-                            {item.rectHeight > textHeight + (imageSize + 10) ? (
-                                <Image
-                                    x={imageX}
-                                    y={imageY - 10}
-                                    width={imageSize}
-                                    height={imageSize}
-                                    cornerRadius={99999}
-                                    image={image}
-                                />
-                            ) : null}
-
-                            {item.rectHeight > textHeight ? (
-                                <Text
-                                    x={0}
-                                    y={height / 2 - textHeight / 2}
-                                    width={width}
-                                    align="center"
-                                    text={text}
-                                    fontSize={fontSize}
-                                    fill={textConfig.fill}
-                                    padding={5}
-                                    fontStyle={textConfig.fontStyle}
-                                />
-                            ) : null}
-
-                            {item.rectHeight < textHeight &&
-                                item.rectHeight > smallTextHeight ? (
-                                <Text
-                                    x={0}
-                                    y={height / 2 - smallTextHeight / 2}
-                                    width={width}
-                                    align="center"
-                                    text={smallText}
-                                    fontSize={fontSize}
-                                    fill={textConfig.fill}
-                                    padding={5}
-                                    fontStyle={textConfig.fontStyle}
-                                />
-                            ) : null}
-                        </Group>
-                    )
-                })}
-            </Layer>
-        </Stage>
     )
 }

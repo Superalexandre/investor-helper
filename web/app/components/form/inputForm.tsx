@@ -1,8 +1,10 @@
-import type { HTMLInputAutoCompleteAttribute, HTMLInputTypeAttribute } from "react"
+import type { ForwardRefExoticComponent, HTMLInputAutoCompleteAttribute, HTMLInputTypeAttribute, RefAttributes } from "react"
 import type { IconType } from "react-icons/lib"
 import type { JSX } from "react"
 import { Input } from "../ui/input"
 import { cn } from "../../lib/utils"
+import type { LucideProps } from "lucide-react"
+import type { TFunction } from "i18next"
 
 interface FieldErrors {
 	[key: string]: {
@@ -20,12 +22,13 @@ interface InputFormProps {
 	id?: string | undefined
 	name?: string | undefined
 	// biome-ignore lint/style/useNamingConvention: <explanation>
-	Icon?: IconType
+	Icon?: IconType | ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>
 	errors?: FieldErrors
 	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 	register?: any
 	// biome-ignore lint/style/useNamingConvention: <explanation>
-	ShowButton?: JSX.Element
+	ShowButton?: JSX.Element,
+	t: TFunction | undefined
 }
 
 export default function InputForm({
@@ -40,7 +43,8 @@ export default function InputForm({
 	Icon,
 	errors,
 	register,
-	ShowButton
+	ShowButton,
+	t
 }: InputFormProps) {
 	return (
 		<div className={cn("flex w-full flex-col items-start justify-center", parentClass)}>
@@ -65,8 +69,8 @@ export default function InputForm({
 			</div>
 
 			{errors && name && errors[name] ? (
-				<span className={cn("w-full text-center text-red-500 lg:text-left", errorClass)}>
-					{errors[name]?.message?.toString()}
+				<span className={cn("w-full text-center text-red-500 text-sm lg:text-left", errorClass)}>
+					{t ? t(errors[name]?.message?.toString()) : errors[name]?.message}
 				</span>
 			) : null}
 		</div>

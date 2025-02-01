@@ -1,12 +1,14 @@
 import crypto from "node:crypto"
 
-import { json } from "@remix-run/node"
 import bcrypt from "bcryptjs"
 import Database from "better-sqlite3"
 import { eq, sql } from "drizzle-orm"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import { usersSchema } from "@/schema/users"
 import { createUserSession } from "../../session.server"
+import i18next from "../../i18next.server"
+import logger from "../../../../log"
+import { sendAccountActivationEmail } from "../../../utils/email/email"
 
 interface FormData {
 	request: Request
@@ -19,8 +21,6 @@ interface FormData {
 	terms: boolean
 }
 
-const uniqueRegex = /UNIQUE constraint failed: accounts\.(\w+)/
-
 export default async function createAccount({
 	request,
 	name,
@@ -31,6 +31,8 @@ export default async function createAccount({
 	passwordConfirmation,
 	terms
 }: FormData) {
+	const t = await i18next.getFixedT(request, "register")
+
 	const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
 	const db = drizzle(sqlite)
 
@@ -65,13 +67,13 @@ export default async function createAccount({
 
 		if (mailExists.length > 0) {
 			errors.email = {
-				message: "Un utilisateur possède deja cette adresse mail"
+				message: t("errors.emailExists")
 			}
 		}
 
 		if (usernameExists.length > 0) {
 			errors.username = {
-				message: "Un utilisateur possède deja ce nom d'utilisateur"
+				message: t("errors.usernameExists")
 			}
 		}
 
@@ -79,7 +81,7 @@ export default async function createAccount({
 			success: false,
 			error: true,
 			errors,
-			message: "Une erreur est survenue lors de la création du compte !"
+			message: t("errors.errorOccurred")
 		}
 	}
 
@@ -89,96 +91,70 @@ export default async function createAccount({
 			error: true,
 			errors: {
 				password: {
-					message: "Les mots de passe ne correspondent pas"
+					message: t("errors.confirmPassword")
 				},
 				passwordConfirmation: {
-					message: "Les mots de passe ne correspondent pas"
+					message: t("errors.confirmPassword")
 				}
 			},
-			message: "Une erreur est survenue lors de la création du compte !"
+			message: t("errors.errorOccurred")
 		}
 	}
 
 	if (!terms) {
-		return json(
-			{
-				success: false,
-				error: true,
-				errors: {
-					terms: {
-						message: "Vous devez accepter les conditions d'utilisation"
-					}
-				},
-				message: "Une erreur est survenue lors de la création du compte !"
+		return {
+			success: false,
+			error: true,
+			errors: {
+				terms: {
+					message: t("errors.terms")
+				}
 			},
-			{ status: 500 }
-		)
+			message: t("errors.errorOccurred")
+		}
 	}
 
 	try {
+		// Insertion du nouvel utilisateur
 		const newUser = await db
 			.insert(usersSchema)
 			.values({
-				firstName: firstName,
-				lastName: name,
+				firstName: firstName.trim(),
+				lastName: name.trim(),
 				username: lowerUsername,
 				displayName: username,
 				password: hashedPassword,
 				salt: salt,
-				email: mailEncrypted
+				email: mailEncrypted,
+				emailVerified: false,
+				consentRgpd: true,
+				loggedWithGoogle: false
 			})
-			.returning({
-				token: usersSchema.token
-			})
+			.returning({ token: usersSchema.token })
 
-		// Check if the url have a redirect parameter
+		// Redirection
 		const url = new URL(request.url)
-		const redirectUrl = url.searchParams.get("redirect")
+		const redirectUrl = url.searchParams.get("redirect") || "/profile"
 
-		const redirectUrlString = redirectUrl ? redirectUrl : "/profile"
+		sendAccountActivationEmail(email)
 
 		return createUserSession({
 			request,
 			token: newUser[0].token,
-			redirectUrl: redirectUrlString
+			redirectUrl
 		})
 	} catch (error) {
-		const defaultError = json(
-			{
-				success: false,
-				error: true,
-				errors: {
-					root: {
-						message: "Une erreur est survenue lors de la création du compte !"
-					}
-				},
-				message: "Une erreur est survenue lors de la création du compte !"
+		logger.error("Erreur lors de la création du compte :", { error })
+
+		return {
+			success: false,
+			error: true,
+			errors: {
+				root: {
+					message: t("errors.errorOccurred")
+				}
 			},
-			{ status: 500 }
-		)
-
-		if (!(error instanceof Error)) {
-			return defaultError
+			message: t("errors.errorOccurred")
 		}
-
-		const match = error.message.match(uniqueRegex)
-		if (!match) {
-			return defaultError
-		}
-
-		return json(
-			{
-				success: false,
-				error: true,
-				errors: {
-					// mail: { message: "Une erreur est survenue lors de la création du compte !" },
-					[match[1]]: {
-						message: `Un utilisateur possède deja ce ${match[1]}`
-					}
-				},
-				message: "Une erreur est survenue lors de la création du compte !"
-			},
-			{ status: 500 }
-		)
 	}
 }

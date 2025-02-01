@@ -1,5 +1,7 @@
-import MillionLint from "@million/lint"
+// import MillionLint from "@million/lint"
 import { vitePlugin as remix } from "@remix-run/dev"
+// import ReactComponentName from "react-scan/react-component-name/vite"
+
 import { defineConfig } from "vite"
 import tsconfigPaths from "vite-tsconfig-paths"
 import { flatRoutes } from "remix-flat-routes"
@@ -10,6 +12,7 @@ import mdx from "@mdx-js/rollup"
 const isProduction = process.env.NODE_ENV === "production"
 
 const _plugins = [
+	// ReactComponentName({}),
 	mdx(),
 	isProduction && react(),
 	// react(),
@@ -30,22 +33,22 @@ const _plugins = [
 	tsconfigPaths()
 ]
 
-if (!isProduction) {
-	_plugins.push(
-		MillionLint.vite({
-			react: "18",
-			rsc: true,
-		})
-	)
-}
+// if (!isProduction) {
+// 	_plugins.push(
+// 		MillionLint.vite()
+// 	)
+// }
 
 export default defineConfig({
 	server: {
 		port: 4000
 	},
-	ssr: {
-		noExternal: ["react-charts", "remix-utils"]
-	},
+	// ssr: {
+	// 	noExternal: [
+	// 		"react-charts", 
+	// 		"remix-utils"
+	// 	]
+	// },
 	assetsInclude: ["**/*.md"],
 	plugins: _plugins
 })

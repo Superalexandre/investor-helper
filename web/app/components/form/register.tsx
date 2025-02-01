@@ -1,7 +1,6 @@
 import { Form, Link, useSearchParams } from "@remix-run/react"
 import InputForm, { type FieldErrors } from "./inputForm"
 import { useEffect, useState } from "react"
-import { MdAdd, MdBadge, MdEmail, MdPassword } from "react-icons/md"
 import { useRemixForm } from "remix-hook-form"
 import { z as zod } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -11,20 +10,27 @@ import { Label } from "../ui/label"
 import { Checkbox } from "../ui/checkbox"
 import Loading from "../loading"
 import { useTranslation } from "react-i18next"
+import { IdCardIcon, LockKeyholeIcon, LogInIcon, MailIcon, PlusIcon } from "lucide-react"
+import { Separator } from "../ui/separator"
+import { GoogleIcon } from "../svg/GoogleIcon"
 
 const schema = zod.object({
-	name: zod.string().min(3).max(32).trim(),
-	firstName: zod.string().min(3).max(32).trim(),
+	name: zod.string({
+	}).min(3, "errors.nameMinLength").max(32, "errors.nameMaxLength").trim(),
+	firstName: zod.string().min(3, "errors.firstNameMinLength").max(32, "errors.firstNameMaxLength").trim(),
 	username: zod
 		.string()
-		.min(3)
-		.max(32)
+		.min(3, "errors.usernameMinLength")
+		.max(32, "errors.usernameMaxLength")
 		.trim()
-		.regex(/^[a-zA-Z0-9_]+$/),
-	email: zod.string().email().trim().toLowerCase(),
-	password: zod.string().min(8).max(255),
-	passwordConfirmation: zod.string().min(8).max(255),
-	terms: zod.boolean().refine(value => value === true, "You must agree to the terms and conditions")
+		.regex(/^[a-zA-Z0-9_]+$/, "errors.usernameInvalid"),
+	email: zod.string().email("errors.emailInvalid").trim().toLowerCase(),
+	password: zod.string().min(8, "errors.passwordMinLength").max(255, "errors.passwordMaxLength"),
+	passwordConfirmation: zod.string().min(8, "errors.passwordMinLength").max(255, "errors.passwordMaxLength"),
+	terms: zod.boolean().refine((value) => value === true, "You must agree to the terms and conditions")
+}).refine(data => data.password === data.passwordConfirmation, {
+	message: "errors.confirmPassword",
+	path: ["passwordConfirmation"]
 })
 
 type FormData = zod.infer<typeof schema>
@@ -86,7 +92,8 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				autoComplete="name"
 				errors={errors as FieldErrors}
 				register={register}
-				Icon={MdBadge}
+				Icon={IdCardIcon}
+				t={t}
 			/>
 
 			<InputForm
@@ -97,7 +104,8 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				autoComplete="given-name"
 				errors={errors as FieldErrors}
 				register={register}
-				Icon={MdBadge}
+				Icon={IdCardIcon}
+				t={t}
 			/>
 
 			<InputForm
@@ -108,7 +116,8 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				autoComplete="username"
 				errors={errors as FieldErrors}
 				register={register}
-				Icon={MdBadge}
+				Icon={IdCardIcon}
+				t={t}
 			/>
 
 			<InputForm
@@ -119,7 +128,8 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				autoComplete="email"
 				errors={errors as FieldErrors}
 				register={register}
-				Icon={MdEmail}
+				Icon={MailIcon}
+				t={t}
 			/>
 
 			<InputForm
@@ -130,8 +140,9 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				autoComplete="new-password"
 				errors={errors as FieldErrors}
 				register={register}
-				Icon={MdPassword}
+				Icon={LockKeyholeIcon}
 				ShowButton={<ShowButtonComponent show={showPassword} setShow={setShowPassword} />}
+				t={t}
 			/>
 
 			<InputForm
@@ -142,14 +153,15 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				autoComplete="new-password"
 				errors={errors as FieldErrors}
 				register={register}
-				Icon={MdPassword}
+				Icon={LockKeyholeIcon}
 				ShowButton={
 					<ShowButtonComponent show={showPasswordConfirmation} setShow={setShowPasswordConfirmation} />
 				}
+				t={t}
 			/>
 
 			<div className="flex flex-col items-center">
-				<div className="flex flex-row items-center gap-2">
+				<div className="flex flex-row items-center gap-4">
 					<Checkbox
 						id="terms"
 						required={true}
@@ -159,15 +171,22 @@ export default function Register({ redirect, callback }: RegisterProps) {
 						})}
 					/>
 
-					<Label htmlFor="terms" className="space-x-1 dark:text-white">
-						<span>{t("accept")}</span>
-						<Link to="/terms" className="underline hover:text-slate-400 dark:text-white">
-							{t("terms")}
-						</Link>
-						<span>{t("and")}</span>
-						<Link to="/privacy" className="underline hover:text-slate-400 dark:text-white">
-							{t("privacy")}
-						</Link>
+					<Label htmlFor="terms" className="flex w-full flex-row flex-wrap items-center gap-1 dark:text-white">
+						<span className="">{t("accept")}</span>
+
+						<Button variant="link" asChild={true} className="inline-block h-auto p-0 underline hover:no-underline">
+							<Link to="/terms">
+								{t("terms")}
+							</Link>
+						</Button>
+
+						<span className="">{t("and")}</span>
+
+						<Button variant="link" asChild={true} className="inline-block h-auto p-0 underline hover:no-underline">
+							<Link to="/privacy">
+								{t("privacy")}
+							</Link>
+						</Button>
 					</Label>
 				</div>
 
@@ -178,33 +197,42 @@ export default function Register({ redirect, callback }: RegisterProps) {
 				) : null}
 			</div>
 
-			<Link
-				to={{
-					pathname: "/login",
-					search: preferredRedirect !== "" ? `?redirect=${preferredRedirect}` : ""
-				}}
-				className="text-center underline hover:text-slate-400 dark:text-white"
-			>
-				{t("haveAccount")}
-			</Link>
-
-			{/* <Link to="/forgot-password" className="text-white underline hover:text-slate-400 text-center">Mot de passe oublié ?</Link> */}
-
 			<Button
 				variant="default"
 				type="submit"
-				className="flex flex-row items-center justify-center gap-2"
-				// className={`${isSubmitting ? "opacity-50" : "hover:bg-green-700"} flex flex-row items-center justify-center gap-2 rounded bg-green-500 p-4 text-white`}
+				className="flex w-full flex-row items-center justify-center gap-2"
 				disabled={isSubmitting}
 			>
-				{isSubmitting ? (
-					<Loading className="size-5 border-2 dark:text-black" />
-				) : (
-					<MdAdd size={20} />
-				)}
+				{isSubmitting ? <Loading className="size-5 border-2 text-secondary" /> : <PlusIcon className="size-5" />}
 
 				{t("createAccount")}
 			</Button>
+
+			<Separator className="w-full bg-primary" />
+
+			<div className="flex w-full flex-col items-center justify-center gap-2 lg:flex-row lg:justify-between">
+
+				<Button size="lg" variant="outline" type="button" asChild={true} className="flex w-full flex-row items-center justify-center gap-2">
+					<Link
+						to={{
+							pathname: "/login",
+							search: preferredRedirect !== "" ? `?redirect=${preferredRedirect}` : ""
+						}}
+					>
+						<LogInIcon className="size-5" />
+
+						{t("connection")}
+					</Link>
+				</Button>
+
+				<Button size="lg" variant="outline" type="button" asChild={true} className="flex w-full flex-row items-center justify-center gap-2">
+					<Link to={`/login/auth/google?redirect=${preferredRedirect}`}>
+						<GoogleIcon className="fill-primary" />
+
+						{t("createGoogleAccount")}
+					</Link>
+				</Button>
+			</div>
 		</Form>
 	)
 }

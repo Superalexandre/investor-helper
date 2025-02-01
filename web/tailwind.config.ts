@@ -21,7 +21,8 @@ export default {
     			foreground: 'hsl(var(--foreground))',
     			card: {
     				DEFAULT: 'hsl(var(--card))',
-    				foreground: 'hsl(var(--card-foreground))'
+    				foreground: 'hsl(var(--card-foreground))',
+					border: 'hsl(var(--card-border))'
     			},
     			popover: {
     				DEFAULT: 'hsl(var(--popover))',
@@ -66,7 +67,11 @@ export default {
     				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
     				border: 'hsl(var(--sidebar-border))',
     				ring: 'hsl(var(--sidebar-ring))'
-    			}
+    			},
+				navbar: {
+					background: 'hsl(var(--navbar-background))',
+					foreground: 'hsl(var(--navbar-foreground))',
+				}
     		},
     		keyframes: {
     			'accordion-down': {

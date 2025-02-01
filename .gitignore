@@ -9,3 +9,4 @@ tsconfig.tsbuildinfo
 db/migrations/
 !/extension/tailwind.config.js
 !/vite.config.js
+/log/logs/*

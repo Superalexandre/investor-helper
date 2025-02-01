@@ -1,4 +1,4 @@
-import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node"
+import type { LinksFunction, LoaderFunction, LoaderFunctionArgs } from "@remix-run/node"
 import {
 	isRouteErrorResponse,
 	Link,
@@ -9,7 +9,7 @@ import {
 	Scripts,
 	ScrollRestoration,
 	useRouteError,
-	useRouteLoaderData,
+	useRouteLoaderData
 } from "@remix-run/react"
 import { ManifestLink, useSWEffect } from "@remix-pwa/sw"
 import stylesheet from "@/tailwind.css?url"
@@ -18,48 +18,50 @@ import { getUser } from "./session.server"
 import { Button } from "@/components/ui/button"
 import { type ReactNode, useEffect } from "react"
 import { Toaster } from "@/components/ui/toaster"
-import Database from "better-sqlite3"
-import { drizzle } from "drizzle-orm/better-sqlite3"
-import { sourceTrackingSchema } from "@/schema/sourceTracking"
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { Toaster as Sonner } from "@/components/ui/sonner"
 import { toast as sonner } from "sonner"
 import i18next from "./i18next.server"
 import { useTranslation } from "react-i18next"
 import { useChangeLanguage } from "remix-i18next/react"
 import { getTheme } from "./lib/getTheme"
+import { getNotificationListNumber } from "../utils/notifications"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { NuqsAdapter } from "nuqs/adapters/remix"
 
-export async function loader({ request }: LoaderFunctionArgs) {
-	const theme = getTheme(request)
-	const locale = await i18next.getLocale(request)
+export const loader: LoaderFunction = async ({ request }) => {
+	const [user, theme, locale] = await Promise.all([getUser(request), getTheme(request), i18next.getLocale(request)])
 
-	const user = await getUser(request)
-	const url = new URL(request.url)
-
-	const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
-	const db = drizzle(sqlite)
-
-	// Get the utm_source query parameter
-	const utmSource = url.searchParams.get("utm_source")
-
-	if (utmSource) {
-		await db.insert(sourceTrackingSchema).values({
-			source: utmSource,
-			fullUrl: url.href,
-			isLogged: user !== null,
-			type: "utm"
-		})
+	let notificationNumber = 0
+	if (user) {
+		notificationNumber = await getNotificationListNumber(user.id)
 	}
 
-	return { logged: user !== null, user, locale, theme: theme }
+	// const url = new URL(request.url)
+
+	// const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
+	// const db = drizzle(sqlite)
+
+	// Get the utm_source query parameter
+	// const utmSource = url.searchParams.get("utm_source")
+
+	// if (utmSource) {
+	// 	await db.insert(sourceTrackingSchema).values({
+	// 		source: utmSource,
+	// 		fullUrl: url.href,
+	// 		isLogged: user !== null,
+	// 		type: "utm"
+	// 	})
+	// }
+
+	return { logged: user !== null, user, locale, theme: theme, notificationNumber }
 }
 
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: stylesheet, as: "style", type: "text/css" }]
 export const handle = {
-	i18n: "common",
+	i18n: "common"
 }
 
-export function Layout({ children }: { children: ReactNode }) {
+export function Layout({ children }: { children: ReactNode }): ReactNode {
 	const data = useRouteLoaderData<typeof loader>("root")
 	const { i18n, t } = useTranslation("common")
 
@@ -71,7 +73,13 @@ export function Layout({ children }: { children: ReactNode }) {
 	useChangeLanguage(locale)
 
 	return (
-		<html lang={locale} dir={i18n.dir()} className={`${theme === "dark" ? "dark" : ""} bg-background`} translate="no">
+		<html
+			lang={locale}
+			dir={i18n.dir()}
+			className={`${theme} bg-background`}
+			data-theme={theme}
+			translate="no"
+		>
 			<head>
 				<meta charSet="utf-8" />
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -91,13 +99,12 @@ export function Layout({ children }: { children: ReactNode }) {
 				<meta property="og:url" content="https://www.investor-helper.com" />
 				<meta property="og:type" content="website" />
 				<meta property="og:image" content="https://www.investor-helper.com/logo-512-512.png" />
-				<meta property="og:locale" content="fr_FR" />
+				<meta property="og:locale" content={locale} />
 
 				<meta name="mobile-web-app-capable" content="yes" />
-
 			</head>
 			<body className="flex min-h-screen flex-col">
-				<Header logged={data?.logged ?? false} user={data?.user ?? null} t={t} />
+				<Header user={data?.user ?? null} t={t} notificationNumber={data?.notificationNumber ?? 0} />
 
 				{children}
 
@@ -111,12 +118,12 @@ export function Layout({ children }: { children: ReactNode }) {
 	)
 }
 
-export default function App() {
+export default function App(): ReactNode {
 	const queryClient = new QueryClient()
 
 	useEffect(() => {
 		if ("serviceWorker" in navigator) {
-			const handleMessages = (event: MessageEvent) => {
+			const handleMessages = (event: MessageEvent): void => {
 				console.log("SW message", event)
 
 				if (event.data && event.data.type === "notification") {
@@ -126,10 +133,11 @@ export default function App() {
 						description: event.data.body,
 						closeButton: true,
 						id: id,
+						className: "flex justify-between",
 						action: (
 							<Link
 								to={event.data.url}
-								onClick={() => {
+								onClick={(): void => {
 									sonner.dismiss(id)
 								}}
 							>
@@ -144,7 +152,7 @@ export default function App() {
 
 			navigator.serviceWorker.addEventListener("message", handleMessages)
 
-			return () => {
+			return (): void => {
 				navigator.serviceWorker.removeEventListener("message", handleMessages)
 			}
 		}
@@ -152,12 +160,14 @@ export default function App() {
 
 	return (
 		<QueryClientProvider client={queryClient}>
-			<Outlet />
+			<NuqsAdapter>
+				<Outlet />
+			</NuqsAdapter>
 		</QueryClientProvider>
 	)
 }
 
-export function ErrorBoundary() {
+export function ErrorBoundary(): ReactNode {
 	const { t } = useTranslation("common")
 	const error = useRouteError()
 
@@ -166,7 +176,7 @@ export function ErrorBoundary() {
 			return (
 				<div className="flex flex-grow flex-col items-center justify-center gap-4">
 					<h1 className="font-bold text-3xl">{t("error.notFoundTitle")}</h1>
-					<p>{t("error.notFoundMessage")}</p>
+					<p className="text-center">{t("error.notFoundMessage")}</p>
 					<Link to="/">
 						<Button type="button" variant="default">
 							{t("backHome")}
@@ -178,8 +188,10 @@ export function ErrorBoundary() {
 
 		return (
 			<div className="flex flex-grow flex-col items-center justify-center gap-4">
-				<h1 className="font-bold text-3xl">{t("error.errorTitle")} ({error.status})</h1>
-				<p>{error.statusText}</p>
+				<h1 className="font-bold text-3xl">
+					{t("error.errorTitle")} ({error.status})
+				</h1>
+				<p className="text-center">{error.statusText}</p>
 				<Link to="/">
 					<Button type="button" variant="default">
 						{t("backHome")}
@@ -193,7 +205,7 @@ export function ErrorBoundary() {
 		return (
 			<div className="flex flex-grow flex-col items-center justify-center gap-4">
 				<h1 className="font-bold text-3xl">{t("error.errorTitle")}</h1>
-				<p>{error.message}</p>
+				<p className="text-center">{error.message}</p>
 				<Link to="/">
 					<Button type="button" variant="default">
 						{t("backHome")}
@@ -205,7 +217,7 @@ export function ErrorBoundary() {
 
 	return (
 		<div className="flex flex-grow flex-col items-center justify-center gap-4">
-			<h1 className="font-bold text-3xl">{t("error.errorTtile")}</h1>
+			<h1 className="font-bold text-3xl">{t("error.errorTitle")}</h1>
 
 			<Link to="/">
 				<Button type="button" variant="default">

@@ -2,6 +2,7 @@
 import TradingView from "@mathieuc/tradingview"
 import { reverseNormalizeSymbol } from "./normalizeSymbol"
 import type { TimeFrame } from "../types/modules"
+import logger from "../../log"
 
 interface Period {
 	time: number
@@ -110,24 +111,65 @@ interface PeriodInfo {
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-let client: any
+// let client: any
+
+const cachedClient: Record<string, { client: TradingView.Client }> = {}
 
 export default function getPrices(
 	symbolId: string,
 	{
 		range = 100,
-		timeframe = "D"
+		timeframe = "D",
+		clientId
 	}: {
 		range?: number
 		timeframe?: string
+		clientId?: string
 	} = {}
 ) {
-	return new Promise<{ period: Period[]; periodInfo: PeriodInfo }>((resolve, reject) => {
-		if (!client) {
-			client = new TradingView.Client()
-		}
+	return new Promise<{ period: Period[]; periodInfo: PeriodInfo; clientId: string }>((resolve, reject) => {
+		// if (!client) {
+		// 	logger.info("Creating new client")
+
+		// 	client = new TradingView.Client()
+		// }
 		// if (!chart) chart = new client.Session.Chart()
+		// const chart = new client.Session.Chart()
+
+		let client: TradingView.Client = null
+		if (clientId && clientId !== "") {
+			if (cachedClient[clientId]) {
+				logger.info(`Using cached client: ${clientId}`)
+
+				client = cachedClient[clientId].client
+			} else {
+				logger.warn(`Invalid client id: ${clientId}, creating a new one`)
+
+				client = new TradingView.Client()
+				cachedClient[clientId] = { client }
+			}
+		}
+
+		if (!client) {
+			logger.info("Creating new client (no client id)")
+
+			const id = Math.random().toString(36).substring(7)
+
+			client = new TradingView.Client()
+
+			cachedClient[id] = { client }
+			clientId = id
+		}
+
 		const chart = new client.Session.Chart()
+
+		if (!chart) {
+			logger.error("Can't create a session")
+
+			reject("Can't create a session")
+
+			return
+		}
 
 		chart.setMarket(reverseNormalizeSymbol(symbolId), {
 			timeframe: timeframe as TimeFrame,
@@ -136,8 +178,13 @@ export default function getPrices(
 		})
 
 		chart.onError((...err: unknown[]) => {
-			console.error("Chart error:", ...err)
+			logger.error("Chart error:", ...err)
+			
 			reject(err)
+
+			closeClient({ clientId: clientId as string })
+
+			return
 		})
 
 		// chart.onSymbolLoaded(() => {})
@@ -145,505 +192,72 @@ export default function getPrices(
 		chart.onUpdate(() => {
 			// When price changes
 			if (!chart.periods[0]) {
+				logger.error("No price (no period)")
+
+				reject("No price (no period)")
+			
 				return
 			}
 
 			resolve({
 				period: chart.periods,
-				periodInfo: chart.infos
+				periodInfo: chart.infos,
+				clientId: clientId as string
 			})
 		})
 	})
 }
 
-export function closeClient() {
-	if (client) {
-		client.end()
-
-		client = null
+export function closeClient({ clientId }: { clientId: string } = { clientId: "" }) {
+	if (!clientId || clientId === "") {
+		logger.warn("No client id provided")
 	}
+
+	if (cachedClient[clientId]) {
+		logger.info(`Closing client: ${clientId}`)
+
+		cachedClient[clientId].client.end()
+
+		delete cachedClient[clientId]
+	}
+	// if (client) {
+	// 	logger.info("Closing client")
+
+	// 	client.end()
+
+	// 	client = null
+	// }
+}
+
+export function formatPrices(prices: Period[]): Period[] {
+	if (prices.length <= 1) {
+		return prices
+	}
+
+	const interval = prices[1].time - prices[0].time
+
+	const DAY_IN_MS = 24 * 60 * 60 * 1000
+	const HOUR_IN_MS = 60 * 60 * 1000
+
+	let filteredPrices: Period[]
+
+	if (interval >= DAY_IN_MS) {
+		filteredPrices = prices
+	} else if (interval < DAY_IN_MS && interval >= HOUR_IN_MS) {
+		filteredPrices = prices.filter((_, index) => index % 2 === 0)
+	} else {
+		filteredPrices = prices.filter((_, index) => index % 5 === 0)
+	}
+
+	// Ajouter le dernier prix (le plus ancien) s'il n'est pas déjà dans la liste
+	if (filteredPrices.at(-1) !== prices.at(-1)) {
+		const lastPrice = prices.at(-1)
+		if (lastPrice) {
+			filteredPrices.push(lastPrice)
+		}
+	}
+
+	return filteredPrices
 }
 
 export type { Period, PeriodInfo }
-
-// eslint-disable-next-line no-secrets/no-secrets
-/*
-// import fs from "fs"
-import { drizzle } from "drizzle-orm/better-sqlite3"
-import Database from "better-sqlite3"
-import { symbolPrices as symbolPricesSchema, symbols as symbolsSchema } from "../../db/schema/symbols"
-
-const columns = [
-    "name",
-    "description",
-    "logoid",
-    "type",
-    "close",
-    "currency",
-    "update_mode",
-    "typespecs",
-    "pricescale",
-    "minmov",
-    "fractional",
-    "minmove2",
-    "change",
-    "volume",
-    "relative_volume_10d_calc",
-    "market_cap_basic",
-    "fundamental_currency_code",
-    "price_earnings_ttm",
-    "earnings_per_share_diluted_ttm",
-    "earnings_per_share_diluted_yoy_growth_ttm",
-    "dividends_yield_current",
-    "sector.tr",
-    "market",
-    "sector",
-    "recommendation_mark",
-    "exchange"
-]
-
-const markets = [
-    "america",
-    // "argentina",
-    // "australia",
-    // "austria",
-    // "bahrain",
-    // "bangladesh",
-    // "belgium",
-    // "brazil",
-    // "canada",
-    // "chile",
-    // "china",
-    // "colombia",
-    // "cyprus",
-    // "czech",
-    // "denmark",
-    // "egypt",
-    // "estonia",
-    // "finland",
-    "france",
-    "germany",
-    // "greece",
-    "hongkong",
-    // "hungary",
-    // "iceland",
-    // "india",
-    // "indonesia",
-    // "israel",
-    "italy",
-    "japan",
-    // "kenya",
-    // "kuwait",
-    // "latvia",
-    // "lithuania",
-    "luxembourg",
-    // "malaysia",
-    // "mexico",
-    // "morocco",
-    "netherlands",
-    // "newzealand",
-    // "nigeria",
-    // "norway",
-    // "pakistan",
-    // "peru",
-    // "philippines",
-    // "poland",
-    // "portugal",
-    // "qatar",
-    // "romania",
-    // "russia",
-    // "ksa",
-    // "serbia",
-    // "singapore",
-    // "slovakia",
-    // "rsa",
-    "korea",
-    // "spain",
-    // "srilanka",
-    // "sweden",
-    // "switzerland",
-    // "taiwan",
-    // "thailand",
-    // "tunisia",
-    // "turkey",
-    // "uae",
-    "uk",
-    // "venezuela",
-    // "vietnam"
-]
-
-const paramsStocks = {
-    "columns": columns,
-    "ignore_unknown_fields": false,
-    "options": {
-        "lang": "en"
-    },
-    "range": [
-        0,
-        200
-    ],
-    "sort": {
-        "sortBy": "market_cap_basic",
-        "sortOrder": "desc"
-    },
-    "symbols": {
-
-    },
-    "markets": markets,
-    "filter": [
-        {
-            "left": "is_primary",
-            "operation": "equal",
-            "right": true
-        }
-    ],
-    "filter2": {
-        "operator": "and",
-        "operands": [
-            {
-                "operation": {
-                    "operator": "or",
-                    "operands": [
-                        {
-                            "operation": {
-                                "operator": "and",
-                                "operands": [
-                                    {
-                                        "expression": {
-                                            "left": "type",
-                                            "operation": "equal",
-                                            "right": "stock"
-                                        }
-                                    },
-                                    {
-                                        "expression": {
-                                            "left": "typespecs",
-                                            "operation": "has",
-                                            "right": [
-                                                "common"
-                                            ]
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "operation": {
-                                "operator": "and",
-                                "operands": [
-                                    {
-                                        "expression": {
-                                            "left": "type",
-                                            "operation": "equal",
-                                            "right": "stock"
-                                        }
-                                    },
-                                    {
-                                        "expression": {
-                                            "left": "typespecs",
-                                            "operation": "has",
-                                            "right": [
-                                                "preferred"
-                                            ]
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "operation": {
-                                "operator": "and",
-                                "operands": [
-                                    {
-                                        "expression": {
-                                            "left": "type",
-                                            "operation": "equal",
-                                            "right": "dr"
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "operation": {
-                                "operator": "and",
-                                "operands": [
-                                    {
-                                        "expression": {
-                                            "left": "type",
-                                            "operation": "equal",
-                                            "right": "fund"
-                                        }
-                                    },
-                                    {
-                                        "expression": {
-                                            "left": "typespecs",
-                                            "operation": "has_none_of",
-                                            "right": [
-                                                "etf"
-                                            ]
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            }
-        ]
-    }
-}
-
-const paramsETFs = {
-    "columns": columns,
-    "ignore_unknown_fields": false,
-    "options": {
-        "lang": "en"
-    },
-    "price_conversion": {
-        "to_currency": "usd"
-    },
-    "range": [
-        0,
-        200
-    ],
-    "sort": {
-        "sortBy": "aum",
-        "sortOrder": "desc"
-    },
-    "symbols": {
-
-    },
-    "markets": markets,
-    "filter": [
-        {
-            "left": "is_primary",
-            "operation": "equal",
-            "right": true
-        }
-    ],
-    "filter2": {
-        "operator": "and",
-        "operands": [
-            {
-                "operation": {
-                    "operator": "or",
-                    "operands": [
-                        {
-                            "operation": {
-                                "operator": "and",
-                                "operands": [
-                                    {
-                                        "expression": {
-                                            "left": "typespecs",
-                                            "operation": "has",
-                                            "right": [
-                                                "etn"
-                                            ]
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "operation": {
-                                "operator": "and",
-                                "operands": [
-                                    {
-                                        "expression": {
-                                            "left": "typespecs",
-                                            "operation": "has",
-                                            "right": [
-                                                "etf"
-                                            ]
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "operation": {
-                                "operator": "and",
-                                "operands": [
-                                    {
-                                        "expression": {
-                                            "left": "type",
-                                            "operation": "equal",
-                                            "right": "structured"
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            }
-        ]
-    }
-}
-
-const paramsCrypto = {
-    "columns": [
-        "name",
-        "description",
-        "logoid",
-        "type",
-        "close",
-        "currency",
-        "base_currency",
-        "base_currency_desc",
-        "base_currency_logoid",
-        "update_mode",
-        "type",
-        "typespecs",
-        "exchange",
-        "crypto_total_rank",
-        "pricescale",
-        "minmov",
-        "fractional",
-        "minmove2",
-        "24h_close_change|5",
-        "market_cap_calc",
-        "fundamental_currency_code",
-        "24h_vol_cmc",
-        "circulating_supply",
-        "crypto_common_categories.tr"
-    ],
-    "ignore_unknown_fields": false,
-    "options": {
-        "lang": "en"
-    },
-    "range": [
-        0,
-        1000
-    ],
-    "sort": {
-        "sortBy": "crypto_total_rank",
-        "sortOrder": "asc"
-    },
-    "symbols": {},
-    "markets": [
-        "coin"
-    ]
-}
-
-const forceList = [
-    {
-        symbolId: "EURONEXT:CHIP" 
-    }
-]
-
-async function getPrices() {
-    const sqlite = new Database("../db/sqlite.db")
-    const db = drizzle(sqlite)
-
-    const resStocks = await fetch("https://scanner.tradingview.com/global/scan", {
-
-        method: "POST",
-        body: JSON.stringify(paramsStocks),
-        headers: {
-            "Content-Type": "application/json"
-        }
-    })
-
-    const resETFs = await fetch("https://scanner.tradingview.com/global/scan", {
-        method: "POST",
-        body: JSON.stringify(paramsETFs),
-        headers: {
-            "Content-Type": "application/json"
-        }
-    })
-
-    const resCrypto = await fetch("https://scanner.tradingview.com/coin/scan", {
-        method: "POST",
-        body: JSON.stringify(paramsCrypto),
-        headers: {
-            "Content-Type": "application/json"
-        }
-    })
-
-    const jsonStocks = await resStocks.json()
-    const jsonETFs = await resETFs.json()
-    const jsonCrypto = await resCrypto.json()
-
-    const data = [...jsonStocks.data, ...jsonETFs.data, ...jsonCrypto.data]
-
-    const dbSymbols = await db
-        .select({
-            symbolId: symbolsSchema.symbolId
-        })
-        .from(symbolsSchema)
-    
-    for (const force of [...forceList, ...dbSymbols]) {
-        const fields = [
-            "name",
-            "description",
-            "close",
-            "currency",
-            "type",
-            "logoid"
-        ]
-
-        const res = await fetch(`https://scanner.tradingview.com/symbol?symbol=${force.symbolId}&fields=${fields.join(",")}&no_404=true&label-product=right-details`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json"
-            }
-        })
-
-
-        const json = await res.json()
-
-        if (!json) {
-            console.log("Error fetching data for ", force.symbolId)
-            continue
-        }
-
-        console.log(json)
-
-        data.push({
-            d: [json.name, json.description, json.logoid, json.type, json.close, json.currency]
-        })
-    }
-
-    const symbolCached: string[] = []
-    const insertData = []
-    for (const stock of data) {
-        const symbol = stock.s
-
-        if (symbolCached.includes(symbol)) continue
-
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const [name, description, logoid, type, close, currency] = stock.d
-
-        insertData.push({
-            symbolId: symbol,
-            date: new Date().toISOString(),
-            price: close,
-            currency
-        })
-
-        symbolCached.push(symbol)
-    }
-
-    // fs.writeFileSync("prices.json", JSON.stringify(data, null, 4))
-
-    console.log("Added data prices ", data.length)
-
-
-    // Do chunk insert
-    const chunkSize = 5_000
-    for (let i = 0; i < insertData.length; i += chunkSize) {
-        const chunk = insertData.slice(i, i + chunkSize)
-        await db
-            .insert(symbolPricesSchema)
-            .values(chunk)
-    }
-
-    return data
-}
-
-// getPrices()
-
-export default getPrices
-*/

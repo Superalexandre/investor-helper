@@ -1,12 +1,19 @@
 import { MdAdd, MdDelete } from "react-icons/md"
 import { Badge } from "../ui/badge"
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
+import {
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle
+} from "../ui/dialog"
 import { Input } from "../ui/input"
 import { Button } from "../ui/button"
 import { type FormEvent, useRef, useState } from "react"
 import { usePush } from "@remix-pwa/push/client"
-import { useSubmit } from "@remix-run/react"
-import { useFetcher } from "react-router-dom"
+import { useSubmit, useFetcher } from "@remix-run/react"
 
 export default function DialogNotificationNews({
 	open,
@@ -49,29 +56,28 @@ export default function DialogNotificationNews({
 		}
 	}
 
-    const submitCallback = (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
+	const submitCallback = (e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault()
 
-        const formData = new FormData(e.currentTarget)
-        if (pushSubscription) {
-            formData.append("pushSubscription", JSON.stringify(pushSubscription))
-        }
+		const formData = new FormData(e.currentTarget)
+		if (pushSubscription) {
+			formData.append("pushSubscription", JSON.stringify(pushSubscription))
+		}
 
-        if (keyword.length > 0) {
-            formData.append("keywords", keyword.join(","))
-        }
+		if (keyword.length > 0) {
+			formData.append("keywords", keyword.join(","))
+		}
 
-        submit(formData, {
-            encType: "multipart/form-data",
-            method: "post",
-            action: action,
-            navigate: false
-        })
+		submit(formData, {
+			encType: "multipart/form-data",
+			method: "post",
+			action: action,
+			navigate: false
+		})
 
-        setOpen(false)
-        setKeyword(keyword ?? keywords ?? [])
-        
-    }
+		setOpen(false)
+		setKeyword(keyword ?? keywords ?? [])
+	}
 
 	return (
 		<Dialog
@@ -82,11 +88,7 @@ export default function DialogNotificationNews({
 			}}
 		>
 			<DialogContent className="w-11/12">
-				<fetcher.Form
-					method="post"
-					action={action}
-					onSubmit={submitCallback}
-				>
+				<fetcher.Form method="post" action={action} onSubmit={submitCallback}>
 					<DialogHeader>
 						{type === "create" ? (
 							<>

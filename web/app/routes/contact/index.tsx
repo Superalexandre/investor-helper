@@ -1,4 +1,3 @@
-import { MdContactSupport } from "react-icons/md"
 import Contact, { type FormData, resolver } from "../../components/form/contact"
 import { Card, CardContent, CardTitle } from "../../components/ui/card"
 import { getValidatedFormData } from "remix-hook-form"
@@ -7,6 +6,7 @@ import Database from "better-sqlite3"
 import { drizzle } from "drizzle-orm/better-sqlite3"
 import { contactSchema } from "@/schema/contact"
 import { v4 as uuid } from "uuid"
+import { ShieldAlertIcon } from "lucide-react"
 
 export async function action({ request }: ActionFunctionArgs) {
 	const { errors, data, receivedValues: defaultValues } = await getValidatedFormData<FormData>(request, resolver)
@@ -35,7 +35,7 @@ export default function Index() {
 		<div className="flex h-screen w-screen flex-1 flex-col items-center justify-center p-4">
 			<Card className="size-full lg:size-1/2">
 				<CardTitle className="flex flex-row items-center justify-center gap-2 pt-4 pb-8 text-center font-bold text-3xl text-white">
-					<MdContactSupport size={30} />
+					<ShieldAlertIcon className="size-8" />
 					Contact
 				</CardTitle>
 				<CardContent className="flex h-full w-full items-center justify-center">

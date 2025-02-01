@@ -1,5 +1,5 @@
 import type { MetaFunction } from "@remix-run/node"
-import { type ClientLoaderFunctionArgs, Form, Link, redirect, useLoaderData, useSubmit } from "@remix-run/react"
+import { type ClientLoaderFunctionArgs, Form, Link, redirect, useLoaderData, useParams, useSubmit } from "@remix-run/react"
 import getWalletById from "@/utils/getWallet"
 import {
 	Dialog,
@@ -11,7 +11,7 @@ import {
 	DialogTrigger
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { type Dispatch, type FormEvent, type SetStateAction, useRef, useState } from "react"
+import { type Dispatch, type FormEvent, ReactNode, type SetStateAction, useRef, useState } from "react"
 import { SearchSymbol, type SelectSymbolType } from "@/components/searchSymbol"
 import getPrices, { closeClient, type Period } from "@/utils/getPrices"
 import { ClientOnly } from "remix-utils/client-only"
@@ -24,7 +24,7 @@ import {
 	ChartTooltipContent
 } from "@/components/ui/chart"
 import { Line, LineChart, ReferenceLine, XAxis, YAxis } from "recharts"
-import type { WalletSymbol } from "../../../../../db/schema/users"
+import type { Wallet, WalletSymbol } from "../../../../../db/schema/users"
 import getSymbolData, { type RawSymbol } from "@/utils/getSymbol"
 import { getUser } from "@/session.server"
 import { MdArrowBack, MdCalendarToday, MdDelete } from "react-icons/md"
@@ -37,171 +37,8 @@ import { Calendar } from "@/components/ui/calendar"
 import { format, formatDistanceStrict } from "date-fns"
 import { fr } from "date-fns/locale"
 import { normalizeSymbolHtml } from "@/utils/normalizeSymbol"
-
-type FullSymbol = RawSymbol & WalletSymbol
-
-export async function loader({ params, request }: ClientLoaderFunctionArgs) {
-	const { id } = params
-
-	if (!id) {
-		return redirect("/")
-	}
-
-	const user = await getUser(request)
-	if (!user) {
-		return redirect("/")
-	}
-
-	const resultWallet = await getWalletById({ id: id, token: user.token })
-
-	if (!resultWallet) {
-		return redirect("/")
-	}
-
-	const { wallet, walletSymbols } = resultWallet
-
-	const moneyInvested = walletSymbols.reduce((acc, symbol) => acc + (symbol.buyPrice ?? 0) * symbol.quantity, 0)
-	const prices: { symbol: FullSymbol; data: Period[] }[] = []
-	const totalPricesResult: TotalPrices[] = []
-
-	let walletValue = 0
-	let moneyWinFirst = 0
-	let moneyWinLast = 0
-
-	await Promise.all(
-		// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: TODO: Refactor this function
-		walletSymbols.map(async (symbol) => {
-			if (!symbol.symbol || symbol.quantity <= 0) {
-				return
-			}
-
-			const [priceResult, symbolData] = await Promise.all([
-				getPrices(symbol.symbol, {
-					timeframe: "1D",
-					range: 21
-				}),
-				getSymbolData(symbol.symbol)
-			])
-
-			const buyAt = new Date(symbol.buyAt).getTime()
-			const buyPrice = symbol.buyPrice ?? 0
-			const price = priceResult.period
-
-			// Firstprice is the first price of the period, we will find it end check if the symbol was bought at this time
-			let firstPrice: Period | null = null
-			// for (let i = 0; i < price.length; i++) {
-			// 	if (price[i].time * 1000 <= buyAt) {
-			// 		firstPrice = price[i]
-			// 		break
-			// 	}
-			// }
-
-			for (const p of price) {
-				if (p.time * 1000 <= buyAt) {
-					firstPrice = p
-					break
-				}
-			}
-
-			const lastPrice = price[0]
-			const firstPriceClose = firstPrice?.close ?? price[price.length - 1].close
-
-			walletValue += lastPrice.close * symbol.quantity
-
-			moneyWinFirst += firstPriceClose * symbol.quantity
-			moneyWinLast += lastPrice.close * symbol.quantity
-			const moneyWin = lastPrice.close * symbol.quantity - firstPriceClose * symbol.quantity
-
-			console.log({
-				firstPriceFound: firstPrice?.close,
-				symbol: symbol.symbol,
-				firstResult: (firstPriceClose - buyPrice) * symbol.quantity,
-				lastResult: (lastPrice.close - buyPrice) * symbol.quantity,
-				moneyWin
-			})
-
-			prices.push({
-				symbol: {
-					...symbol,
-					...symbolData
-				} as FullSymbol,
-				data: price
-			})
-
-			for (let i = 0; i < price.length; i++) {
-				if (!totalPricesResult[i]) {
-					const formattedTime = new Date(price[i].time * 1000)
-					formattedTime.setHours(0, 0, 0, 0)
-
-					totalPricesResult[i] = {
-						time: formattedTime.getTime(),
-						close: 0,
-						volume: 0,
-						performance: 0,
-						details: []
-					}
-				}
-
-				totalPricesResult[i].close += price[i].close * symbol.quantity
-				totalPricesResult[i].volume += price[i].volume
-
-				// Check time and win
-				if (price[i].time * 1000 >= buyAt) {
-					totalPricesResult[i].performance += (price[i].close - buyPrice) * symbol.quantity
-					// totalPricesResult[i].performance += price[i].close * symbol.quantity
-				}
-
-				totalPricesResult[i].details.push({
-					...symbolData,
-					...symbol,
-					price: price[i].close,
-					value: price[i].close * symbol.quantity
-				})
-			}
-		})
-	)
-
-	closeClient()
-
-	// Get from to dates
-	const from = prices.reduce(
-		(acc, price) => {
-			const first = price.data[price.data.length - 1].time
-			return first < acc ? first : acc
-		},
-		prices.length > 0 ? prices[0].data[prices[0].data.length - 1].time : 0
-	)
-
-	const to = prices.reduce(
-		(acc, price) => {
-			const last = price.data[0].time
-			return last > acc ? last : acc
-		},
-		prices.length > 0 ? prices[0].data[0].time : 0
-	)
-
-	const difference = formatDistanceStrict(from * 1000, to * 1000, {
-		locale: fr
-	})
-
-	console.log({
-		moneyWinLast,
-		moneyWinFirst,
-		result: moneyWinFirst - moneyWinLast,
-		result2: moneyWinLast - moneyWinFirst
-	})
-
-	return {
-		walletValue: walletValue,
-		wallet: wallet,
-		walletSymbols: walletSymbols,
-		// prices: prices,
-		moneyWin: moneyWinLast - moneyWinFirst,
-		moneyInvested,
-		difference,
-		totalPrices: totalPricesResult.reverse()
-	}
-}
+import { useQuery } from "@tanstack/react-query"
+import { WalletData } from "./WalletData"
 
 export const meta: MetaFunction = () => {
 	const title = "Investor Helper - Votre portefeuille"
@@ -215,17 +52,49 @@ export const meta: MetaFunction = () => {
 	]
 }
 
-export function HydrateFallback() {
-	return <p>Chargement...</p>
-}
-
 export default function Index() {
-	const { walletSymbols, walletValue, wallet, moneyInvested, moneyWin, difference, totalPrices } =
-		useLoaderData<typeof loader>()
+	const params = useParams()
+
+	if (!params.id) {
+		return redirect("/")
+	}
+
+	const {
+		data,
+		isPending,
+		error,
+	} = useQuery<{
+		data: {
+			wallet: Wallet,
+			walletSymbols: WalletSymbol[]
+		}
+	}>({
+		queryKey: ["wallet", params.id],
+		queryFn: async () => {
+			const req = await fetch(
+				`/api/wallet/info?walletId=${params.id}`
+			)
+			const json = await req.json()
+
+			// Fake loading
+			// await new Promise((resolve) => setTimeout(resolve, 500_000))
+
+			return json
+		},
+		refetchOnWindowFocus: true
+	})
+
+	if (isPending) {
+		return <p>Chargement...</p>
+	}
+
+	if (!data) {
+		return <p>Erreur</p>
+	}
 
 	return (
 		<div className="relative flex flex-col items-center justify-center">
-			<div className="w-full">
+			<div className="flex w-full flex-row items-center justify-between">
 				<Button asChild={true} variant="default">
 					<Link
 						to="/profile"
@@ -235,234 +104,24 @@ export default function Index() {
 						Retour
 					</Link>
 				</Button>
+
+				<Button variant="outline" className="top-0 right-0 m-4 lg:absolute">
+					Paramètres
+				</Button>
 			</div>
 
 			<div className="flex flex-col gap-4">
-				<h1 className="flex flex-col items-center pt-0 text-center font-bold text-2xl lg:pt-4">
-					{wallet.name}
+				<div className="flex w-full flex-col items-center justify-center gap-2 pt-0 lg:pt-4">
+					<h1 className="text-center font-bold text-2xl">
+						{data.data.wallet.name}
+					</h1>
 
-					<span className="font-normal text-base text-muted-foreground">{wallet.description}</span>
-				</h1>
-
-				<div className="flex flex-col justify-center gap-2">
-					<div>
-						<p className="text-center">Investissement total</p>
-						<p className="text-center font-bold">
-							{new Intl.NumberFormat("fr-FR", {
-								style: "currency",
-								currency: "EUR"
-							}).format(moneyInvested)}
-						</p>
-					</div>
-
-					<div>
-						<p className="text-center">Gain total de votre portefeuille</p>
-						<p className="flex flex-row items-center justify-center gap-2 text-center font-bold">
-							{new Intl.NumberFormat("fr-FR", {
-								style: "currency",
-								currency: "EUR"
-							}).format(walletValue)}
-
-							<div>
-								<span>(</span>
-								<span
-									className={`${walletValue - moneyInvested > 0 ? "text-green-500" : "text-red-500"}`}
-								>
-									{walletValue - moneyInvested < 0 ? "" : "+"}
-									{new Intl.NumberFormat("fr-FR", {
-										style: "currency",
-										currency: "EUR"
-									}).format(walletValue - moneyInvested)}
-								</span>
-								<span>)</span>
-							</div>
-						</p>
-					</div>
-
-					<div>
-						<p className="text-center">Performance sur {difference}</p>
-						<p className={`${moneyWin > 0 ? "text-green-500" : "text-red-500"} text-center font-bold`}>
-							{moneyWin < 0 ? "" : "+"}
-							{new Intl.NumberFormat("fr-FR", {
-								style: "currency",
-								currency: "EUR"
-							}).format(moneyWin)}
-						</p>
-					</div>
+					<span className="font-normal text-base text-muted-foreground">{data.data.wallet.description}</span>
 				</div>
 			</div>
 
-			{/* <AddNotification /> */}
-
-			<DialogAddSymbols triggerText="Ajouter un symbole" walletId={wallet.walletId} />
-
-			<ChartWallet
-				// prices={prices}
-				walletSymbolsList={walletSymbols}
-				totalPrices={totalPrices}
-			/>
+			<WalletData walletId={params.id} />
 		</div>
-	)
-}
-
-// interface Prices {
-//     symbol: FullSymbol,
-//     data: Period[]
-// }
-
-interface TotalPrices {
-	time: number
-	close: number
-	volume: number
-	details: Array<
-		FullSymbol & {
-			price: number
-			value: number
-		}
-	>
-	performance: number
-}
-
-export function ChartWallet({
-	totalPrices,
-	walletSymbolsList
-}: { totalPrices: TotalPrices[]; walletSymbolsList: WalletSymbol[] }) {
-	const chartConfig = {
-		close: {
-			label: "Prix",
-			color: "hsl(var(--chart-1))"
-		},
-		time: {
-			label: "Date"
-		},
-		volume: {
-			label: "Volume",
-			color: "hsl(var(--chart-2))"
-		}
-	} satisfies ChartConfig
-
-	// const totalPrices = useMemo(() => {
-	//     const totalPricesResult: TotalPrices[] = []
-
-	//     return totalPricesResult.reverse()
-	// }, [prices])
-
-	return (
-		<ClientOnly fallback={<p>Chargement...</p>}>
-			{() => (
-				<ChartContainer config={chartConfig} className="min-h-[200px] w-full overflow-hidden">
-					<LineChart data={totalPrices}>
-						<XAxis
-							dataKey="time"
-							tickFormatter={(timestamp) =>
-								new Date(timestamp).toLocaleString("fr-FR", {
-									day: "numeric",
-									month: "short",
-									year: "numeric"
-								})
-							}
-							tickLine={false}
-							axisLine={false}
-							tickMargin={8}
-							scale="auto"
-						/>
-
-						<YAxis dataKey="performance" tickLine={false} axisLine={false} scale="auto" />
-
-						<Line
-							type="monotone"
-							dataKey="performance"
-							stroke="var(--color-close)"
-							strokeWidth={2}
-							dot={false}
-						/>
-
-						{walletSymbolsList.map((symbol) => {
-							const x = new Date(symbol.buyAt)
-							x.setHours(0, 0, 0, 0)
-
-							return (
-								<ReferenceLine
-									key={x.getTime()}
-									x={x.getTime()}
-									stroke="red"
-									label={() => <p>{`Achat de ${symbol.symbol}`}</p>}
-								/>
-							)
-						})}
-
-						<ChartLegend content={<ChartLegendContent />} />
-
-						<ChartTooltip
-							cursor={false}
-							content={
-								<ChartTooltipContent
-									indicator="dot"
-									labelFormatter={(_value, dataLabel) => {
-										return new Date(dataLabel[0].payload.time).toLocaleString("fr-FR", {
-											weekday: "long",
-											day: "numeric",
-											month: "short",
-											year: "numeric"
-											// hour: "numeric",
-											// minute: "numeric",
-										})
-									}}
-									formatter={(value, _name, payload) => {
-										console.log(payload.payload.time)
-
-										const time = new Date(payload.payload.time).getTime()
-
-										return (
-											<div className="flex flex-col gap-6">
-												<div className="flex flex-row items-center gap-2">
-													<div className="size-5 rounded-sm bg-[--color-close]" />
-													<p className="font-bold">
-														{new Intl.NumberFormat("fr-FR", {
-															style: "currency",
-															currency: "EUR"
-														}).format(Number.parseFloat(value as string))}
-													</p>
-												</div>
-
-												<div className="flex flex-col gap-2">
-													{(payload.payload.details as TotalPrices["details"]).map(
-														(detail, i) => (
-															<div
-																key={`${detail.symbol}-${i}`}
-																className="flex flex-row items-center gap-2"
-															>
-																{/* <div className="size-3 rounded-sm bg-[--color-close]"></div> */}
-																<SymbolLogo
-																	symbol={detail}
-																	alt=""
-																	className="size-5 rounded-sm"
-																	fallback={<div className="size-6" />}
-																/>
-
-																<p
-																	className={`${new Date(detail.buyAt).getTime() >= time ? "text-red-500" : "text-green-500"}`}
-																>
-																	{detail.description} -
-																	{new Intl.NumberFormat("fr-FR", {
-																		style: "currency",
-																		currency: "EUR"
-																	}).format(detail.value)}
-																</p>
-															</div>
-														)
-													)}
-												</div>
-											</div>
-										)
-									}}
-								/>
-							}
-						/>
-					</LineChart>
-				</ChartContainer>
-			)}
-		</ClientOnly>
 	)
 }
 
@@ -516,31 +175,31 @@ export function DialogAddSymbols({ triggerText, walletId }: { triggerText: strin
 					<div className="flex max-h-96 flex-col overflow-auto">
 						{selectedSymbol.length > 0
 							? selectedSymbol.map((symbol, i) => (
-									<div
-										className="flex flex-row items-center gap-2"
-										key={`${normalizeSymbolHtml(symbol.symbol)}-${i}`}
+								<div
+									className="flex flex-row items-center gap-2"
+									key={`${normalizeSymbolHtml(symbol.symbol)}-${i}`}
+								>
+									<SymbolLogo symbol={symbol} className="size-5 rounded-sm" />
+
+									<p>
+										{normalizeSymbolHtml(symbol.description)} (
+										{normalizeSymbolHtml(symbol.symbol)})
+									</p>
+
+									<p>
+										{symbol.quantity} action à {symbol.price} {symbol.currency_code}
+									</p>
+
+									<Button
+										variant="destructive"
+										onClick={() =>
+											setSelectedSymbol((prev) => prev.filter((s) => s !== symbol))
+										}
 									>
-										<SymbolLogo symbol={symbol} className="size-5 rounded-sm" />
-
-										<p>
-											{normalizeSymbolHtml(symbol.description)} (
-											{normalizeSymbolHtml(symbol.symbol)})
-										</p>
-
-										<p>
-											{symbol.quantity} action à {symbol.price} {symbol.currency_code}
-										</p>
-
-										<Button
-											variant="destructive"
-											onClick={() =>
-												setSelectedSymbol((prev) => prev.filter((s) => s !== symbol))
-											}
-										>
-											<MdDelete />
-										</Button>
-									</div>
-								))
+										<MdDelete />
+									</Button>
+								</div>
+							))
 							: null}
 					</div>
 
