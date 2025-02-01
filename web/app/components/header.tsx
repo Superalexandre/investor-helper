@@ -52,13 +52,6 @@ export default function Header({
 						Investor helper
 					</Link>
 
-					{/* <Button variant="ghost">
-						<Link to="/" className="flex flex-row items-center">
-							<MdHome className="mr-2 inline-block" />
-							{t("header.home")}
-						</Link>
-					</Button> */}
-
 					<Button variant="ghost" className="p-0">
 						<Link to="/news" className="flex flex-row items-center px-4 py-2">
 							{/* <MdNewspaper className="mr-2 inline-block" /> */}
