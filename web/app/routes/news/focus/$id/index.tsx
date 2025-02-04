@@ -149,7 +149,7 @@ export default function Index() {
 									<DotSeparator className="hidden lg:block" />
 
 									<span className="w-full lg:w-auto">
-										{new Date(news.news.published * 1000 * 1000 || "").toLocaleDateString(i18n.language, {
+										{new Date(news.news.published * 1000 || "").toLocaleDateString(i18n.language, {
 											hour: "numeric",
 											minute: "numeric",
 											year: "numeric",
