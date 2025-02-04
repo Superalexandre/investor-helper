@@ -179,77 +179,74 @@ async function fetchNews(lang = "fr-FR") {
 	// Make a deep copy of the news array
 	const newsCopy: NewsSymbolsArticle[] = [...news]
 
-	for (const newsItem of newsCopy) {
-		const exists = await db.select().from(newsSchema).where(eq(newsSchema.id, newsItem.id))
+	// Fetch all articles in parallel
+	const articlePromises = newsCopy.map(async (newsItem) => {
+		const exists = await db.select().from(newsSchema).where(eq(newsSchema.id, newsItem.id));
 
 		if (exists.length > 0) {
-			continue
+			return null; // Skip if already exists
 		}
 
-		const url = new URL(urlLang.originLocale + newsItem.storyPath)
+		const url = new URL(urlLang.originLocale + newsItem.storyPath);
 
 		const fullArticle = await fetch(url, {
 			headers: {
-				"User-Agent":
-					"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
-				// biome-ignore lint/style/useNamingConvention: Headers
-				Accept: "application/json, text/javascript, */*; q=0.01",
+				"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
+				"Accept": "application/json, text/javascript, */*; q=0.01",
 				"Accept-Language": "en-US,en;q=0.9",
-				// biome-ignore lint/style/useNamingConvention: Headers
-				Connection: "keep-alive",
-
-				// biome-ignore lint/style/useNamingConvention: Headers
-				Referer: urlLang.originLocale,
-				// biome-ignore lint/style/useNamingConvention: Headers
-				Origin: urlLang.originLocale
+				"Connection": "keep-alive",
+				"Referer": urlLang.originLocale,
+				"Origin": urlLang.originLocale
 			}
-		})
+		});
 
-		const articleData = await fullArticle.text()
-		const articleRoot = parse(articleData)
+		const articleData = await fullArticle.text();
+		const articleRoot = parse(articleData);
 
-		const article = articleRoot.querySelector(
-			"div[class='tv-content'] script[type='application/prs.init-data+json']"
-		)?.text
+		const article = articleRoot.querySelector("div[class='tv-content'] script[type='application/prs.init-data+json']")?.text;
 
 		if (!article) {
-			logger.error("No article found")
-
-			return []
+			logger.error("No article found");
+			return null;
 		}
 
-		const articleJson = JSON.parse(article)
-		const dynamicKeyArticle = Object.keys(articleJson)[0]
-
-		const jsonArticle = articleJson[dynamicKeyArticle]
+		const articleJson = JSON.parse(article);
+		const dynamicKeyArticle = Object.keys(articleJson)[0];
+		const jsonArticle = articleJson[dynamicKeyArticle];
 
 		if (!jsonArticle) {
-			logger.error("No article found (jsonArticle)")
-
-			return []
+			logger.error("No article found (jsonArticle)");
+			return null;
 		}
 
-		const jsonDescription = JSON.stringify(jsonArticle.story.astDescription)
+		const jsonDescription = JSON.stringify(jsonArticle.story.astDescription);
 
 		const importanceScore = getNewsImportanceScore(
 			jsonDescription,
 			jsonArticle.story.astDescription,
 			newsItem.relatedSymbols
-		)
+		);
 
-		newsItem.language = lang
-
+		newsItem.language = lang;
 		newsItem.article = {
-			// htmlDescription: htmlDescription,
-			// textDescription: textDescription,
 			jsonDescription: jsonDescription,
 			shortDescription: jsonArticle.story.shortDescription,
 			copyright: jsonArticle.story.copyright,
 			importanceScore: importanceScore
-		}
-	}
+		};
 
-	return newsCopy as NewsSymbolsArticle[]
+		return newsItem;
+	});
+
+	// Wait for all articles to be fetched
+	const results = await Promise.all(articlePromises);
+
+	// Filter out null values (articles that already exist in the database)
+	const filteredNews = results.filter(item => item !== null);
+
+	return filteredNews;
+
+	// return newsCopy as NewsSymbolsArticle[]
 }
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: TODO: Refactor this function
@@ -294,8 +291,6 @@ async function saveFetchNews() {
 			let provider: string
 			let logoId: string
 			let source: string
-
-			console.log(news)
 
 			if (news.provider && typeof news.provider !== "string") {
 				provider = news.provider.name
