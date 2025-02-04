@@ -1,3 +1,4 @@
+import type { ReactNode } from "react"
 import type { Period } from "../../../utils/getPrices"
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart"
 import { CartesianGrid, ComposedChart, Line, XAxis, YAxis } from "recharts"
@@ -6,7 +7,7 @@ export const SmallChart = function SmallChart({
 	prices
 }: {
 	prices: Period[]
-}) {
+}): ReactNode {
 	const chartConfig: ChartConfig = {
 		close: {
 			label: "Prix",
@@ -25,7 +26,7 @@ export const SmallChart = function SmallChart({
 				<XAxis
 					hide={true}
 					dataKey="time"
-					tickFormatter={(timestamp) => new Date(timestamp * 1000).toLocaleString("fr-FR")}
+					tickFormatter={(timestamp): string => new Date(timestamp * 1000).toLocaleString("fr-FR")}
 					tickLine={false}
 					axisLine={false}
 					tickMargin={8}
@@ -57,10 +58,12 @@ export const SmallChart = function SmallChart({
 
 				<ChartTooltip
 					cursor={false}
+					offset={20}
+					position={{ y: 0 }}
 					content={
 						<ChartTooltipContent
 							indicator="dot"
-							labelFormatter={(_value, dataLabel) => {
+							labelFormatter={(_value, dataLabel): string => {
 								return new Date(dataLabel[0].payload.time * 1000).toLocaleString("fr-FR", {
 									weekday: "long",
 									day: "numeric",

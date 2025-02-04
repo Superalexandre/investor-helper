@@ -11,9 +11,10 @@ import {
 } from "../ui/dialog"
 import { Input } from "../ui/input"
 import { Button } from "../ui/button"
-import { type FormEvent, useRef, useState } from "react"
+import { type FormEvent, type ReactNode, useRef, useState } from "react"
 import { usePush } from "@remix-pwa/push/client"
 import { useSubmit, useFetcher } from "@remix-run/react"
+import { toast as sonner } from "sonner"
 
 export default function DialogNotificationNews({
 	open,
@@ -29,7 +30,7 @@ export default function DialogNotificationNews({
 	keywords?: string[]
 	groupName?: string
 	id?: string
-}) {
+}): ReactNode {
 	const { pushSubscription } = usePush()
 	const submit = useSubmit()
 	const fetcher = useFetcher()
@@ -38,7 +39,7 @@ export default function DialogNotificationNews({
 
 	const action = type === "create" ? "/api/notifications/subscribe/news" : `/api/notifications/update/news/${id}`
 
-	const addKeyword = () => {
+	const addKeyword = (): void => {
 		if (!keywordInput.current?.value) {
 			return
 		}
@@ -56,7 +57,7 @@ export default function DialogNotificationNews({
 		}
 	}
 
-	const submitCallback = (e: FormEvent<HTMLFormElement>) => {
+	const submitCallback = (e: FormEvent<HTMLFormElement>): void => {
 		e.preventDefault()
 
 		const formData = new FormData(e.currentTarget)
@@ -77,12 +78,19 @@ export default function DialogNotificationNews({
 
 		setOpen(false)
 		setKeyword(keyword ?? keywords ?? [])
+
+		sonner("Notification crée", {
+			description: "La notification a été crée avec succès",
+			closeButton: true,
+			id: id,
+			className: "flex justify-between"
+		})
 	}
 
 	return (
 		<Dialog
 			open={open}
-			onOpenChange={(openChange) => {
+			onOpenChange={(openChange): void => {
 				setOpen(openChange)
 				setKeyword(keywords ?? [])
 			}}
@@ -123,7 +131,7 @@ export default function DialogNotificationNews({
 										<MdDelete
 											size={16}
 											className="hover:cursor-pointer"
-											onClick={() => setKeyword(keyword.filter((_, i) => i !== index))}
+											onClick={(): void => setKeyword(keyword.filter((_, i) => i !== index))}
 										/>
 									</Badge>
 								))}
@@ -135,7 +143,7 @@ export default function DialogNotificationNews({
 									placeholder="Mots clés"
 									className="w-full"
 									ref={keywordInput}
-									onKeyDown={(e) => {
+									onKeyDown={(e): void => {
 										if (e.key === "Enter") {
 											e.preventDefault()
 
@@ -156,9 +164,7 @@ export default function DialogNotificationNews({
 							<Button
 								variant="destructive"
 								type="reset"
-								onClick={() => {
-									setKeyword(keywords ?? [])
-								}}
+								onClick={(): void => setKeyword(keywords ?? [])}
 							>
 								Fermer
 							</Button>

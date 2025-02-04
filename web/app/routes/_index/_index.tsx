@@ -1,7 +1,7 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { usePWAManager } from "@remix-pwa/client"
+// import { usePWAManager } from "@remix-pwa/client"
 import { useLoaderData } from "@remix-run/react"
 import { useEffect, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
@@ -13,7 +13,7 @@ import News from "./News"
 import Events from "./Events"
 import BestLosers from "./BestLosers"
 import BestGainers from "./BestGainers"
-import { Carousel, CarouselContent } from "../../components/ui/carousel"
+import { usePWAManager } from "../../hooks/pwa/usePWAManager"
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
 	if (!data) {

@@ -2,7 +2,7 @@ import { drizzle } from "drizzle-orm/better-sqlite3"
 import Database from "better-sqlite3"
 import { newsSchema, newsRelatedSymbolsSchema, newsArticleSchema } from "../../db/schema/news.js"
 import { symbolsSchema } from "../../db/schema/symbols.js"
-import { and, desc, eq, gt, gte, inArray, like, lt, lte, or } from "drizzle-orm"
+import { and, desc, eq, gt, gte, inArray, like, lt, lte, or, sql } from "drizzle-orm"
 
 import refreshSymbol from "./refreshSymbol.js"
 import { parse } from "node-html-parser"
@@ -42,7 +42,7 @@ async function getNews({
 							)
 						)
 					: undefined,
-				sources ? inArray(newsSchema.source, sources) : undefined
+				sources ? inArray(sql<string>`lower(${newsSchema.source})`, sources) : undefined
 			)
 		)
 		.limit(limit)
@@ -92,7 +92,7 @@ async function getSourceList({
 }): Promise<string[]> {
 	const sources = await db
 		.selectDistinct({
-			source: newsSchema.source
+			source: sql<string>`lower(${newsSchema.source})`
 		})
 		.from(newsSchema)
 		.where(inArray(newsSchema.lang, languages))
@@ -295,6 +295,8 @@ async function saveFetchNews() {
 			let logoId: string
 			let source: string
 
+			console.log(news)
+
 			if (news.provider && typeof news.provider !== "string") {
 				provider = news.provider.name
 				logoId = news.provider.logo_id
@@ -302,7 +304,7 @@ async function saveFetchNews() {
 			} else {
 				provider = news.provider as string
 				logoId = ""
-				source = news.provider
+				source = news.source ? news.source : news.provider as string
 			}
 
 			newsValues.push({

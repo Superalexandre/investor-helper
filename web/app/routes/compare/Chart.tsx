@@ -1,5 +1,4 @@
 import { useMemo, useState, type ComponentType, type ReactNode } from "react";
-import type { Period } from "../../../utils/getPrices";
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "../../components/ui/chart";
 import { CartesianGrid, ComposedChart, Line, XAxis, YAxis } from "recharts";
 

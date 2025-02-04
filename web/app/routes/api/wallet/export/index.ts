@@ -15,7 +15,18 @@ export const loader: LoaderFunction = async ({ request }) => {
     }
 
     const user = await getUser(request)
-    const resultWallet = await getWalletById({ id: walletId })
+
+    if (!user) {
+        return {
+            success: false,
+            error: true,
+            message: "Must be logged",
+        }
+    }
+
+    console.log("walletId", walletId)
+
+    const resultWallet = await getWalletById({ id: walletId, token: user.token })
 
     if (!resultWallet) {
         return {
@@ -25,25 +36,8 @@ export const loader: LoaderFunction = async ({ request }) => {
         }
     }
 
-    if (resultWallet.wallet.private && (!user || user.id !== resultWallet.wallet.userId)) {
-        return {
-            success: false,
-            error: true,
-            message: "Unauthorized",
-        }
-    }
+    // Download the wallet
+    const wallet = JSON.stringify(resultWallet)
 
-    const moneyInvested = resultWallet.walletSymbols.reduce((acc, symbol) => acc + (symbol.buyPrice ?? 0) * symbol.quantity, 0)
-    const isOwner = user && user.id === resultWallet.wallet.userId
-
-    return {
-        success: true,
-        error: false,
-        message: "Data fetched successfully",
-        data: {
-            isOwner,
-            ...resultWallet,
-            moneyInvested
-        }
-    }
+    return wallet
 }

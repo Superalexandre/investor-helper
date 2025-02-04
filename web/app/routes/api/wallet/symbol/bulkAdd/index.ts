@@ -21,11 +21,11 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 		return { error: "Unauthorized" }
 	}
 
-	const body = await request.formData()
+	const body = await request.json()
 
 	// Get the wallet id from the query string
-	const url = new URL(request.url)
-	const walletId = url.searchParams.get("walletId") || (body.get("walletId") as string)
+	// const walletId = body.get("walletId")
+	const walletId = body.walletId
 
 	if (!walletId) {
 		return { error: "Missing walletId" }
@@ -48,20 +48,22 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 		return { error: "Unauthorized" }
 	}
 
-	const allSymbols = body.getAll("symbol").filter((s) => s !== "")
-	const values: Symbols[] = []
-	for (const symbol of allSymbols) {
-		const symbolJson = JSON.parse(symbol as string)
+	if (!body || !body.symbols || !Array.isArray(body.symbols) || body.symbols.length === 0) {
+		return { error: "Missing symbols" }
+	}
 
-		const prefix = symbolJson.prefix?.toUpperCase() ?? (symbolJson.exchange as string).toUpperCase()
+	// const allSymbols = body.symbols.filter((s) => s !== "")
+	const values: Symbols[] = []
+	for (const symbol of body.symbols) {
+		const prefix = symbol.prefix?.toUpperCase() ?? (symbol.exchange as string).toUpperCase()
 
 		values.push({
 			walletId: wallet.walletId,
-			symbol: `${prefix}:${normalizeSymbolHtml(symbolJson.symbol)}`,
-			quantity: symbolJson.quantity <= 0 ? 0 : symbolJson.quantity,
-			buyPrice: symbolJson.price <= 0 ? 0 : symbolJson.price,
-			currency: symbolJson.currency_code,
-			buyAt: symbolJson.buyAt
+			symbol: `${prefix}:${normalizeSymbolHtml(symbol.symbol)}`,
+			quantity: symbol.quantity <= 0 ? 0 : symbol.quantity,
+			buyPrice: symbol.price <= 0 ? 0 : symbol.price,
+			currency: symbol.currency_code,
+			buyAt: symbol.buyAt
 		})
 	}
 
@@ -69,5 +71,9 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 		await db.insert(walletSymbolsSchema).values(values)
 	}
 
-	return redirect(`/wallet/${wallet.walletId}`)
+	return {
+		error: false,
+		success: true,
+		message: "Symbols added successfully"
+	}
 }

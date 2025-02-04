@@ -18,6 +18,7 @@ export function WalletData({ walletId }: { walletId: string }): ReactNode {
         data,
         isPending,
         error,
+        refetch
     } = useQuery<{
         data: {
             allPrices: {
@@ -72,8 +73,6 @@ export function WalletData({ walletId }: { walletId: string }): ReactNode {
         return <p>No prices</p>
     }
 
-    console.log(data)
-
     const colors = [
         "#0088FE",
         "#00C49F",
@@ -87,10 +86,6 @@ export function WalletData({ walletId }: { walletId: string }): ReactNode {
         "#FFD700",
     ]
 
-    console.log(data.data)
-
-    console.log(data.data.prices.map((item) => item.country))
-
     return (
         <div className="flex w-full flex-col gap-4 p-4">
             <Card className="w-full border-card-border">
@@ -99,7 +94,10 @@ export function WalletData({ walletId }: { walletId: string }): ReactNode {
                 </CardHeader>
 
                 <CardContent className="w-full overflow-auto">
-                    <TableData prices={data.data.prices} />
+                    <TableData 
+                        prices={data.data.prices} 
+                        walletId={walletId}
+                    />
                 </CardContent>
             </Card>
 

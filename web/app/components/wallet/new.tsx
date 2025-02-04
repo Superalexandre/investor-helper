@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input"
 import { DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader } from "../ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Form } from "@remix-run/react"
+import { WalletIcon } from "lucide-react"
 
 export default function NewWallet({
 	className
@@ -39,9 +40,10 @@ export default function NewWallet({
 				<Button
 					variant="default"
 					className={className}
-					// asChild
 				>
-					Créer un portefeuille
+					Créer un portefeuille 
+
+					<WalletIcon className="w-6 h-6 ml-2" />
 				</Button>
 			</DialogTrigger>
 			<DialogContent>
@@ -62,9 +64,6 @@ export default function NewWallet({
 						</div>
 					</div>
 					<DialogFooter className="mt-3 flex flex-row gap-3 lg:gap-0">
-						<Button variant="default" type="submit">
-							Créer
-						</Button>
 						<DialogClose asChild={true}>
 							<Button
 								variant="destructive"
@@ -74,6 +73,9 @@ export default function NewWallet({
 								Fermer
 							</Button>
 						</DialogClose>
+						<Button variant="default" type="submit">
+							Créer
+						</Button>
 					</DialogFooter>
 				</Form>
 			</DialogContent>

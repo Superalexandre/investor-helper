@@ -1,4 +1,3 @@
-import React from "react"
 import { cn } from "../lib/utils"
 import { Link } from "@remix-run/react"
 import { Badge } from "./ui/badge"
@@ -10,8 +9,7 @@ import { normalizeSymbol } from "../../utils/normalizeSymbol"
 import type { Symbol as SymbolType } from "@/schema/symbols"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip"
 import { ClockIcon } from "lucide-react"
-import { toZonedTime, format, fromZonedTime } from 'date-fns-tz';
-import { fr } from "date-fns/locale"
+import { format, fromZonedTime } from 'date-fns-tz';
 import { parse } from "date-fns"
 // import { format } from 'date-fns';
 
@@ -466,11 +464,9 @@ function convertToLocalTime(timeString: string): string {
     };
 
     const timePart = match[1];
-    const meridian = match[4] || '';
+    // const meridian = match[4] || '';
     const timeZoneAbbr = match[7];
     const timeZone = timeZones[timeZoneAbbr];
-
-    console.log({ timePart, meridian, timeZoneAbbr, timeZone });
 
     // let date: Date;
     // Split timePart with : or h or H
@@ -484,8 +480,6 @@ function convertToLocalTime(timeString: string): string {
     if (hours && minutes && minutes.length > 2) {
         minutes = minutes.split(" ")[0]
     }
-
-    console.log(hours, minutes)
 
     const date = parse(`${hours} ${minutes}`, 'HH mm', new Date());
 

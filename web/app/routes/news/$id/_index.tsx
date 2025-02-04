@@ -83,7 +83,7 @@ export default function Index(): ReactNode {
 						<DropdownMenuContent className="mx-4">
 							<DropdownMenuItem asChild={true} className="p-0">
 								<CopyButton
-									content={`https://investor-helper.com/news/${news.news.id}`}
+									content={`https://www.investor-helper.com/news/${news.news.id}`}
 									className="p-6 pl-4 hover:cursor-pointer"
 								/>
 							</DropdownMenuItem>
@@ -91,7 +91,7 @@ export default function Index(): ReactNode {
 								<ShareButton
 									title={news.news.title}
 									text={news.news_article.shortDescription || news.news.title}
-									url={`https://investor-helper.com/news/${news.news.id}`}
+									url={`https://www.investor-helper.com/news/${news.news.id}`}
 									className="p-6 pl-4 hover:cursor-pointer"
 								/>
 							</DropdownMenuItem>

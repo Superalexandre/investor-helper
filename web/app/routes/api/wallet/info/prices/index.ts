@@ -18,16 +18,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 	}
 
 	const user = await getUser(request)
-
-	if (!user) {
-		return {
-			success: false,
-			error: true,
-			message: "Must be logged"
-		}
-	}
-
-	const resultWallet = await getWalletById({ id: walletId, token: user.token })
+	const resultWallet = await getWalletById({ id: walletId })
 
 	if (!resultWallet) {
 		return {
@@ -36,6 +27,14 @@ export const loader: LoaderFunction = async ({ request }) => {
 			message: "No wallet found"
 		}
 	}
+
+    if (resultWallet.wallet.private && user && resultWallet.wallet.userId !== user.id) {
+        return {
+            success: false,
+            error: true,
+            message: "Unauthorized",
+        }
+    }
 
 	const currentDate = new Date()
 	currentDate.setMinutes(0)

@@ -26,7 +26,6 @@ export default async function login({
 
 	const cipher = crypto.createCipheriv(algorithm, key, iv)
 
-
 	// Decrypt the mail
 	let encryptedEmail = cipher.update(emailOrUsername.toLowerCase(), "utf8", "hex")
 	encryptedEmail += cipher.final("hex")

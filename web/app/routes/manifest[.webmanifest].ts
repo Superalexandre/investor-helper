@@ -1,6 +1,4 @@
 import type { WebAppManifest } from "@remix-pwa/dev"
-import { json } from "@remix-run/node"
-
 interface Manifest extends WebAppManifest {
 	id: string
 	// display_override: Array<"fullscreen" | "minimal-ui" | "window-controls-overlay">
@@ -136,7 +134,7 @@ const webAppManifest: Manifest = {
 }
 
 export const loader = () => {
-	return json(webAppManifest, {
+	return new Response(JSON.stringify(webAppManifest), {
 		headers: {
 			"Cache-Control": "public, max-age=600",
 			"Content-Type": "application/manifest+json"

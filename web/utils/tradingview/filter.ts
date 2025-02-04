@@ -84,6 +84,7 @@ const ColumnStockMapping = {
 	"Pivot.M.Fibonacci.R1": z.number(),
 	"Pivot.M.Fibonacci.R2": z.number(),
 	"Pivot.M.Fibonacci.R3": z.number(),
+	"pro_symbol": z.string(),
 } as const
 
 const ColumnScreenerSchema = z.enum(

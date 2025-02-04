@@ -29,7 +29,6 @@ const schema = zod.object({
 		.max(255, "errors.passwordMaxLength")
 })
 type FormData = zod.infer<typeof schema>
-
 const resolver = zodResolver(schema)
 
 interface LoginProps {

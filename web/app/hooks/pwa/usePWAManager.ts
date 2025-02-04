@@ -4,6 +4,11 @@ type SWRegistration = ServiceWorkerRegistration | null;
 type InstallPromptEvent = Event & { prompt: () => void; userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }> };
 type UserChoice = 'accepted' | 'dismissed' | null;
 
+/*
+Before install prompt event captured.
+Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+*/
+
 export const usePWAManager = () => {
     const [updateAvailable, setUpdateAvailable] = useState<boolean>(false);
     const [swUpdate, setSwUpdate] = useState<{ isUpdateAvailable: boolean; newWorker: ServiceWorker | null }>({
@@ -25,15 +30,15 @@ export const usePWAManager = () => {
                 setUserChoice(choice);
             }
             setInstallPromptEvent(null);
+        } else {
+            console.warn('Install prompt event is not available.');
         }
     };
 
     useEffect(() => {
-        // TODO: Check if window is available
-        // if (!isWindowAvailable()) return;
-
         const handleInstallPrompt = (event: Event) => {
             event.preventDefault();
+            console.log('Before install prompt event captured.');
             setInstallPromptEvent(event as InstallPromptEvent);
         };
 
@@ -114,5 +119,6 @@ export const usePWAManager = () => {
         promptInstall,
         swRegistration: registration,
         userInstallChoice: userChoice,
+        installPromptEvent, // Expose installPromptEvent for debugging
     };
 };

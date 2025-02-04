@@ -52,7 +52,7 @@ export const usersSchema = sqliteTable("user", {
 export type User = typeof usersSchema.$inferSelect
 
 export const watchListSchema = sqliteTable("watch_list", {
-	userId: text("user_id").references(() => usersSchema.id),
+	userId: text("user_id").references(() => usersSchema.id, { onDelete: "cascade" }),
 	listId: text("list_id")
 		.notNull()
 		.unique()
@@ -79,7 +79,7 @@ export const watchListSymbolsSchema = sqliteTable("watch_list_symbol", {
 export type WatchListSymbol = typeof watchListSymbolsSchema.$inferSelect
 
 export const walletSchema = sqliteTable("wallet", {
-	userId: text("user_id").references(() => usersSchema.id),
+	userId: text("user_id").references(() => usersSchema.id, { onDelete: "cascade" }),
 	walletId: text("wallet_id")
 		.notNull()
 		.unique()
@@ -113,7 +113,7 @@ export const walletSymbolsSchema = sqliteTable("wallet_symbol", {
 		.primaryKey(),
 	walletId: text("wallet_id")
 		.notNull()
-		.references(() => walletSchema.walletId),
+		.references(() => walletSchema.walletId, { onDelete: "cascade" }),
 	symbol: text("symbol").notNull(),
 	currency: text("currency").notNull(),
 	quantity: int("quantity")

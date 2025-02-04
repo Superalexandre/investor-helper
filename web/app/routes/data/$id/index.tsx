@@ -5,7 +5,7 @@ import { type ReactNode, useState } from "react"
 import BackButton from "@/components/button/backButton"
 import { Button } from "../../../components/ui/button"
 import { useQuery } from "@tanstack/react-query"
-import { ArrowDownIcon, ArrowUpIcon, ExternalLinkIcon, InfoIcon } from "lucide-react"
+import { ArrowDownIcon, ArrowUpIcon, BellIcon, BellPlusIcon, EllipsisVerticalIcon, ExternalLinkIcon, InfoIcon } from "lucide-react"
 import { Skeleton } from "../../../components/ui/skeleton"
 import { getInfo } from "../../api/data/info"
 import { FullChart } from "./Chart"
@@ -16,6 +16,10 @@ import { ConvertJsonToReact } from "../../../components/parseComponent"
 import { cn } from "../../../lib/utils"
 import type { NewsSymbols } from "../../../../types/News"
 import currencies from "../../../../../lang/currencies"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../components/ui/dropdown-menu"
+import CopyButton from "../../../components/button/copyButton"
+import ShareButton from "../../../components/button/shareButton"
+import DialogNotificationNews from "../../../components/dialog/dialogNotificationNews"
 
 export const loader: LoaderFunction = async ({ params }) => {
 	if (!params.id) {
@@ -58,7 +62,9 @@ export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
 export default function Index(): ReactNode {
 	const params = useParams()
 
-	const [open, setOpen] = useState(false)
+	const [openInfo, setOpenInfo] = useState(false)
+	const [openNotification, setOpenNotification] = useState(false)
+
 	const [info, setInfo] = useState<{
 		change?: number,
 		price?: number,
@@ -109,29 +115,15 @@ export default function Index(): ReactNode {
 			news: NewsSymbols[],
 			additionalInfo: {
 				symbol: {
+					pro_symbol: string,
 					aum?: number,
 					ast_business_description: any
 				}
 			}
 		}
 	}>({
-		queryKey: [
-			"data",
-			{
-				symbol: symbol
-			}
-		],
-		queryFn: async () => {
-			const req = await fetch(
-				`/api/data/info?symbol=${symbol}`
-			)
-			const json = await req.json()
-
-			// Fake loading
-			// await new Promise((resolve) => setTimeout(resolve, 500_000))
-
-			return json
-		},
+		queryKey: ["data", symbol],
+		queryFn: async () => fetch(`/api/data/info?symbol=${symbol}`).then((res) => res.json()),
 		refetchOnWindowFocus: true
 	})
 
@@ -143,7 +135,7 @@ export default function Index(): ReactNode {
 				<div className="relative flex w-full flex-row items-center justify-between">
 					<BackButton />
 
-					<Skeleton className="top-0 right-0 m-4 h-9 w-24 lg:absolute " />
+					<Skeleton className="top-0 right-0 m-4 h-9 w-14 lg:absolute " />
 				</div>
 
 				<div className="flex flex-col items-center justify-center gap-4">
@@ -168,25 +160,77 @@ export default function Index(): ReactNode {
 		return <p>Symbol not found</p>
 	}
 
+	console.log(data.info.additionalInfo.symbol.pro_symbol)
+
 	return (
 		<div className="relative mb-4 flex flex-col gap-4">
-			<div className="relative flex w-full flex-row items-center justify-between">
+			<div className="flex w-full flex-row items-center justify-evenly">
 				<BackButton />
 
-				<Button
-					variant="outline"
-					className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-2 text-center lg:absolute"
-					onClick={(): void => setOpen(true)}
-				>
-					Info
+				<div className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-2 text-center lg:absolute">
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild={true} name="More options" aria-label="More options">
+							<Button variant="ghost">
+								<EllipsisVerticalIcon className="size-6" />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent className="mx-4">
+							<DropdownMenuItem asChild={true} className="p-0">
+								<Button
+									variant="ghost"
+									className="flex w-full flex-row items-center justify-start gap-2 p-6 pl-4 hover:cursor-pointer"
+									onClick={(): void => setOpenInfo(true)}
+								>
+									Informations
 
-					<InfoIcon />
-				</Button>
+									<InfoIcon />
+								</Button>
+							</DropdownMenuItem>
+
+							<DropdownMenuItem asChild={true} className="p-0">
+								<Button
+									variant="ghost"
+									className="flex w-full flex-row items-center justify-start gap-2 p-6 pl-4 hover:cursor-pointer"
+									onClick={(): void => setOpenNotification(true)}
+								>
+									Notifications
+
+									<BellPlusIcon />
+								</Button>
+							</DropdownMenuItem>
+
+							<DropdownMenuItem asChild={true} className="p-0">
+								<CopyButton
+									content={`https://www.investor-helper.com/data/${data.info.additionalInfo.symbol.pro_symbol}`}
+									copySuccess="Lien copié"
+									copyError="Erreur lors de la copie"
+									className="p-6 pl-4 hover:cursor-pointer"
+								/>
+							</DropdownMenuItem>
+							<DropdownMenuItem asChild={true} className="p-0">
+								<ShareButton
+									title={data.info.description}
+									text={data.info.description}
+									url={`https://www.investor-helper.com/data/${data.info.additionalInfo.symbol.pro_symbol}`}
+									className="p-6 pl-4 hover:cursor-pointer"
+								/>
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</div>
 			</div>
 
+			<DialogNotificationNews
+				open={openNotification}
+				setOpen={setOpenNotification}
+				type="create"
+				groupName={data.info.description}
+				keywords={[data.info.additionalInfo.symbol.pro_symbol]}
+			/>
+			
 			<DialogInfo
-				open={open}
-				setOpen={setOpen}
+				open={openInfo}
+				setOpen={setOpenInfo}
 				description={data.info.description}
 				currency={data.info.currency}
 				prettyCurrency={data.info.prettyCurrency}

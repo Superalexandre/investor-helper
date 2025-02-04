@@ -34,7 +34,7 @@ const ShareButton = React.forwardRef<HTMLButtonElement, { title: string; text: s
 					shareCallback()
 					event.currentTarget.blur()
 				}}
-				className={cn("flex w-full flex-row items-center justify-start gap-1.5", className)}
+				className={cn("flex w-full flex-row items-center justify-start gap-2", className)}
 			>
 				{t("shareLink.trigger")}
 				<Share2Icon className="size-5" />

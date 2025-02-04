@@ -6,23 +6,22 @@ import { cn } from "../../lib/utils"
 import { useTranslation } from "react-i18next"
 import { CopyIcon } from "lucide-react"
 
-// Ajout de React.forwardRef pour que CopyButton accepte une ref
-const CopyButton = React.forwardRef<HTMLButtonElement, { content: string; className?: string, label?: boolean }>(
-	({ content, className, label = true }, ref) => {
+const CopyButton = React.forwardRef<HTMLButtonElement, { content: string; className?: string, label?: boolean, labelContent?: string, copyError?: string, copySuccess?: string }>(
+	({ content, copyError, copySuccess, className, label = true, labelContent }, ref) => {
 		const { t } = useTranslation("common", {
 			useSuspense: false,
 		})
 		const [, copy] = useCopyToClipboard()
 
-		const copyCallback = () => {
+		const copyCallback = (): void => {
 			copy(content)
 				.then((result) => {
 					if (result) {
-						sonner.success(t("copyLink.success"), {
+						sonner.success(copySuccess ? copySuccess : t("copyLink.success"), {
 							duration: 1500,
 						})
 					} else {
-						sonner.error(t("copyLink.error"), {
+						sonner.error(copyError ? copyError : t("copyLink.error"), {
 							duration: 1500,
 						})
 					}
@@ -36,14 +35,14 @@ const CopyButton = React.forwardRef<HTMLButtonElement, { content: string; classN
 			<Button
 				ref={ref} // On passe la ref ici
 				variant="ghost"
-				onClick={(event) => {
+				onClick={(event): void => {
 					copyCallback()
 
 					event.currentTarget.blur()
 				}}
-				className={cn("flex w-full flex-row items-center justify-start gap-1.5", className)}
+				className={cn("flex w-full flex-row items-center justify-start gap-2", className)}
 			>
-				{label ? t("copyLink.trigger") : null}
+				{label || labelContent ? labelContent ?? t("copyLink.trigger") : null}
 
 				<CopyIcon className="size-5" />
 			</Button>

@@ -131,7 +131,7 @@ export default function Index() {
 	const [showDialogNewNotification, setShowDialogNewNotification] = useState(false)
 	const [showDialogDeleteNotification, setShowDialogDeleteNotification] = useState(false)
 
-	const subscribeEvent = () => {
+	const subscribeEvent = (): void => {
 		if (event.isPast) {
 			return
 		}
@@ -169,7 +169,7 @@ export default function Index() {
 				open={showDialogAccount}
 				setOpen={setShowDialogAccount}
 				redirect={`/calendar/${event.id}`}
-				callback={() => {
+				callback={(): void => {
 					setShowDialogAccount(false)
 
 					subscribeEvent()
@@ -195,7 +195,7 @@ export default function Index() {
 			<div className="flex w-full flex-row items-center justify-evenly">
 				<BackButton fallbackRedirect="/calendar" label={t("back")} />
 
-				<div className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-1.5 text-center lg:absolute">
+				<div className="top-0 right-0 m-4 flex flex-row items-center justify-center gap-2 text-center lg:absolute">
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild={true} name="More options" aria-label="More options">
 							<Button variant="ghost">
@@ -211,12 +211,12 @@ export default function Index() {
 										className="p-6 pl-4 hover:cursor-pointer"
 									>
 										{isSubscribed && hasNotification ? (
-											<p className="flex flex-row justify-start gap-1.5">
+											<p className="flex flex-row justify-start gap-2">
 												{t("editNotification")}
 												<BellDotIcon className="size-5" />
 											</p>
 										) : (
-											<p className="flex flex-row justify-start gap-1.5">
+											<p className="flex flex-row justify-start gap-2">
 												{t("addNotification")}
 												<BellPlusIcon className="size-5" />
 											</p>

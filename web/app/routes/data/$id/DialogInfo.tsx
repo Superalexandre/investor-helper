@@ -27,6 +27,13 @@ export function DialogInfo({
     name: string,
     sector?: string
 }): ReactNode {
+    const copyConfig = {
+        label: false,
+        copySuccess: "Copié !",
+        copyError: "Erreur lors de la copie",
+        className: "w-auto"
+    }
+
     return (
         <Dialog open={open} onOpenChange={(newOpen): void => setOpen(newOpen)}>
             <DialogContent className="max-h-full w-11/12 max-w-fit overflow-auto">
@@ -42,7 +49,7 @@ export function DialogInfo({
                         <div className="flex flex-row items-center gap-2">
                             <p>Monnaie : {currency} {prettyCurrency}</p>
 
-                            <CopyButton content={currency} label={false} className="w-auto" />
+                            <CopyButton content={currency} {...copyConfig} />
                         </div>
                     ) : null}
 
@@ -50,7 +57,7 @@ export function DialogInfo({
                         <div className="flex flex-row items-center gap-2">
                             <p>Pays : {country} {countryCode}</p>
 
-                            <CopyButton content={country} label={false} className="w-auto" />
+                            <CopyButton content={country} {...copyConfig} />
                         </div>
                     ) : null}
 
@@ -58,27 +65,27 @@ export function DialogInfo({
                         <div className="flex flex-row items-center gap-2">
                             <p>ISIN : {isin}</p>
 
-                            <CopyButton content={isin} label={false} className="w-auto" />
+                            <CopyButton content={isin} {...copyConfig} />
                         </div>
                     ) : null}
 
                     <div className="flex flex-row items-center gap-2">
                         <p>Exchange : {exchange}</p>
 
-                        <CopyButton content={exchange} label={false} className="w-auto" />
+                        <CopyButton content={exchange} {...copyConfig} />
                     </div>
 
                     <div className="flex flex-row items-center gap-2">
                         <p>Nom : {name} </p>
 
-                        <CopyButton content={name} label={false} className="w-auto" />
+                        <CopyButton content={name} {...copyConfig} />
                     </div>
 
                     {sector ? (
                         <div className="flex flex-row items-center gap-2">
                             <p>Secteur : {sector}</p>
 
-                            <CopyButton content={sector} label={false} className="w-auto" />
+                            <CopyButton content={sector} {...copyConfig} />
                         </div>
                     ) : null}
                 </div>

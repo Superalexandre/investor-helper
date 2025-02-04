@@ -1,4 +1,4 @@
-import type { LinksFunction, LoaderFunction, LoaderFunctionArgs } from "@remix-run/node"
+import type { LinksFunction, LoaderFunction } from "@remix-run/node"
 import {
 	isRouteErrorResponse,
 	Link,
@@ -11,7 +11,7 @@ import {
 	useRouteError,
 	useRouteLoaderData
 } from "@remix-run/react"
-import { ManifestLink, useSWEffect } from "@remix-pwa/sw"
+// import { ManifestLink, useSWEffect } from "@remix-pwa/sw"
 import stylesheet from "@/tailwind.css?url"
 import Header from "@/components/header"
 import { getUser } from "./session.server"
@@ -27,6 +27,7 @@ import { getTheme } from "./lib/getTheme"
 import { getNotificationListNumber } from "../utils/notifications"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { NuqsAdapter } from "nuqs/adapters/remix"
+import { useSWEffect } from "./hooks/pwa/useSWEEffect"
 
 export const loader: LoaderFunction = async ({ request }) => {
 	const [user, theme, locale] = await Promise.all([getUser(request), getTheme(request), i18next.getLocale(request)])
@@ -85,7 +86,6 @@ export function Layout({ children }: { children: ReactNode }): ReactNode {
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
 				<Meta />
 				<Links />
-				<ManifestLink />
 
 				<link rel="manifest" href="/manifest.webmanifest" />
 
@@ -148,6 +148,19 @@ export default function App(): ReactNode {
 						)
 					})
 				}
+
+				// console.log("SW message", event)
+
+				// if (event.data && event.data.type === "install") {
+				// 	const id = Date.now().toString()
+
+				// 	sonner("Application installé", {
+				// 		description: "L'application a été installée avec succès",
+				// 		closeButton: true,
+				// 		id: id,
+				// 		className: "flex justify-between"
+				// 	})
+				// }
 			}
 
 			navigator.serviceWorker.addEventListener("message", handleMessages)
