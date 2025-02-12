@@ -1,5 +1,9 @@
 /// <reference lib="webworker" />
 
+const CACHE_NAME = "v1"
+const OFFLINE_PAGE = "/404.html"
+const ASSETS_TO_CACHE = ["/", "/news", "/logo-192-192.png"]
+
 const selfRef = self as unknown as ServiceWorkerGlobalScope
 
 selfRef.addEventListener("install", (event) => {
@@ -7,24 +11,31 @@ selfRef.addEventListener("install", (event) => {
 
 	// postMessage
 	const promise = new Promise((resolve, reject) => {
-		selfRef.skipWaiting().then(() => {
-			selfRef.clients
-				.matchAll({
-					type: "window",
-					includeUncontrolled: true
-				})
-				.then((clients) => {
-					for (const client of clients) {
-						console.log("Client", client)
+		caches.open(CACHE_NAME).then((cache) => {
+			cache.addAll(ASSETS_TO_CACHE)
+		})
 
-						client.postMessage({
-							type: "install"
-						})
-					}
+		selfRef
+			.skipWaiting()
+			.then(() => {
+				selfRef.clients
+					.matchAll({
+						type: "window",
+						includeUncontrolled: true
+					})
+					.then((clients) => {
+						for (const client of clients) {
+							console.log("Client", client)
 
-					resolve(true)
-				})
-		}).catch(reject)
+							client.postMessage({
+								type: "install"
+							})
+						}
+
+						resolve(true)
+					})
+			})
+			.catch(reject)
 	})
 
 	event.waitUntil(promise)
@@ -33,7 +44,77 @@ selfRef.addEventListener("install", (event) => {
 selfRef.addEventListener("activate", (event) => {
 	console.log("Service worker activated")
 
-	event.waitUntil(selfRef.clients.claim())
+	// event.waitUntil(selfRef.clients.claim())
+
+	const promise = caches.keys().then((cacheNames) => {
+		return Promise.all(
+			cacheNames.map((cacheName) => {
+				if (cacheName !== CACHE_NAME) {
+					return caches.delete(cacheName) // Delete old caches
+				}
+			})
+		)
+	})
+
+	event.waitUntil(promise)
+})
+
+// selfRef.addEventListener("fetch", (event) => {
+// 	return event.respondWith(
+// 		caches.match(event.request).then((response) => {
+// 			if (response) {
+// 				return response
+// 			}
+
+// 			return fetch(event.request).catch(() => {
+// 				return caches.match(OFFLINE_PAGE).then((offlineResponse) => {
+// 					if (offlineResponse) {
+// 						return offlineResponse
+// 					}
+
+// 					return new Response("Offline page not found", { status: 404 })
+// 				})
+// 			})
+// 		})
+// 	)
+// })
+
+selfRef.addEventListener("fetch", (event) => {
+	event.respondWith(
+		caches.match(event.request).then((response) => {
+			// Return cached asset if found
+			if (response) {
+				return response
+			}
+
+			// Fetch from network if not cached
+			return fetch(event.request)
+				.then((networkResponse) => {
+					// const responseClone = networkResponse.clone()
+					// caches.open(CACHE_NAME).then((cache) => {
+					// 	cache.put(event.request, responseClone)
+					// })
+
+					console.log("Fetch from network", {
+						url: event.request.url,
+						method: event.request.method,
+						response: networkResponse
+					})
+
+					return networkResponse
+				})
+				.catch(() => {
+					// If offline, serve the offline page
+					return caches.match(OFFLINE_PAGE).then((offlineResponse) => {
+						if (offlineResponse) {
+							return offlineResponse
+						}
+
+						return new Response("Offline page not found", { status: 404 })
+					})
+				})
+		})
+	)
 })
 
 selfRef.addEventListener("pushsubscriptionchange", (event) => {
@@ -53,7 +134,6 @@ selfRef.addEventListener("pushsubscriptionchange", (event) => {
 })
 
 selfRef.addEventListener("push", (event) => {
-
 	const data = event.data ? event.data.json() : {}
 
 	console.log("Push event", data)
