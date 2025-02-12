@@ -118,9 +118,8 @@ export function Layout({ children }: { children: ReactNode }): ReactNode {
 	)
 }
 
+const queryClient = new QueryClient()
 export default function App(): ReactNode {
-	const queryClient = new QueryClient()
-
 	useEffect(() => {
 		if ("serviceWorker" in navigator) {
 			const handleMessages = (event: MessageEvent): void => {
