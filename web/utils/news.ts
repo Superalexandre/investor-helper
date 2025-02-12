@@ -400,7 +400,7 @@ async function saveFetchNews() {
 	}
 
 	if (allNotifications.length > 0) {
-		logger.info(`Got ${allNotifications.length} notifications to send`)
+		// logger.info(`Got ${allNotifications.length} notifications to send`)
 
 		reduceAndSendNotifications(allNotifications)
 	}
@@ -510,7 +510,7 @@ async function getNotificationNews(news: NewsSymbolsArticle) {
 		return notificationsToSend
 	}
 
-	logger.info(`${news.id} (${news.title}) has no subscribers`)
+	// logger.info(`${news.id} (${news.title}) has no subscribers`)
 }
 
 async function reduceAndSendNotifications(notifications: NotificationToSend[] | undefined) {
