@@ -1,16 +1,24 @@
-// import { getLastImportantNews } from "@/utils/news"
+import LZString from "lz-string"
 import type { LoaderFunction, LoaderFunctionArgs } from "@remix-run/node"
 import { getNewsById } from "../../../../../utils/news"
 
 export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) => {
 	const url = new URL(request.url)
-	const id = url.searchParams.get("id")
+	const encodedId = url.searchParams.get("id")
 
-	if (!id) {
+	if (!encodedId) {
 		return { error: "No id provided" }
 	}
 
-	const decodedId = Buffer.from(id, "base64").toString("utf-8")
+	// Decompress the ID using LZ-String
+	let decodedId: string
+
+	if (encodedId.startsWith("lz:")) {
+		const lzId = encodedId.slice(3)
+		decodedId = LZString.decompressFromEncodedURIComponent(lzId)
+	} else {
+		decodedId = Buffer.from(encodedId, "base64").toString("utf-8")
+	}
 
 	if (!decodedId) {
 		return { error: "Invalid id" }
@@ -22,14 +30,14 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 		return { error: "No articles provided" }
 	}
 
-	const news = articles.map((article) => {
-		return getNewsById({
-			id: article
-		})
-	})
+	const newsPromises = articles.map((article) => getNewsById({ id: article }))
 
-	const newsPromises = await Promise.all(news)
-	const newsData = newsPromises.filter((news) => news.news !== undefined)
+	const newsResults = await Promise.all(newsPromises)
+	const newsData = newsResults.filter((news) => news?.news !== undefined)
+
+	if (newsData.length === 0) {
+		return { error: "No valid news articles found" }
+	}
 
 	return newsData
 }

@@ -52,6 +52,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 	}
 }
 
+// TODO: Optimize
 async function getInfo({ symbol, language }: { symbol: string; language?: string }) {
 	const { result } = await fetchSymbol({
 		language: language,

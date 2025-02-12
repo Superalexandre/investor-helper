@@ -43,9 +43,10 @@ export function ConvertJsonToReact({
 
     if (convertedJson?.children) {
         const result = ParseComponent(convertedJson.children, {
-            className: {
-                text: textClassName ?? ""
-            }
+            rawText: true
+            // className: {
+            //     text: textClassName ?? ""
+            // }
         })
 
         Component.push(...result)
@@ -237,7 +238,7 @@ export function ParseComponent(
                     <Link
                         key={`${child.type}-${Component.length}`}
                         to={child.params.url}
-                        className="inline-block text-muted-foreground hover:text-white hover:underline"
+                        className="inline-block px-1 text-muted-foreground hover:text-white hover:underline"
                     >
                         {child.params.linkText}
                     </Link>

@@ -14,6 +14,8 @@
         "duplicate": "npx jscpd . -i 'node_modules' -l 20"
     },
     "dependencies": {
+        "@ai-sdk/deepseek": "^0.1.8",
+        "@ai-sdk/openai": "^1.1.9",
         "@date-fns/tz": "^1.1.2",
         "@distube/ytdl-core": "^4.15.9",
         "@dnd-kit/core": "^6.2.0",
@@ -54,6 +56,7 @@
         "@tanstack/react-query": "^5.59.8",
         "@tanstack/react-table": "^8.20.6",
         "@vitejs/plugin-react": "^4.3.1",
+        "ai": "^4.1.25",
         "autoprefixer": "^10.4.20",
         "bcryptjs": "^2.4.3",
         "canvas": "^2.11.2",
@@ -79,6 +82,7 @@
         "konva": "^9.3.16",
         "lighthouse": "^12.3.0",
         "lucide-react": "^0.469.0",
+        "lz-string": "^1.5.0",
         "next-themes": "^0.4.0",
         "node-html-parser": "^6.1.13",
         "nodemailer": "^6.9.15",
@@ -108,6 +112,7 @@
         "tailwind-merge": "^2.5.2",
         "tailwindcss-animate": "^1.0.7",
         "usehooks-ts": "^3.1.0",
+        "web-push": "^3.6.7",
         "zod": "^3.23.8",
         "zustand": "^5.0.3"
     },
@@ -120,6 +125,7 @@
         "@types/nodemailer": "^6.4.16",
         "@types/react": "^18.2.20",
         "@types/react-dom": "^18.2.7",
+        "@types/web-push": "^3.6.4",
         "eslint": "^9.0.0",
         "tailwind-scrollbar": "^3.1.0",
         "tailwindcss": "^3.4.4",

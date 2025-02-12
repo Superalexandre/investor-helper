@@ -23,10 +23,14 @@ export type Notifications = typeof notificationSchema.$inferSelect
 
 export const notificationEventSchema = sqliteTable("notification_event", {
 	userId: text("user_id")
-		.references(() => usersSchema.id)
+		.references(() => usersSchema.id, {
+			onDelete: "cascade"
+		})
 		.notNull(),
 	eventId: text("event_id")
-		.references(() => eventsSchema.id)
+		.references(() => eventsSchema.id, {
+			onDelete: "cascade"
+		})
 		.notNull(),
 	remindThirtyMinutesBefore: int("remind_thirty_minutes_before", {
 		mode: "boolean"
@@ -46,7 +50,9 @@ export type NotificationEvent = typeof notificationEventSchema.$inferSelect
 
 export const notificationSubscribedNewsSchema = sqliteTable("notification_subscribed_news", {
 	userId: text("user_id")
-		.references(() => usersSchema.id)
+		.references(() => usersSchema.id, {
+			onDelete: "cascade"
+		})
 		.notNull(),
 
 	notificationId: text("notification_id").unique().notNull(),
@@ -54,6 +60,12 @@ export const notificationSubscribedNewsSchema = sqliteTable("notification_subscr
 	name: text("name", {
 		length: 64
 	}).notNull(),
+
+	active: int("active", {
+		mode: "boolean"
+	})
+		.notNull()
+		.default(true),
 
 	// importanceMin: int("importance_min"),
 	// importanceMax: int("importance_max"),
@@ -72,7 +84,9 @@ export type NotificationSubscribedNews = typeof notificationSubscribedNewsSchema
 
 export const notificationSubscribedNewsKeywordsSchema = sqliteTable("notification_subscribed_news_keywords", {
 	notificationId: text("notification_id")
-		.references(() => notificationSubscribedNewsSchema.notificationId)
+		.references(() => notificationSubscribedNewsSchema.notificationId, {
+			onDelete: "cascade"
+		})
 		.notNull(),
 	keyword: text("keyword").notNull()
 })
@@ -81,7 +95,9 @@ export type NotificationSubscribedNewsKeywords = typeof notificationSubscribedNe
 
 export const notificationSubscribedNewsSymbolsSchema = sqliteTable("notification_subscribed_news_symbols", {
 	notificationId: text("notification_id")
-		.references(() => notificationSubscribedNewsSchema.notificationId)
+		.references(() => notificationSubscribedNewsSchema.notificationId, {
+			onDelete: "cascade"
+		})
 		.notNull(),
 	symbol: text("symbol")
 		.references(() => symbolsSchema.symbolId)

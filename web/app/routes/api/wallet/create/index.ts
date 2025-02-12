@@ -12,6 +12,8 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 
 	const body = await request.formData()
 
+	console.log(body)
+
 	const sqlite = new Database("../db/sqlite.db")
 	const db = drizzle(sqlite)
 
@@ -20,7 +22,8 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 		.values({
 			userId: user.id,
 			name: body.get("walletName")?.toString() || "Portefeuille",
-			description: body.get("description")?.toString() || null
+			description: body.get("description")?.toString() || null,
+			private: body.get("private") === "on",
 		})
 		.returning({
 			walletId: walletSchema.walletId

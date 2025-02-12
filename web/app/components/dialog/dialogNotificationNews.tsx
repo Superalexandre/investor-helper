@@ -15,6 +15,7 @@ import { type FormEvent, type ReactNode, useRef, useState } from "react"
 import { usePush } from "@remix-pwa/push/client"
 import { useSubmit, useFetcher } from "@remix-run/react"
 import { toast as sonner } from "sonner"
+import { useQueryClient } from "@tanstack/react-query"
 
 export default function DialogNotificationNews({
 	open,
@@ -32,6 +33,8 @@ export default function DialogNotificationNews({
 	id?: string
 }): ReactNode {
 	const { pushSubscription } = usePush()
+    const queryClient = useQueryClient()
+
 	const submit = useSubmit()
 	const fetcher = useFetcher()
 	const [keyword, setKeyword] = useState<string[]>(keywords ?? [])
@@ -84,6 +87,10 @@ export default function DialogNotificationNews({
 			closeButton: true,
 			id: id,
 			className: "flex justify-between"
+		})
+
+		queryClient.invalidateQueries({
+			queryKey: ["notificationsInfo"]
 		})
 	}
 

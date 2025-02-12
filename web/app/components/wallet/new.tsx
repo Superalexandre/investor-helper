@@ -5,6 +5,7 @@ import { DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHead
 import { Label } from "@/components/ui/label"
 import { Form } from "@remix-run/react"
 import { WalletIcon } from "lucide-react"
+import { Switch } from "../ui/switch"
 
 export default function NewWallet({
 	className
@@ -41,26 +42,36 @@ export default function NewWallet({
 					variant="default"
 					className={className}
 				>
-					Créer un portefeuille 
+					Créer un portefeuille
 
-					<WalletIcon className="w-6 h-6 ml-2" />
+					<WalletIcon className="ml-2 h-6 w-6" />
 				</Button>
 			</DialogTrigger>
 			<DialogContent>
+				<DialogHeader className="pb-4">
+					<DialogTitle>Créer un portefeuille</DialogTitle>
+					<DialogDescription className="hidden">Créer un nouveau portefeuille</DialogDescription>
+				</DialogHeader>
+
 				<Form action="/api/wallet/create" method="POST">
-					<DialogHeader className="pb-4">
-						<DialogTitle>Créer un portefeuille</DialogTitle>
-						<DialogDescription className="hidden">Créer un nouveau portefeuille</DialogDescription>
-					</DialogHeader>
-					<div className="flex flex-col gap-6">
-						<div className="flex flex-col gap-2">
+					<div className="flex flex-col gap-4">
+						<div className="flex flex-col gap-1">
 							<Label htmlFor="walletName">Nom du portefeuille</Label>
 							<Input type="text" name="walletName" placeholder="Nom du portefeuille" required={true} />
 						</div>
 
-						<div className="flex flex-col gap-2">
+						<div className="flex flex-col gap-1">
 							<Label htmlFor="description">Description</Label>
 							<Input type="text" name="description" placeholder="Description du portefeuille" />
+						</div>
+
+						<div className="flex flex-col gap-1">
+							<Label>Visibilité du portefeuille</Label>
+							<div className="flex flex-row items-center gap-4">
+								<Label>Public</Label>
+								<Switch name="private" />
+								<Label>Privé</Label>
+							</div>
 						</div>
 					</div>
 					<DialogFooter className="mt-3 flex flex-row gap-3 lg:gap-0">

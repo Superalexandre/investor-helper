@@ -11,10 +11,11 @@ import { verificationEmailSchema } from "../../../../../db/schema/email"
 import { eq } from "drizzle-orm"
 import { formatDistanceToNow } from "date-fns"
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card"
-import { BellIcon, BellOffIcon, LockIcon, Settings2Icon } from "lucide-react"
+import { BellIcon, BellOffIcon, CalendarClockIcon, LockIcon, NewspaperIcon, Settings2Icon } from "lucide-react"
 import { useState, type ReactNode } from "react"
 import crypto from "node:crypto"
 import { getNotificationList } from "../../../../utils/notifications"
+import { cn } from "../../../lib/utils"
 
 const sqlite = new Database("../db/sqlite.db", { fileMustExist: true })
 const db = drizzle(sqlite)
@@ -88,8 +89,6 @@ export const meta: MetaFunction = () => {
 
 export default function Index(): ReactNode {
 	const { user, wallet, email, notificationList } = useLoaderData<typeof loader>()
-
-	console.log(wallet)
 
 	return (
 		<div className="flex w-full flex-col items-center justify-center gap-4 p-4">
@@ -165,7 +164,7 @@ export default function Index(): ReactNode {
 								})}</p>
 							</div>
 
-							<div className="ml-auto flex flex-row items-center gap-2">
+							<div className="flex flex-col gap-2 lg:ml-auto lg:flex-row lg:items-center">
 								<Button variant="destructive" className="flex flex-row gap-2">
 									Supprimer mon compte
 								</Button>
@@ -199,7 +198,7 @@ export default function Index(): ReactNode {
 								<p>Vous n'avez pas de portefeuille</p>
 							)}
 
-							<div className="my-auto ml-auto flex flex-row items-center gap-2">
+							<div className="my-auto flex flex-col gap-2 lg:ml-auto lg:flex-row lg:items-center">
 								<NewWallet />
 							</div>
 						</CardContent>
@@ -231,7 +230,7 @@ function LastNotifications({
 		}[]
 	}
 }) {
-	const [hidden, ] = useState(false)
+	const [hidden,] = useState(false)
 
 	return (
 		<Card className="w-full">
@@ -246,26 +245,32 @@ function LastNotifications({
 			</CardHeader>
 			{hidden ? null : (
 				<CardContent className="flex h-full flex-col gap-1">
-					{notificationList.list.length > 0 ? (
-						notificationList.list.map((n) => (
-							<Link key={n.notificationId} to={n.url} className="flex flex-col gap-1">
-								<p className="truncate">{n.title}</p>
-								<p className="truncate text-muted-foreground">{n.body}</p>
-								<p className="text-muted-foreground">{new Date(n.createdAt ?? new Date()).toLocaleDateString("fr-FR", {
-									year: "numeric",
-									month: "long",
-									day: "numeric",
-									hour: "numeric",
-									minute: "numeric",
-									second: "numeric"
-								})}</p>
-							</Link>
-						))
-					) : (
-						<p>Vous n'avez pas de notification</p>
-					)}
+					<div className="flex flex-col gap-4">
+						{notificationList.list.length > 0 ? (
+							notificationList.list.map((n) => (
+								<Link key={n.notificationId} to={n.url} className="flex flex-col gap-0.5">
+									<p className="flex flex-row items-center gap-2 truncate">
+										<IconType type={n.type} className="size-5" />
 
-					<div className="my-auto ml-auto flex flex-row gap-2">
+										{n.title}
+									</p>
+									<p className="truncate text-muted-foreground">{n.body}</p>
+									<p className="text-muted-foreground">{new Date(n.createdAt ?? new Date()).toLocaleDateString("fr-FR", {
+										year: "numeric",
+										month: "long",
+										day: "numeric",
+										hour: "numeric",
+										minute: "numeric",
+										second: "numeric"
+									})}</p>
+								</Link>
+							))
+						) : (
+							<p>Vous n'avez pas de notification</p>
+						)}
+					</div>
+
+					<div className="my-auto flex flex-col gap-2 lg:ml-auto lg:flex-row">
 						<Button variant="default" asChild={true}>
 							<Link to="/profile/notifications" className="flex flex-row gap-2">
 								Voir mes notifications
@@ -287,4 +292,12 @@ function LastNotifications({
 			)}
 		</Card>
 	)
+}
+
+function IconType({ type, className }: { type: "news" | "event", className?: string }): ReactNode {
+	if (type === "news") {
+		return <NewspaperIcon className={cn(className)} />
+	}
+
+	return <CalendarClockIcon className={cn(className)} />
 }

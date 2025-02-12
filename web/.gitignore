@@ -9,6 +9,7 @@ node_modules
 .million
 
 !postcss.config.js
+!/public/*.js
 
 utils/parser/*.pdf
 utils/parser/stocks.json

@@ -69,9 +69,9 @@ async function fetchEvents() {
 	const url = new URL(config.url.events)
 
 	const now = new Date()
-	const newNow = subDays(now, 31 * 3)
+	// const newNow = now.setMinutes(0, 0, 0)
 
-	const from = formatISO(startOfWeek(newNow, { weekStartsOn: 0 }))
+	const from = formatISO(startOfWeek(now, { weekStartsOn: 0 }))
 
 	// const dayToAdd = config.calendarPreferences.numberOfDays
 	const dayToAdd = 31 * 3

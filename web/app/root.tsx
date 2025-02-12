@@ -88,6 +88,7 @@ export function Layout({ children }: { children: ReactNode }): ReactNode {
 				<Links />
 
 				<link rel="manifest" href="/manifest.webmanifest" />
+				<script src="/register.js" type="module" defer={true} />
 
 				<meta
 					name="keywords"

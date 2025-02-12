@@ -29,7 +29,7 @@ const _plugins = [
 			v3_throwAbortReason: true
 		}
 	}),
-	remixPWA(),
+	// remixPWA(),
 	tsconfigPaths()
 ]
 

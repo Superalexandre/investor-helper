@@ -17,6 +17,7 @@ import { eventsSchema } from "../../db/schema/events.js"
 import type { NotificationSubscribedFullNews } from "../types/Notifications.js"
 import { v4 as uuidv4 } from "uuid"
 import logger from "../../log/index.js"
+import webPush from "web-push"
 
 async function sendNotificationEvent() {
 	const actualEvent = await getEventsNow()
@@ -94,10 +95,17 @@ function sendNotification({
 	endpoint: string
 	p256dh: string
 	auth: string
-}) {
-	try {
-		sendNotifications({
-			notification: {
+}) {	
+	webPush
+		.sendNotification(
+			{
+				endpoint,
+				keys: {
+					p256dh,
+					auth
+				}
+			},
+			JSON.stringify({
 				title,
 				options: {
 					body,
@@ -105,25 +113,21 @@ function sendNotification({
 					icon: "/logo-128-128.png",
 					data
 				}
-			},
-			vapidDetails: {
-				publicKey: process.env.NOTIFICATION_PUBLIC_KEY as string,
-				privateKey: process.env.NOTIFICATION_PRIVATE_KEY as string
-			},
-			subscriptions: [
-				{
-					endpoint,
-					keys: {
-						p256dh,
-						auth
-					}
+			}),
+			{
+				vapidDetails: {
+					privateKey: process.env.NOTIFICATION_PRIVATE_KEY as string,
+					publicKey: process.env.NOTIFICATION_PUBLIC_KEY as string,
+					subject: "mailto:contact@investor-helper.com"
 				}
-			],
-			options: {}
+			}
+		)
+		.then(() => {
+			logger.info("Notification sent")
 		})
-	} catch (error) {
-		logger.error("Error while sending notification", error)
-	}
+		.catch((error) => {
+			logger.error("Error while sending notification", error)
+		})
 }
 
 async function getUserNotifications(user: User) {
@@ -247,4 +251,11 @@ async function getNotificationList(userId: string, limit: number, offset: number
 	}
 }
 
-export { sendNotification, sendNotificationEvent, getUserNotifications, addNotificationList, getNotificationList, getNotificationListNumber }
+export {
+	sendNotification,
+	sendNotificationEvent,
+	getUserNotifications,
+	addNotificationList,
+	getNotificationList,
+	getNotificationListNumber
+}

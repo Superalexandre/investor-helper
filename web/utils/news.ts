@@ -16,6 +16,7 @@ import { addNotificationList, sendNotification } from "./notifications.js"
 import type { NewsFull, NewsSymbolsArticle } from "../types/News.js"
 import i18n, { newsUrl } from "../app/i18n.js"
 import logger from "../../log/index.js"
+import LZString from "lz-string"
 
 const sqlite = new Database("../db/sqlite.db")
 const db = drizzle(sqlite)
@@ -29,7 +30,21 @@ async function getNews({
 }: { page?: number; limit?: number; language?: string[]; scores?: number[][]; sources?: string[] }) {
 	// Fetch all news items with the given filters
 	const allNews = await db
-		.select()
+		.select({
+			news: {
+				id: newsSchema.id,
+				title: newsSchema.title,
+				storyPath: newsSchema.storyPath,
+				lang: newsSchema.lang,
+				importanceScore: newsSchema.importanceScore,
+				published: newsSchema.published,
+				source: newsSchema.source
+			},
+			news_article: {
+				date: newsArticleSchema.date,
+				shortDescription: newsArticleSchema.shortDescription
+			}
+		})
 		.from(newsSchema)
 		.innerJoin(newsArticleSchema, eq(newsSchema.id, newsArticleSchema.newsId))
 		.where(
@@ -54,7 +69,15 @@ async function getNews({
 
 	// Fetch all related symbols for the fetched news items in a single query
 	const relatedSymbols = await db
-		.select()
+		.select({
+			news_related_symbol: newsRelatedSymbolsSchema,
+			symbol: {
+				symbolId: symbolsSchema.symbolId,
+				logoid: symbolsSchema.logoid,
+				name: symbolsSchema.name,
+				description: symbolsSchema.description
+			}
+		})
 		.from(newsRelatedSymbolsSchema)
 		.innerJoin(symbolsSchema, eq(newsRelatedSymbolsSchema.symbol, symbolsSchema.symbolId))
 		.where(inArray(newsRelatedSymbolsSchema.newsId, newsIds))
@@ -76,7 +99,7 @@ async function getNews({
 	)
 
 	// Map related symbols to the corresponding news items
-	const news: NewsFull[] = allNews.map((newsItem) => ({
+	const news = allNews.map((newsItem) => ({
 		news: newsItem.news,
 		news_article: newsItem.news_article,
 		relatedSymbols: relatedSymbolsByNewsId[newsItem.news.id] || []
@@ -135,7 +158,6 @@ async function getNewsBySymbol({ symbol, limit = 10 }: { symbol: string; limit?:
 		.where(eq(newsRelatedSymbolsSchema.symbol, symbol))
 		.limit(limit)
 		.orderBy(desc(newsSchema.published))
-	// .innerJoin(newsArticleSchema, eq(newsSchema.id, newsArticleSchema.newsId))
 
 	return newsResults
 }
@@ -181,70 +203,73 @@ async function fetchNews(lang = "fr-FR") {
 
 	// Fetch all articles in parallel
 	const articlePromises = newsCopy.map(async (newsItem) => {
-		const exists = await db.select().from(newsSchema).where(eq(newsSchema.id, newsItem.id));
+		const exists = await db.select().from(newsSchema).where(eq(newsSchema.id, newsItem.id))
 
 		if (exists.length > 0) {
-			return null; // Skip if already exists
+			return null // Skip if already exists
 		}
 
-		const url = new URL(urlLang.originLocale + newsItem.storyPath);
+		const url = new URL(urlLang.originLocale + newsItem.storyPath)
 
 		const fullArticle = await fetch(url, {
 			headers: {
-				"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
-				"Accept": "application/json, text/javascript, */*; q=0.01",
+				"User-Agent":
+					"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
+				Accept: "application/json, text/javascript, */*; q=0.01",
 				"Accept-Language": "en-US,en;q=0.9",
-				"Connection": "keep-alive",
-				"Referer": urlLang.originLocale,
-				"Origin": urlLang.originLocale
+				Connection: "keep-alive",
+				Referer: urlLang.originLocale,
+				Origin: urlLang.originLocale
 			}
-		});
+		})
 
-		const articleData = await fullArticle.text();
-		const articleRoot = parse(articleData);
+		const articleData = await fullArticle.text()
+		const articleRoot = parse(articleData)
 
-		const article = articleRoot.querySelector("div[class='tv-content'] script[type='application/prs.init-data+json']")?.text;
+		const article = articleRoot.querySelector(
+			"div[class='tv-content'] script[type='application/prs.init-data+json']"
+		)?.text
 
 		if (!article) {
-			logger.error("No article found");
-			return null;
+			logger.error("No article found")
+			return null
 		}
 
-		const articleJson = JSON.parse(article);
-		const dynamicKeyArticle = Object.keys(articleJson)[0];
-		const jsonArticle = articleJson[dynamicKeyArticle];
+		const articleJson = JSON.parse(article)
+		const dynamicKeyArticle = Object.keys(articleJson)[0]
+		const jsonArticle = articleJson[dynamicKeyArticle]
 
 		if (!jsonArticle) {
-			logger.error("No article found (jsonArticle)");
-			return null;
+			logger.error("No article found (jsonArticle)")
+			return null
 		}
 
-		const jsonDescription = JSON.stringify(jsonArticle.story.astDescription);
+		const jsonDescription = JSON.stringify(jsonArticle.story.astDescription)
 
 		const importanceScore = getNewsImportanceScore(
 			jsonDescription,
 			jsonArticle.story.astDescription,
 			newsItem.relatedSymbols
-		);
+		)
 
-		newsItem.language = lang;
+		newsItem.language = lang
 		newsItem.article = {
 			jsonDescription: jsonDescription,
 			shortDescription: jsonArticle.story.shortDescription,
 			copyright: jsonArticle.story.copyright,
 			importanceScore: importanceScore
-		};
+		}
 
-		return newsItem;
-	});
+		return newsItem
+	})
 
 	// Wait for all articles to be fetched
-	const results = await Promise.all(articlePromises);
+	const results = await Promise.all(articlePromises)
 
 	// Filter out null values (articles that already exist in the database)
-	const filteredNews = results.filter(item => item !== null);
+	const filteredNews = results.filter((item) => item !== null)
 
-	return filteredNews;
+	return filteredNews
 
 	// return newsCopy as NewsSymbolsArticle[]
 }
@@ -299,7 +324,7 @@ async function saveFetchNews() {
 			} else {
 				provider = news.provider as string
 				logoId = ""
-				source = news.source ? news.source : news.provider as string
+				source = news.source ? news.source : (news.provider as string)
 			}
 
 			newsValues.push({
@@ -375,6 +400,8 @@ async function saveFetchNews() {
 	}
 
 	if (allNotifications.length > 0) {
+		logger.info(`Got ${allNotifications.length} notifications to send`)
+
 		reduceAndSendNotifications(allNotifications)
 	}
 
@@ -418,13 +445,23 @@ async function getNotificationNews(news: NewsSymbolsArticle) {
 
 	// Send a notification to the users that are subscribed to the news keywords
 	const keywords = await db
-		.select()
+		.select({
+			keyword: notificationSubscribedNewsKeywordsSchema.keyword,
+			notificationId: notificationSubscribedNewsKeywordsSchema.notificationId
+		})
 		.from(notificationSubscribedNewsKeywordsSchema)
+		.innerJoin(
+			notificationSubscribedNewsSchema,
+			eq(notificationSubscribedNewsKeywordsSchema.notificationId, notificationSubscribedNewsSchema.notificationId)
+		)
 		.where(
-			or(
-				inArray(notificationSubscribedNewsKeywordsSchema.keyword, titleWords),
-				inArray(notificationSubscribedNewsKeywordsSchema.keyword, shortDescriptionWords),
-				inArray(notificationSubscribedNewsKeywordsSchema.keyword, longDescriptionWords)
+			and(
+				eq(notificationSubscribedNewsSchema.active, true),
+				or(
+					inArray(notificationSubscribedNewsKeywordsSchema.keyword, titleWords),
+					inArray(notificationSubscribedNewsKeywordsSchema.keyword, shortDescriptionWords),
+					inArray(notificationSubscribedNewsKeywordsSchema.keyword, longDescriptionWords)
+				)
 			)
 		)
 
@@ -436,7 +473,16 @@ async function getNotificationNews(news: NewsSymbolsArticle) {
 	const symbols = await db
 		.select()
 		.from(notificationSubscribedNewsSymbolsSchema)
-		.where(inArray(notificationSubscribedNewsSymbolsSchema.symbol, symbolsArticle))
+		.innerJoin(
+			notificationSubscribedNewsSchema,
+			eq(notificationSubscribedNewsKeywordsSchema.notificationId, notificationSubscribedNewsSchema.notificationId)
+		)
+		.where(
+			and(
+				eq(notificationSubscribedNewsSchema.active, true),
+				inArray(notificationSubscribedNewsSymbolsSchema.symbol, symbolsArticle)
+			)
+		)
 
 	const notificationsToSend: NotificationToSend[] = []
 	if (keywords.length > 0 || symbols.length > 0) {
@@ -463,88 +509,82 @@ async function getNotificationNews(news: NewsSymbolsArticle) {
 
 		return notificationsToSend
 	}
+
+	logger.info(`${news.id} (${news.title}) has no subscribers`)
 }
 
 async function reduceAndSendNotifications(notifications: NotificationToSend[] | undefined) {
-	if (!notifications) {
+	if (!notifications || notifications.length === 0) {
 		return
 	}
 
-	const reducedNotifications: NotificationToSend[] = []
-
-	for (const notification of notifications) {
-		const exists = reducedNotifications.find(
-			(notif) => notif.userId === notification.userId && notif.notificationId === notification.notificationId
+	const reducedNotifications = notifications.reduce((acc, notification) => {
+		const existing = acc.find(
+			(n) => n.userId === notification.userId && n.notificationId === notification.notificationId
 		)
 
-		// Prevent duplicates news
-		if (exists?.newsId.includes(notification.newsId[0])) {
-			exists.keyword.push(...notification.keyword)
-
-			continue
-		}
-
-		if (exists) {
-			exists.number++
-
-			exists.newsId.push(...notification.newsId)
-			// if (exists.number > 1) {
-			// 	exists.title = `${exists.number} articles qui pourrais vous intéresser ont été publiés`
-
-			// 	exists.body = `${exists.number} articles qui pourrais vous intéresser ont été publiés`
-
-			// }
+		if (existing) {
+			// Prevent duplicate newsId
+			const newNewsIds = notification.newsId.filter((id) => !existing.newsId.includes(id))
+			if (newNewsIds.length > 0) {
+				existing.newsId.push(...newNewsIds)
+				existing.keyword.push(...notification.keyword)
+				existing.number++
+			}
 		} else {
-			reducedNotifications.push(notification)
+			acc.push({ ...notification, number: 1 })
 		}
-	}
 
-	for (const notificationContent of reducedNotifications) {
-		const notificationsInfo = await db
-			.select()
-			.from(notificationSchema)
-			.where(eq(notificationSchema.userId, notificationContent.userId))
+		return acc
+	}, [] as NotificationToSend[])
 
-		if (notificationContent.newsId.length > 1) {
-			const newsIds = notificationContent.newsId.join("-")
-			const newsIdsBase64 = Buffer.from(newsIds).toString("base64url")
+	const userIds = [...new Set(reducedNotifications.map((n) => n.userId))]
+	const notificationsInfo = await db
+		.select()
+		.from(notificationSchema)
+		.where(inArray(notificationSchema.userId, userIds))
 
-			const newsNumber = notificationContent.newsId.length
+	// Step 3: Process and send notifications
+	for (const notification of reducedNotifications) {
+		const userNotifications = notificationsInfo.filter((n) => n.userId === notification.userId)
 
-			if (newsNumber > 1) {
-				notificationContent.title = `${newsNumber} articles qui pourrais vous intéresser ont été publiés`
-				notificationContent.body = `${newsNumber} articles qui pourrais vous intéresser ont été publiés`
-			}
+		if (notification.newsId.length > 1) {
+			// Compress newsIds using LZ-String
+			const compressedIds = LZString.compressToEncodedURIComponent(notification.newsId.join("-"))
 
-			if (notificationContent.keyword.length > 1) {
-				// const originalTitle = notificationContent.title
+			const maxKeywords = 10
+			const uniqueKeywords = [...new Set(notification.keyword)].slice(0, maxKeywords)
+			const newsNumber = notification.newsId.length
 
-				notificationContent.title = `${newsNumber} articles parlant de ${notificationContent.keyword.join(", ")} a été publiés`
-				notificationContent.body = `${newsNumber} articles parlant de ${notificationContent.keyword.join(", ")} a été publiés`
-				// notificationContent.body = `${notificationContent.number} articles parlant de ${notificationContent.keyword.join(", ")} ont été publiés`
-			}
+			notification.title = `${newsNumber} articles qui pourraient vous intéresser ont été publiés`
+			notification.body =
+				newsNumber > 1
+					? `${newsNumber} articles parlant de ${uniqueKeywords.join(", ")} ont été publiés`
+					: notification.body
 
-			notificationContent.data.url = `/news/focus/${newsIdsBase64}?utm_source=notification`
+			// Use the compressedIds in the URL
+			notification.data.url = `/news/focus/lz:${compressedIds}?utm_source=notification`
 		}
 
 		// Insert into the database
-		addNotificationList({
-			userId: notificationContent.userId,
-			title: notificationContent.title,
-			body: notificationContent.body,
-			url: notificationContent.data.url,
+		await addNotificationList({
+			userId: notification.userId,
+			title: notification.title,
+			body: notification.body,
+			url: notification.data.url,
 			type: "news",
-			notificationFromId: notificationContent.notificationId
+			notificationFromId: notification.notificationId
 		})
 
-		for (const notificationInfo of notificationsInfo) {
+		// Send notifications
+		for (const info of userNotifications) {
 			sendNotification({
-				title: notificationContent.title,
-				body: notificationContent.body,
-				data: notificationContent.data,
-				auth: notificationInfo.auth,
-				endpoint: notificationInfo.endpoint,
-				p256dh: notificationInfo.p256dh
+				title: notification.title,
+				body: notification.body,
+				data: notification.data,
+				auth: info.auth,
+				endpoint: info.endpoint,
+				p256dh: info.p256dh
 			})
 		}
 	}
@@ -678,7 +718,7 @@ async function searchNews(search: string, limit = 10) {
 	return news
 }
 
-async function getNewsFromDates(from: number, to: number) {
+async function getNewsFromDates(from: number, to: number, { importanceScore = 20, lang = ["fr-FR"] } = {}) {
 	const news = await db
 		.select({
 			title: newsSchema.title,
@@ -690,8 +730,9 @@ async function getNewsFromDates(from: number, to: number) {
 		.innerJoin(newsArticleSchema, eq(newsSchema.id, newsArticleSchema.newsId))
 		.where(
 			and(
-				eq(newsSchema.lang, "fr-FR"),
-				gte(newsSchema.importanceScore, 20),
+				// eq(newsSchema.lang, "fr-FR"),
+				inArray(newsSchema.lang, lang),
+				gte(newsSchema.importanceScore, importanceScore),
 				gte(newsSchema.published, from),
 				lte(newsSchema.published, to)
 			)

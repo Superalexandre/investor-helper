@@ -24,7 +24,11 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 
 	const scores = importances.map((importance) => scoreMap[importance])
 
+	const start = Date.now()
 	const news = await getNews({ limit: limitReq, page: pageReq, language: languages, scores: scores, sources: sources })
+	const end = Date.now()
+
+	console.log(`News API took ${end - start}ms to respond`)
 
 	return news
 }

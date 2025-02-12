@@ -20,6 +20,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import CopyButton from "../../../components/button/copyButton"
 import ShareButton from "../../../components/button/shareButton"
 import DialogNotificationNews from "../../../components/dialog/dialogNotificationNews"
+import AiAnalysis from "./AiAnalysis"
 
 export const loader: LoaderFunction = async ({ params }) => {
 	if (!params.id) {
@@ -227,7 +228,7 @@ export default function Index(): ReactNode {
 				groupName={data.info.description}
 				keywords={[data.info.additionalInfo.symbol.pro_symbol]}
 			/>
-			
+
 			<DialogInfo
 				open={openInfo}
 				setOpen={setOpenInfo}
@@ -288,10 +289,13 @@ export default function Index(): ReactNode {
 					</CardHeader>
 					<CardContent className="flex flex-col gap-4">
 						{data.info.additionalInfo.symbol.ast_business_description ? (
-							<ConvertJsonToReact
-								json={JSON.stringify(data.info.additionalInfo.symbol.ast_business_description)}
-							// textClassName="max-h-40 truncate"
-							/>
+							<div className="">
+								<ConvertJsonToReact
+									json={JSON.stringify(data.info.additionalInfo.symbol.ast_business_description)}
+									textClassName="inline-block"
+								// textClassName="max-h-40 truncate"
+								/>
+							</div>
 						) : null}
 
 						<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -373,6 +377,17 @@ export default function Index(): ReactNode {
 
 				<DisplayRecommendation recommendation={data.info["Recommend.All|1W"]} />
 			</div>
+
+			{/* 
+			<Card className="mx-4 border-card-border">
+				<CardHeader>
+					<CardTitle className="text-lg">Recommandation de l'IA</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<AiAnalysis symbol={symbol} />
+				</CardContent>
+			</Card> 
+			*/}
 
 			{data.info["Pivot.M.Fibonacci.S3"] && data.info["Pivot.M.Fibonacci.Middle"] && data.info["Pivot.M.Fibonacci.R3"] ? (
 				<Card className="mx-4 border-card-border">

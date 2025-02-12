@@ -31,9 +31,32 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		}
 	}
 
-	await db
-		.delete(notificationSubscribedNewsKeywordsSchema)
-		.where(and(eq(notificationSubscribedNewsKeywordsSchema.notificationId, id)))
+	const notifications = await db
+		.select()
+		.from(notificationSubscribedNewsSchema)
+		.where(eq(notificationSubscribedNewsSchema.notificationId, id))
+
+	if (!notifications) {
+		return {
+			success: false,
+			error: true,
+			message: "Notification not found"
+		}
+	}
+
+	const notification = notifications[0]
+
+	if (notification.userId !== user.id) {
+		return {
+			success: false,
+			error: true,
+			message: "User not subscribed to this notification"
+		}
+	}
+
+	// await db
+	// 	.delete(notificationSubscribedNewsKeywordsSchema)
+	// 	.where(and(eq(notificationSubscribedNewsKeywordsSchema.notificationId, id)))
 
 	await db
 		.delete(notificationSubscribedNewsSchema)

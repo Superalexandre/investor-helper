@@ -64,7 +64,7 @@ export const handle = {
 	i18n: "news"
 }
 
-export default function Index() {
+export default function Index(): ReactNode {
 	const { newsPreferences, allSources } = useLoaderData<typeof loader>()
 	const { t, i18n } = useTranslation("news")
 
@@ -101,7 +101,7 @@ export default function Index() {
                 </Button> */}
 			</div>
 
-			<div className="flex flex-col space-y-6 p-4 lg:p-10">
+			<div className="flex flex-col space-y-6 p-4">
 				<DisplayFilter
 					t={t}
 					selectedLanguage={selectedLanguage}
