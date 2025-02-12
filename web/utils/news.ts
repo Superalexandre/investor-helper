@@ -452,7 +452,7 @@ async function getNotificationNews(news: NewsSymbolsArticle) {
 		.from(notificationSubscribedNewsKeywordsSchema)
 		.innerJoin(
 			notificationSubscribedNewsSchema,
-			eq(notificationSubscribedNewsKeywordsSchema.notificationId, notificationSubscribedNewsSchema.notificationId)
+			eq(notificationSubscribedNewsSchema.notificationId, notificationSubscribedNewsKeywordsSchema.notificationId)
 		)
 		.where(
 			and(
@@ -475,7 +475,7 @@ async function getNotificationNews(news: NewsSymbolsArticle) {
 		.from(notificationSubscribedNewsSymbolsSchema)
 		.innerJoin(
 			notificationSubscribedNewsSchema,
-			eq(notificationSubscribedNewsKeywordsSchema.notificationId, notificationSubscribedNewsSchema.notificationId)
+			eq(notificationSubscribedNewsSchema.notificationId, notificationSubscribedNewsSymbolsSchema.notificationId)
 		)
 		.where(
 			and(

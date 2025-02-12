@@ -123,8 +123,8 @@ export default function Login({ redirect, callback }: LoginProps) {
 
 			<Separator className="w-full bg-primary" />
 
-			<div className="flex w-full flex-col items-center justify-center gap-2 lg:flex-row lg:justify-between">
-				<Button size="lg" variant="outline" type="button" asChild={true} className="flex w-full flex-row items-center justify-center gap-2">
+			<div className="flex w-full flex-row flex-wrap items-center justify-center gap-2">
+				<Button size="lg" variant="outline" type="button" asChild={true} className="flex w-auto flex-grow flex-row items-center justify-center gap-2">
 					<Link
 						to={{
 							pathname: "/register",
@@ -138,7 +138,7 @@ export default function Login({ redirect, callback }: LoginProps) {
 					</Link>
 				</Button>
 
-				<Button size="lg" variant="outline" type="button" asChild={true} className="flex w-full flex-row items-center justify-center gap-2">
+				<Button size="lg" variant="outline" type="button" asChild={true} className="flex w-auto flex-grow flex-row items-center justify-center gap-2">
 					<Link to={`/login/auth/google?redirect=${preferredRedirect}`}>
 						<GoogleIcon className="fill-primary" />
 
