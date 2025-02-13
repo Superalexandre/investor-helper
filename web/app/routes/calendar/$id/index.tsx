@@ -285,7 +285,7 @@ const EventDetails = memo(function EventDetails({
 			</div>
 
 			<div className="flex w-full flex-col items-center gap-8">
-				<div className="flex w-2/3 flex-col items-center">
+				<div className="flex flex-col items-center">
 					<h2 className="font-bold text-xl">{t("description")}</h2>
 					<p className="">{event?.comment ?? t("noDescription")}</p>
 				</div>

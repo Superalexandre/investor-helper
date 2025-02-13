@@ -1,5 +1,6 @@
 import { getNews } from "@/utils/news"
 import type { LoaderFunction, LoaderFunctionArgs } from "@remix-run/node"
+import logger from "../../../../../log"
 
 export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) => {
 	// const language = await getLanguage(request)
@@ -24,11 +25,11 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 
 	const scores = importances.map((importance) => scoreMap[importance])
 
-	const start = Date.now()
+	// const start = Date.now()
 	const news = await getNews({ limit: limitReq, page: pageReq, language: languages, scores: scores, sources: sources })
-	const end = Date.now()
+	// const end = Date.now()
 
-	console.log(`News API took ${end - start}ms to respond`)
+	// logger.info(`News API took ${end - start}ms to respond`)
 
 	return news
 }

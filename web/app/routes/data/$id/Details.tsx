@@ -43,7 +43,7 @@ export function Details({ symbol }: { symbol: string }): ReactNode {
 		return <p>Aucune donnée</p>
 	}
 
-	if (!data.data.top_holdings) {
+	if (!data.data || !data.data.top_holdings) {
 		return <p>Aucune donnée</p>
 	}
 
