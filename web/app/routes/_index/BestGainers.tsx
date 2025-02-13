@@ -11,6 +11,7 @@ import { TriangleUpIcon } from "@radix-ui/react-icons"
 import { cn } from "../../lib/utils"
 import { SmallChart } from "../../components/charts/smallChart"
 import type { BestGainer } from "../../../types/Prices"
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../../components/ui/carousel"
 
 export default function Index({
     t
@@ -25,9 +26,9 @@ export default function Index({
                 {t("bestGainers")}
             </h2>
 
-            <div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
-                <DisplayBestGainers t={t} />
-            </div>
+            <DisplayBestGainers t={t} />
+            {/* <div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2">
+            </div> */}
         </>
     )
 }
@@ -105,57 +106,77 @@ const DisplayBestGainers = memo(function DisplayBestGainers({
     }
 
     if (isPending) {
-        return new Array(10).fill(null).map((_, index) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-            <Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={index}>
-                <CardTitle className="p-4 text-center">
-                    <Skeleton className="h-6 w-1/2" />
-                </CardTitle>
-                <CardContent className="flex flex-col gap-4 p-4">
-                    <Skeleton className="h-24 w-full" />
+        <Carousel>
+            <CarouselContent>
+                {new Array(10).fill(null).map((_, index) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                    <Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={index}>
+                        <CardTitle className="p-4 text-center">
+                            <Skeleton className="h-6 w-1/2" />
+                        </CardTitle>
+                        <CardContent className="flex flex-col gap-4 p-4">
+                            <Skeleton className="h-24 w-full" />
 
-                    <div className="absolute bottom-0 left-0 flex w-full flex-col gap-2 p-4 text-muted-foreground">
-                        <Skeleton className="h-4 w-1/2" />
-                        <Skeleton className="h-4 w-1/2" />
-                    </div>
-                </CardContent>
-            </Card>
-        ))
+                            <div className="absolute bottom-0 left-0 flex w-full flex-col gap-2 p-4 text-muted-foreground">
+                                <Skeleton className="h-4 w-1/2" />
+                                <Skeleton className="h-4 w-1/2" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </CarouselContent>
+
+            <CarouselPrevious />
+            <CarouselNext />
+        </Carousel>
     }
 
     if (!gainers || gainers.result.length <= 0) {
         return <p>{t("errors.emptyGainers")}</p>
     }
 
-    return gainers.result.map((gainer) => (
-        <Link to={`/data/${gainer.symbol}`} key={gainer.name}>
-            <Card className="relative size-80 whitespace-normal border-card-border">
-                <CardTitle className="flex flex-row items-center justify-center gap-2 p-4 text-center">
-                    <SymbolLogo symbol={gainer} className="size-6 rounded-full" alt={gainer.description} />
+    return (
+        // "w-full max-w-[75%] lg:max-w-[90%]"
+        <Carousel className="h-80 w-full max-w-[75%] lg:max-w-[90%]">
+            <CarouselContent className="-ml-0">
+                {gainers.result.map((gainer) => (
+                    // className="basis-1/3 md:basis-1/4 lg:basis-1/5 pl-0"
+                    <CarouselItem key={gainer.name} className="flex basis-full items-center justify-center p-0 lg:basis-1/2 xl:basis-1/3 2xl:basis-1/4">
+                        <Link to={`/data/${gainer.symbol}`}>
+                            <Card className="relative size-80 whitespace-normal border-card-border">
+                                <CardTitle className="flex flex-row items-center justify-center gap-2 p-4 text-center">
+                                    <SymbolLogo symbol={gainer} className="size-6 rounded-full" alt={gainer.description} />
 
-                    {gainer.description}
-                </CardTitle>
-                <CardContent className="flex flex-col items-center justify-center gap-4 p-4">
-                    <div className="flex flex-col items-center justify-center">
+                                    {gainer.description}
+                                </CardTitle>
+                                <CardContent className="flex flex-col items-center justify-center gap-4 p-4">
+                                    <div className="flex flex-col items-center justify-center">
 
-                        <div className="flex flex-row items-center gap-2">
-                            <p>
-                                {gainer.close}
-                                {gainer.currency}
-                            </p>
-                            <Badge className="flex flex-row items-center justify-center bg-green-500 font-bold text-white hover:bg-green-500">
-                                <TriangleUpIcon className="size-5" />
-                                <span>{Number(gainer.rawChange).toFixed(2)}%</span>
-                            </Badge>
-                        </div>
-                        {gainer.recommendation_mark ?
-                            <p className={cn(recommendationColor(gainer.recommendation_mark))}>{recommendation(gainer.recommendation_mark)}</p>
-                            : null}
-                    </div>
+                                        <div className="flex flex-row items-center gap-2">
+                                            <p>
+                                                {gainer.close}
+                                                {gainer.currency}
+                                            </p>
+                                            <Badge className="flex flex-row items-center justify-center bg-green-500 font-bold text-white hover:bg-green-500">
+                                                <TriangleUpIcon className="size-5" />
+                                                <span>{Number(gainer.rawChange).toFixed(2)}%</span>
+                                            </Badge>
+                                        </div>
+                                        {gainer.recommendation_mark ?
+                                            <p className={cn(recommendationColor(gainer.recommendation_mark))}>{recommendation(gainer.recommendation_mark)}</p>
+                                            : null}
+                                    </div>
 
-                    <SmallChart prices={gainer.prices} />
-                </CardContent>
-            </Card>
-        </Link>
-    ))
+                                    <SmallChart prices={gainer.prices} />
+                                </CardContent>
+                            </Card>
+                        </Link>
+                    </CarouselItem>
+                ))}
+            </CarouselContent>
+
+            <CarouselPrevious variant="default" />
+            <CarouselNext variant="default" />
+        </Carousel>
+    )
 })
