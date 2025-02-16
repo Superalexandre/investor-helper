@@ -119,44 +119,44 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
         caches.match(event.request).then((response) => {
             // Return cached asset if found
-            // if (response && !response.url.includes("/api/")) {	
-            //     console.log("Fetch from cache", {
-            //         url: event.request.url,
-            //         method: event.request.method,
-            //         response
-            //     });
+            if (response && !response.url.includes("/api/")) {	
+                console.log("Fetch from cache", {
+                    url: event.request.url,
+                    method: event.request.method,
+                    response
+                });
 
-            //     return response;
-            // }
+                return response;
+            }
 
             // Fetch from network if not cached
             return fetch(event.request)
                 .then((networkResponse) => {
                     // Cache the fetched asset
-                    if (networkResponse.ok) {
-                        const responseClone = networkResponse.clone();
+                    // if (networkResponse.ok) {
+                        // const responseClone = networkResponse.clone();
 
-                        caches.open(CACHE_NAME).then((cache) => {
+                        // caches.open(CACHE_NAME).then((cache) => {
 
-                            const url = event.request.url
+                        //     const url = event.request.url
 
-                            if (url.startsWith("chrome-extension://") || url.startsWith("chrome://")) {
-                                return;
-                            }
+                        //     if (url.startsWith("chrome-extension://") || url.startsWith("chrome://")) {
+                        //         return;
+                        //     }
 
-                            if (url.includes("/api/")) {
-                                return;
-                            }
+                        //     if (url.includes("/api/")) {
+                        //         return;
+                        //     }
 
-                            console.log("Cache new asset", {
-                                url: event.request.url,
-                                method: event.request.method,
-                                response: responseClone
-                            });
+                        //     console.log("Cache new asset", {
+                        //         url: event.request.url,
+                        //         method: event.request.method,
+                        //         response: responseClone
+                        //     });
                      
-                            cache.put(event.request, responseClone);
-                        });
-                    }
+                        //     cache.put(event.request, responseClone);
+                        // });
+                    // }
 
                     return networkResponse;
                 })

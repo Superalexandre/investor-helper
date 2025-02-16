@@ -1,5 +1,5 @@
 import type { LoaderFunction } from "@remix-run/node"
-import { addDays, formatISO, getDay, isWithinInterval, set } from "date-fns"
+import { addDays, formatISO, getDay, isWithinInterval, set, subDays } from "date-fns"
 import { toZonedTime } from "date-fns-tz"
 import type { MarketHolidays, MarketHours, MarketsHours, MarketStatus } from "../../../../types/Hours"
 import logger from "../../../../../log"
@@ -199,11 +199,24 @@ function checkMarketHours(
 
 function getNextOpenDate(market: MarketHours, now: Date, isOpen: boolean): string | null {
 	if (!isOpen) {
-		if (now < set(now, { hours: Math.floor(market.open), minutes: (market.open % 1) * 60 })) {
+		const isWeekend = getDay(now) === 6 || getDay(now) === 0
+
+		if (!isWeekend && now < set(now, { hours: Math.floor(market.open), minutes: (market.open % 1) * 60 })) {
 			return formatISO(set(now, { hours: Math.floor(market.open), minutes: (market.open % 1) * 60 }))
 		}
 
-		return formatISO(addDays(set(now, { hours: Math.floor(market.open), minutes: (market.open % 1) * 60 }), 1))
+		// If it's Friday, the next open date is Monday
+		// If it's Saturday, the next open date is Monday
+		// If it's Sunday, the next open date is Monday
+		let dayToAdd = 1
+
+		if (getDay(now) === 5) {
+			dayToAdd = 3
+		} else if (getDay(now) === 6) {
+			dayToAdd = 2
+		}
+
+		return formatISO(addDays(set(now, { hours: Math.floor(market.open), minutes: (market.open % 1) * 60 }), dayToAdd))
 	}
 	return null
 }

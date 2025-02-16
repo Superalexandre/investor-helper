@@ -1,13 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
-import { ClockIcon } from "lucide-react";
+import { ArrowRightIcon, ClockIcon } from "lucide-react";
 import { memo, useEffect, useState, type ReactNode } from "react";
-import { Card, CardContent, CardTitle } from "../../components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Skeleton } from "../../components/ui/skeleton";
 import { format, toDate, fromZonedTime, } from "date-fns-tz"
 import { differenceInSeconds } from "date-fns";
 import type { MarketStatus } from "../../../types/Hours"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../../components/ui/carousel";
+import { Badge } from "../../components/ui/badge";
+import { cn } from "../../lib/utils";
 
 export default function Index({
     t,
@@ -18,7 +20,7 @@ export default function Index({
 }): ReactNode {
     return (
         <>
-            <h2 className="flex flex-row items-center gap-2 font-bold text-lg">
+            <h2 className="flex flex-row items-center gap-2 font-bold text-lg mb-4">
                 <ClockIcon />
 
                 {t("marketHours")}
@@ -60,12 +62,7 @@ const DisplayHours = memo(function DisplayHours({
         error
     } = useQuery<MarketStatus[]>({
         queryKey: ["hours"],
-        queryFn: async () => {
-            const req = await fetch("/api/hours")
-            const json = await req.json()
-
-            return json
-        },
+        queryFn: async () => await fetch("/api/hours").then((res) => res.json()),
         refetchOnWindowFocus: true
     })
 
@@ -74,7 +71,7 @@ const DisplayHours = memo(function DisplayHours({
             setActualDate(new Date())
         }, 1000)
 
-        return () => clearInterval(interval)
+        return (): void => clearInterval(interval)
     }, [])
 
     if (error) {
@@ -85,9 +82,11 @@ const DisplayHours = memo(function DisplayHours({
         return new Array(10).fill(null).map((_, index) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
             <Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={index}>
-                <CardTitle className="p-4 text-center">
-                    <Skeleton className="h-6 w-1/2" />
-                </CardTitle>
+                <CardHeader>
+                    <CardTitle className="text-center">
+                        <Skeleton className="h-6 w-1/2" />
+                    </CardTitle>
+                </CardHeader>
                 <CardContent className="flex flex-col gap-4 p-4">
                     <Skeleton className="h-24 w-full" />
 
@@ -159,122 +158,107 @@ const DisplayHours = memo(function DisplayHours({
         return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
     }
 
-    // return (
-    // 	<Card className="border-card-border w-full">
-    // 		<CardContent className="w-full flex flex-col items-center gap-4">
-    // 			{hours.map((hour) => (
-    // 				<div className="flex flex-row items-center gap-2" key={hour.marketId}>
-    // 					{hour.hasLogo ? (
-    // 						<img
-    // 							src={`/logo/${hour.marketId}.png`}
-    // 							alt={hour.marketName}
-    // 							className="rounded-full size-6"
-    // 							loading="lazy"
-    // 							width="48"
-    // 							height="48"
-    // 						/>
-    // 					) : null}
-
-    // 					{hour.marketName}
-
-    // 					{hour.open ? <OpenIndicator /> : <CloseIndicator />}
-
-    // 					<p>
-    // 						{hour.open ? "Ouvert" : `Fermé ${hour.closeReason !== "close" ? hour.closeReason : ""}`}
-    // 					</p>
-
-
-    // 					{hour.open ? (
-    // 						<div className="flex flex-col">
-    // 							<p>
-    // 								Fermeture à {getOpeningTimeInUserLocal(hour.nextCloseDate, hour.timezone)} ({formatDecimalTime(hour.closeHour)}h heure locale)
-    // 							</p>
-    // 							<p>
-    // 								Dans {formatDistance(hour.nextCloseDate, hour.timezone)}
-    // 							</p>
-    // 						</div>
-    // 					) : (
-    // 						<div className="flex flex-col">
-    // 							<p>
-    // 								Ouverture à {getOpeningTimeInUserLocal(hour.nextOpenDate, hour.timezone)} ({formatDecimalTime(hour.openHour)}h heure locale)
-    // 							</p>
-    // 							<p>
-    // 								Dans {formatDistance(hour.nextOpenDate, hour.timezone)}
-    // 							</p>
-    // 						</div>
-    // 					)}
-    // 				</div>
-    // 			))}
-    // 		</CardContent>
-    // 	</Card>
-    // )
-
-    return hours.map((hour) => (
-        // <CarouselItem key={hour.marketId} className="flex basis-full justify-center pl-4 lg:basis-auto">
-        <Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={hour.marketId}>
-            <CardTitle className="flex flex-row items-center justify-center gap-2 p-4 text-center">
-                {hour.hasLogo ? (
-                    <img
-                        src={`/logo/${hour.marketId}.png`}
-                        alt={hour.marketName}
-                        className="rounded-full size-6"
-                        loading="lazy"
-                        width="48"
-                        height="48"
+    return (
+        <Card className="w-full border-card-border">
+            {/* <CardContent className="flex w-full flex-col flex-wrap items-center justify-between gap-4 p-4 md:flex-row"> */}
+            <CardContent className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {hours.map((hour) => (
+                    <MarketHourCard
+                        key={hour.marketId}
+                        hour={hour}
+                        t={t}
+                        getOpeningTimeInUserLocal={getOpeningTimeInUserLocal}
+                        formatDistance={formatDistance}
+                        formatDecimalTime={formatDecimalTime}
                     />
-                ) : null}
-
-                {hour.marketName}
-            </CardTitle>
-            <CardContent className="flex flex-col gap-4 p-4">
-                <div className="flex flex-row items-center justify-center gap-2">
-
-                    {hour.open ? <OpenIndicator /> : <CloseIndicator />}
-
-                    <p>
-                        {hour.open ? t("open") : `${t("closed")} ${hour.closeReason !== "close" ? hour.closeReason : ""}`}
-                    </p>
-                </div>
-
-                {hour.open ? (
-                    <div className="flex flex-col">
-                        <p>
-                            {t("closingAt")} {getOpeningTimeInUserLocal(hour.nextCloseDate, hour.timezone)} ({formatDecimalTime(hour.closeHour)}{t("hourIndicator")} {t("localTime")})
-                        </p>
-                        <p>
-                            {t("in")} {formatDistance(hour.nextCloseDate, hour.timezone)}
-                        </p>
-                    </div>
-                ) : (
-                    <div className="flex flex-col">
-                        <p>
-                            {t("openingAt")} {getOpeningTimeInUserLocal(hour.nextOpenDate, hour.timezone)} ({formatDecimalTime(hour.openHour)}{t("hourIndicator")} {t("localTime")})
-                        </p>
-                        <p>
-                            {t("in")} {formatDistance(hour.nextOpenDate, hour.timezone)}
-                        </p>
-                    </div>
-                )}
+                ))}
             </CardContent>
         </Card>
-        // </CarouselItem>
-    ))
+    )
 })
 
-const OpenIndicator = memo(function OpenIndicator() {
+const MarketHourCard = memo(function MarketHourCard({
+    hour,
+    t,
+    getOpeningTimeInUserLocal,
+    formatDistance,
+    formatDecimalTime,
+}: {
+    hour: MarketStatus
+    t: TFunction
+    getOpeningTimeInUserLocal: (marketDate: Date, marketTimezone: string) => string
+    formatDistance: (marketDate: Date, marketTimezone: string) => string
+    formatDecimalTime: (decimalTime: number) => string
+}) {
+    const { marketId, marketName, open, nextCloseDate, nextOpenDate, timezone, closeHour, openHour, closeReason, hasLogo } = hour;
+
     return (
-        <div className="relative">
-            <div className="size-2 rounded-full bg-green-500" />
-            <div className="absolute top-0 size-2 animate-ping rounded-full bg-green-600 duration-1000" />
+        <div>
+            <div className="mb-4 flex flex-row items-center justify-center gap-2">
+                <div className="flex flex-row items-center gap-2">
+                    {hasLogo && (
+                        <img
+                            src={`/logo/${marketId}.png`}
+                            alt={hour.marketName}
+                            className="rounded-full w-10 h-10"
+                            loading="lazy"
+                            width="40"
+                            height="40"
+                        />
+                    )}
+                    <h3 className="font-semibold text-lg">{marketName}</h3>
+                </div>
+                <Badge
+                    // variant={open ? "outline" : "destructive"} 
+                    // className="font-medium text-xs"
+                    className={cn("font-medium text-xs", {
+                        "bg-red-500 font-bold text-white hover:bg-red-500": !open,
+                        "bg-green-500 font-bold text-white hover:bg-green-500": open
+                    })}
+                >
+                    {open ? t("open") : t("closed")}
+                </Badge>
+            </div>
+
+            <div className="space-y-2">
+                <div className="flex items-center justify-center space-x-2 text-sm">
+                    <ClockIcon className="h-4 w-4 text-muted-foreground" />
+                    <span>
+                        {open
+                            ? `${t("closingAt")} ${getOpeningTimeInUserLocal(nextCloseDate, timezone)}`
+                            : `${t("openingAt")} ${getOpeningTimeInUserLocal(nextOpenDate, timezone)}`}
+                    </span>
+                </div>
+                <div className="flex items-center justify-center">
+                    <span className="font-bold text-2xl">{formatDistance(open ? nextCloseDate : nextOpenDate, timezone)}</span>
+                    {/* <ArrowRightIcon className="w-5 h-5 text-muted-foreground" /> */}
+                </div>
+                <p className="text-center text-muted-foreground text-xs">
+                    {open
+                        ? `${formatDecimalTime(closeHour)}${t("hourIndicator")} ${t("localTime")}`
+                        : `${formatDecimalTime(openHour)}${t("hourIndicator")} ${t("localTime")}`}
+                </p>
+            </div>
+
+            {!open && closeReason !== "close" && <p className="mt-2 text-center text-muted-foreground text-sm">{closeReason}</p>}
         </div>
     )
 })
 
-const CloseIndicator = memo(function CloseIndicator() {
-    return (
-        <div className="relative">
-            <div className="size-2 rounded-full bg-red-500" />
-            <div className="absolute top-0 size-2 animate-ping rounded-full bg-red-600 duration-1000" />
-        </div>
-    )
-})
+// const OpenIndicator = memo(function OpenIndicator() {
+//     return (
+//         <div className="relative">
+//             <div className="size-2 rounded-full bg-green-500" />
+//             <div className="absolute top-0 size-2 animate-ping rounded-full bg-green-600 duration-1000" />
+//         </div>
+//     )
+// })
+
+// const CloseIndicator = memo(function CloseIndicator() {
+//     return (
+//         <div className="relative">
+//             <div className="size-2 rounded-full bg-red-500" />
+//             <div className="absolute top-0 size-2 animate-ping rounded-full bg-red-600 duration-1000" />
+//         </div>
+//     )
+// })

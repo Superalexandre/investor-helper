@@ -350,6 +350,35 @@ export function ParseComponent(
                 Component.push(
                     <pre key={`${child.type}-${Component.length}-${child.children?.length}`}>{ComponentResult}</pre>
                 )
+            } else if (["twitter"].includes(child?.type)) {
+                const ComponentResult = ParseComponent(child.children, {
+                    className: configClassName,
+                    rawText: true,
+                    relatedSymbols
+                })
+
+                // params : {
+                //     "url": "https://twitter.com/SenseiBR_btc/status/1885944804942688330",
+                //     "username": "SenseiBR_btc",
+                //     "name": "Sensei",
+                //     "datePublished": "2025-02-02"
+                // }
+
+                Component.push(
+                    <div key={`${child.type}-${Component.length}-${child.children?.length}`} className="flex flex-col gap-1">
+                        <a
+                            href={child.params.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 hover:underline"
+                        >
+                            {child.params.name} @{child.params.username}
+                        </a>
+
+                        {/* <p className="text-muted-foreground">{child.params.datePublished}</p> */}
+                        {ComponentResult}
+                    </div>
+                )
             } else {
                 console.error("Unknown child", child)
             }

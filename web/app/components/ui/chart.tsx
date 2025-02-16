@@ -317,7 +317,7 @@ const ChartLegendContent = React.forwardRef<
                             )}
                             <span 
                                 className={cn(
-                                    renderHidden && configFromItem["display"] === false ? "line-through" : "",
+                                    renderHidden && (configFromItem && configFromItem["display"] === false) ? "line-through" : "",
                                     item?.inactive ? "line-through" : ""
                                 )}
                             >

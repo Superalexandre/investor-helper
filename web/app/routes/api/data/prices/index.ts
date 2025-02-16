@@ -16,6 +16,9 @@ export const loader: LoaderFunction = async ({ request }) => {
 		}
 	}
 
+	const currentDate = new Date()
+	currentDate.setMinutes(0, 0, 0)
+
 	const timeframeMap: Record<
 		string,
 		{
@@ -25,27 +28,33 @@ export const loader: LoaderFunction = async ({ request }) => {
 	> = {
 		"1D": {
 			timeframe: ["1", 360],
-			from: subDays(new Date(), 1)
+			// from: subDays(new Date(), 1)
+			from: subDays(currentDate, 1)
 		},
 		"1W": {
 			timeframe: ["60", 168],
-			from: subDays(new Date(), 7)
+			// from: subDays(new Date(), 7)
+			from: subDays(currentDate, 7)
 		},
 		"1M": {
 			timeframe: ["60", 1860],
-			from: subMonths(new Date(), 1)
+			// from: subMonths(new Date(), 1)
+			from: subMonths(currentDate, 1)
 		},
 		"1Y": {
 			timeframe: ["1D", 365],
-			from: subYears(new Date(), 1)
+			// from: subYears(new Date(), 1)
+			from: subYears(currentDate, 1)
 		},
 		"5Y": {
 			timeframe: ["1D", 1825],
-			from: subYears(new Date(), 5)
+			// from: subYears(new Date(), 5)
+			from: subYears(currentDate, 5)
 		},
 		all: {
 			timeframe: ["1M", 1200],
-			from: -Number.MAX_SAFE_INTEGER
+			// from: -Number.MAX_SAFE_INTEGER
+			from: 0
 		}
 	}
 
@@ -67,15 +76,33 @@ export const loader: LoaderFunction = async ({ request }) => {
 		}
 	}
 
+	// Check if there is an anormal volume exchange
+	const volume = prices.map((price) => price.volume)
+	const maxVolume = Math.max(...volume)
+	const minVolume = Math.min(...volume)
+	const volumeRange = maxVolume - minVolume
+	const volumeAverage = volume.reduce((a, b) => a + b) / volume.length
+	const highVolume = volumeRange > volumeAverage * 2
+
+	// check if its weekend
+	const day = new Date().getDay()
+	const isWeekend = day === 0 || day === 6
+
 	// Remove price that are not in the from range
 	let pricesFiltered: Period[] = []
 
 	if (periodInfo.type === "crypto") {
-		pricesFiltered = prices.filter((price) => {
-			return new Date(price.time * 1000) >= timeframe.from
-		})
-	} else {
 		pricesFiltered = prices
+	} else {
+		let timeframeFrom = timeframe.from
+
+		if (isWeekend) {
+			timeframeFrom = subDays(timeframe.from, day === 0 ? 2 : 1)
+		}
+
+		pricesFiltered = prices.filter((price) => {
+			return new Date(price.time * 1000) >= timeframeFrom
+		})
 	}
 	
 	const prettyCurrency = currencies[periodInfo.currency_code]?.symbol_native ?? periodInfo.currency_code
@@ -86,7 +113,8 @@ export const loader: LoaderFunction = async ({ request }) => {
 		message: "Data fetched successfully",
 		prices: pricesFiltered.reverse(),
 		timeframe: timeframeMap[timeframeParams] ? timeframeParams : "1D",
-		prettyCurrency: prettyCurrency
+		prettyCurrency: prettyCurrency,
+		highVolume: highVolume,
 		// timeframe: timeframe,
 		// range: range
 	}

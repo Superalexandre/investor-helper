@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import type { TFunction } from "i18next"
 import { ChartSplineIcon } from "lucide-react"
 import { memo, type ReactNode } from "react"
-import { Card, CardContent, CardTitle } from "../../components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { Skeleton } from "../../components/ui/skeleton"
 import { Link } from "@remix-run/react"
 import SymbolLogo from "../../components/symbolLogo"
@@ -20,7 +20,7 @@ export default function Index({
 }): ReactNode {
     return (
         <>
-            <h2 className="flex flex-row items-center gap-2 font-bold text-lg">
+            <h2 className="mb-4 flex flex-row items-center gap-2 font-bold text-lg">
                 <ChartSplineIcon />
 
                 {t("bestGainers")}
@@ -47,12 +47,7 @@ const DisplayBestGainers = memo(function DisplayBestGainers({
         result: BestGainer[]
     }>({
         queryKey: ["bestGainers"],
-        queryFn: async () => {
-            const req = await fetch("/api/prices/bestGainers")
-            const json = await req.json()
-
-            return json
-        },
+        queryFn: async () => await fetch("/api/prices/bestGainers").then((res) => res.json()),
         refetchOnWindowFocus: true
     })
 
@@ -106,29 +101,35 @@ const DisplayBestGainers = memo(function DisplayBestGainers({
     }
 
     if (isPending) {
-        <Carousel>
-            <CarouselContent>
-                {new Array(10).fill(null).map((_, index) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-                    <Card className="relative max-h-80 min-h-80 min-w-80 max-w-80 whitespace-normal border-card-border" key={index}>
-                        <CardTitle className="p-4 text-center">
-                            <Skeleton className="h-6 w-1/2" />
-                        </CardTitle>
-                        <CardContent className="flex flex-col gap-4 p-4">
-                            <Skeleton className="h-24 w-full" />
+        return (
+            <Carousel className="h-full w-full max-w-[75%] lg:max-w-[90%]">
+                <CarouselContent className="-ml-0 h-full">
+                    {new Array(10).fill(null).map((_, index) => (
+                        // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                        <CarouselItem key={index} className="flex h-full basis-full items-center justify-center p-0 lg:basis-1/2 xl:basis-1/3 2xl:basis-1/4">
+                            <Card className="relative size-full h-full whitespace-normal border-card-border sm:size-80">
+                                <CardHeader>
+                                    <CardTitle className="p-4 text-center">
+                                        <Skeleton className="h-6 w-1/2" />
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="flex flex-col gap-4 p-4">
+                                    <Skeleton className="h-24 w-full" />
 
-                            <div className="absolute bottom-0 left-0 flex w-full flex-col gap-2 p-4 text-muted-foreground">
-                                <Skeleton className="h-4 w-1/2" />
-                                <Skeleton className="h-4 w-1/2" />
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </CarouselContent>
+                                    <div className="absolute bottom-0 left-0 flex w-full flex-col gap-2 p-4 text-muted-foreground">
+                                        <Skeleton className="h-4 w-1/2" />
+                                        <Skeleton className="h-4 w-1/2" />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </CarouselItem>
+                    ))}
+                </CarouselContent>
 
-            <CarouselPrevious />
-            <CarouselNext />
-        </Carousel>
+                <CarouselPrevious variant="default" />
+                <CarouselNext variant="default" />
+            </Carousel>
+        )
     }
 
     if (!gainers || gainers.result.length <= 0) {
@@ -137,18 +138,20 @@ const DisplayBestGainers = memo(function DisplayBestGainers({
 
     return (
         // "w-full max-w-[75%] lg:max-w-[90%]"
-        <Carousel className="h-80 w-full max-w-[75%] lg:max-w-[90%]">
-            <CarouselContent className="-ml-0">
+        <Carousel className="h-full w-full max-w-[75%] lg:max-w-[90%]">
+            <CarouselContent className="-ml-0 h-full">
                 {gainers.result.map((gainer) => (
                     // className="basis-1/3 md:basis-1/4 lg:basis-1/5 pl-0"
-                    <CarouselItem key={gainer.name} className="flex basis-full items-center justify-center p-0 lg:basis-1/2 xl:basis-1/3 2xl:basis-1/4">
-                        <Link to={`/data/${gainer.symbol}`}>
-                            <Card className="relative size-80 whitespace-normal border-card-border">
-                                <CardTitle className="flex flex-row items-center justify-center gap-2 p-4 text-center">
-                                    <SymbolLogo symbol={gainer} className="size-6 rounded-full" alt={gainer.description} />
+                    <CarouselItem key={gainer.name} className="flex h-full basis-full items-center justify-center p-0 lg:basis-1/2 xl:basis-1/3 2xl:basis-1/4">
+                        <Link to={`/data/${gainer.symbol}`} className="size-full h-full sm:size-80">
+                            <Card className="relative size-full h-full whitespace-normal border-card-border sm:size-80">
+                                <CardHeader>
+                                    <CardTitle className="flex flex-row items-center justify-center gap-2 text-center">
+                                        <SymbolLogo symbol={gainer} className="size-6 rounded-full" alt={gainer.description} />
 
-                                    {gainer.description}
-                                </CardTitle>
+                                        {gainer.description}
+                                    </CardTitle>
+                                </CardHeader>
                                 <CardContent className="flex flex-col items-center justify-center gap-4 p-4">
                                     <div className="flex flex-col items-center justify-center">
 

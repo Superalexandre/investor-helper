@@ -86,7 +86,7 @@ export default function Index() {
 				<div
 					className={cn(
 						"flex h-full min-h-0 w-full flex-col space-y-6",
-						isCalendar && fullScreen ? "px-0 pt-0" : "px-4 pt-4 lg:px-10 lg:pt-10"
+						isCalendar && fullScreen ? "p-0" : "p-4"
 					)}>
 					{isCalendar && fullScreen ? null : (
 						<div className="flex flex-col">

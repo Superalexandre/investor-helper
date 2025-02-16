@@ -1,10 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { type ComponentType, type Dispatch, type ReactNode, type SetStateAction, useEffect, useState } from "react";
+import { type ComponentType, type Dispatch, type ReactNode, type SetStateAction, useEffect, useMemo, useState } from "react";
 import type { Period } from "../../../../utils/getPrices";
 import { Button } from "../../../components/ui/button";
-import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "../../../components/ui/chart";
-import { CartesianGrid, ComposedChart, Line, XAxis, YAxis } from "recharts";
 import { Skeleton } from "../../../components/ui/skeleton";
+import { Chart } from "../../../components/charts/bigChart";
 
 interface Response {
     prices: Period[],
@@ -13,15 +12,26 @@ interface Response {
     error: boolean
 }
 
-export function FullChart({ symbol, setInfo }: {
+export function FullChart({ symbol, setInfo, currency }: {
     symbol: string,
+    currency: string,
     setInfo: Dispatch<SetStateAction<{
         change?: number;
         price?: number;
         loading: boolean;
     }>>
+
 }): ReactNode {
     const [timeframe, setTimeframe] = useState("1D")
+
+    const [selectedPeriod, setSelectedPeriod] = useState({
+        isActive: false,
+        startTime: 0,
+        startPrice: 0,
+        endTime: 0,
+        endPrice: 0,
+        change: 0
+    })
 
     const {
         data,
@@ -56,9 +66,21 @@ export function FullChart({ symbol, setInfo }: {
         setInfo({
             loading: isPending,
             change: percentageChange,
-            price: lastPrice
+            price: firstPrice
         })
     }, [data, setInfo, isPending])
+
+    const memoizedData = useMemo(() => {
+        if (!data || !data.prices) {
+            return []
+        }
+
+        return data.prices.map((price) => ({
+            ...price,
+            time: price.time,
+            highlight: selectedPeriod.isActive && price.time >= selectedPeriod.startTime && price.time <= selectedPeriod.endTime ? price.close : null
+        }))
+    }, [data, selectedPeriod])
 
     if (isPending) {
         return (
@@ -86,16 +108,6 @@ export function FullChart({ symbol, setInfo }: {
         return <p>No prices</p>
     }
 
-    const chartConfig: FullConfig = {
-        close: {
-            label: "Prix",
-            color: "hsl(var(--chart-1))"
-        },
-        time: {
-            label: "Date"
-        }
-    }
-
     const formatDate = (timestamp: number): string => {
         const date = new Date(timestamp * 1000)
 
@@ -115,9 +127,11 @@ export function FullChart({ symbol, setInfo }: {
     }
 
     const maxValue = Math.max(...data.prices.map((price) => Math.floor(price?.close)))
+    const minValue = Math.min(...data.prices.map((price) => Math.floor(price?.close)))
 
     const yAxisWidth = Math.max(
         maxValue.toString().length * 8,
+        minValue.toString().length * 8
     )
 
     // console.log(data)
@@ -145,104 +159,51 @@ export function FullChart({ symbol, setInfo }: {
                 </Button>
             </div>
 
-            <ChartContainer config={chartConfig} className="min-h-[400px] w-full overflow-hidden lg:h-[500px] lg:min-h-0">
-                <ComposedChart data={data.prices} accessibilityLayer={true} margin={{ top: 0, left: 0, right: 0, bottom: 0 }}>
-                    <CartesianGrid vertical={false} />
-
-                    <XAxis
-                        dataKey="time"
-                        tickFormatter={formatDate}
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        scale="auto"
-                    />
-
-                    <YAxis
-                        dataKey="close"
-                        yAxisId="close"
-                        tickLine={false}
-                        axisLine={false}
-                        scale="auto"
-                        domain={[
-                            (dataMin: number) => Math.floor(dataMin * 0.85),
-                            (dataMax: number) => Math.ceil(dataMax * 1.05)
-                        ]}
-                        tickMargin={0}
-                        fontSize={12}
-                        width={yAxisWidth + 4}
-                    />
-
-                    <Line
-                        yAxisId="close"
-                        dataKey="close"
-                        stroke="var(--color-close)"
-                        strokeWidth={2}
-                        dot={false}
-                        className="z-10"
-                    />
-
-                    <ChartLegend
-                        content={
-                            <ChartLegendContent
-                                renderHidden={true}
-                                onClick={(item): void => {
-                                    const config = chartConfig[item.dataKey as string]
-
-                                    if (config?.onClick) {
-                                        config.onClick()
-                                    }
-                                }}
-                            />
+            <Chart
+                data={memoizedData}
+                lines={[
+                    {
+                        dataKey: "close",
+                        label: "Prix",
+                        stroke: selectedPeriod.isActive ? "gray" : "hsl(var(--chart-1))",
+                        absoluteStrokeColor: "hsl(var(--chart-1))",
+                        displayLegend: true,
+                        displayTooltip: true,
+                        tooltipFormatter(value): string {
+                            return new Intl.NumberFormat("fr-FR", currency ? {
+                                style: "currency",
+                                currency: currency
+                            } : undefined).format(value)
                         }
-                    />
+                    },
+                    {
+                        dataKey: "highlight",
+                        stroke: selectedPeriod.isActive ? "hsl(var(--chart-1))" : "gray",
+                        displayLegend: false,
+                    }
+                ]}
+                xAxis={{
+                    dataKey: "time",
+                    tickFormatter: formatDate,
+                    tooltipFormatter(value): string {
+                        return new Date(value * 1000).toLocaleString("fr-FR", {
+                            weekday: "long",
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                            hour: "numeric",
+                            minute: "numeric"
+                        })
+                    },
+                }}
+                yAxis={{
+                    dataKey: "close",
+                    width: yAxisWidth + 8,
+                }}
 
-                    <ChartTooltip
-                        cursor={false}
-                        content={
-                            <ChartTooltipContent
-                                indicator="dot"
-                                labelFormatter={(_value, dataLabel): string => {
-                                    return new Date(dataLabel[0].payload.time * 1000).toLocaleString("fr-FR", {
-                                        weekday: "long",
-                                        day: "numeric",
-                                        month: "short",
-                                        year: "numeric",
-                                        hour: "numeric",
-                                        minute: "numeric"
-                                    })
-                                }}
-                            />
-                        }
-                    />
-                </ComposedChart>
-            </ChartContainer>
+                selectedPeriod={selectedPeriod}
+                setSelectedPeriod={setSelectedPeriod}
+            />
         </div>
-    )
-}
-
-interface FullConfig {
-    [x: string]: {
-        label?: ReactNode
-        icon?: ComponentType
-    } & (
-        | {
-            color?: string
-            theme?: never
-        }
-        | {
-            color?: never
-            theme: Record<"light" | "dark", string>
-        }
-    ) &
-    (
-        | {
-            display?: boolean
-            onClick?: () => void
-        }
-        | {
-            display?: never
-            onClick?: never
-        }
     )
 }
