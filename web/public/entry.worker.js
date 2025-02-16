@@ -119,15 +119,15 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
         caches.match(event.request).then((response) => {
             // Return cached asset if found
-            if (response && !response.url.includes("/api/")) {	
-                console.log("Fetch from cache", {
-                    url: event.request.url,
-                    method: event.request.method,
-                    response
-                });
+            // if (response && !response.url.includes("/api/")) {	
+            //     console.log("Fetch from cache", {
+            //         url: event.request.url,
+            //         method: event.request.method,
+            //         response
+            //     });
 
-                return response;
-            }
+            //     return response;
+            // }
 
             // Fetch from network if not cached
             return fetch(event.request)
