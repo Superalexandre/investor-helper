@@ -27,6 +27,7 @@ import { cn } from "../../../lib/utils"
 // import { useState } from "react"
 // import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { createParser, parseAsBoolean, parseAsInteger, parseAsString, parseAsStringEnum, parseAsStringLiteral, useQueryState } from 'nuqs'
+import { isMobile } from "react-device-detect"
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const t = await i18next.getFixedT(request, "calendar")
@@ -65,7 +66,7 @@ export default function Index() {
 	// const [display, setDisplay] = useState("calendar")
 	// const [fullScreen, setFullScreen] = useState(false)
 
-	const [display, setDisplay] = useQueryState("display", parseAsStringLiteral(["calendar", "list"]).withDefault("calendar"))
+	const [display, setDisplay] = useQueryState("display", parseAsStringLiteral(["calendar", "list"]).withDefault(isMobile ? "list" : "calendar"))
 	const [fullScreen, setFullScreen] = useQueryState("fullScreen", parseAsBoolean.withDefault(false))
 
 	const isCalendar = display === "calendar"

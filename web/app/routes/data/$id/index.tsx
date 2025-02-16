@@ -330,7 +330,7 @@ export default function Index(): ReactNode {
 						</CardHeader>
 
 						<CardContent>
-							<div className="flex items-center justify-between flex-wrap">
+							<div className="flex flex-wrap items-center justify-between">
 								<span className="text-sm">Low: {data.info.price_52_week_low.toFixed(2)}</span>
 								<span className="text-sm">High: {data.info.price_52_week_high.toFixed(2)}</span>
 							</div>

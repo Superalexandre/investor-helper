@@ -194,8 +194,8 @@ const MarketHourCard = memo(function MarketHourCard({
 
     return (
         <div>
-            <div className="mb-4 flex flex-row items-center justify-center gap-2">
-                <div className="flex flex-row items-center gap-2">
+            <div className="mb-4 flex w-full flex-col items-center justify-center gap-2 lg:flex-row">
+                <div className="flex w-full flex-row items-center justify-center gap-2 lg:w-auto">
                     {hasLogo && (
                         <img
                             src={`/logo/${marketId}.png`}
@@ -206,7 +206,7 @@ const MarketHourCard = memo(function MarketHourCard({
                             height="40"
                         />
                     )}
-                    <h3 className="font-semibold text-lg">{marketName}</h3>
+                    <h3 className="truncate font-semibold text-lg">{marketName}</h3>
                 </div>
                 <Badge
                     // variant={open ? "outline" : "destructive"} 

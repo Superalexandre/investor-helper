@@ -87,6 +87,16 @@ export function Chart({
                 accessibilityLayer={true}
                 margin={{ top: 0, left: 0, right: 0, bottom: 0 }}
 
+                // onDoubleClick={(e): void => {
+                //     if (setSelectedPeriod === undefined || isMobile) {
+                //         return
+                //     }
+
+                //     setSelectedPeriod((prev) => ({
+                //         ...prev,
+                //         isActive: false
+                //     }))
+                // }}
 
                 onMouseDown={(e): void => {
                     // Get the date of the click

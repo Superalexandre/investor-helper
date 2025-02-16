@@ -109,7 +109,7 @@ const DisplayNextEvents = memo(function DisplayNextEvents({
 								</CardHeader>
 								<CardContent className="flex flex-col gap-4 p-4">
 									<p className="h-24 max-h-24 overflow-clip">{event.comment}</p>
-									<div className="absolute bottom-0 left-0 p-4 text-muted-foreground">
+									<div className="relative p-0 text-muted-foreground lg:absolute lg:bottom-0 lg:left-0 lg:p-4">
 										<p>{t("importance")} : {importance[event.importance]}</p>
 										<p>{t("country")} : {countries[language][event.country]}</p>
 										<div className="flex flex-row items-center gap-1">

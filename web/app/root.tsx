@@ -16,7 +16,7 @@ import stylesheet from "@/tailwind.css?url"
 import Header from "@/components/header"
 import { getUser } from "./session.server"
 import { Button } from "@/components/ui/button"
-import { type ReactNode, useEffect } from "react"
+import { type ReactNode, useEffect, useState } from "react"
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as Sonner } from "@/components/ui/sonner"
 import { toast as sonner } from "sonner"
@@ -119,8 +119,10 @@ export function Layout({ children }: { children: ReactNode }): ReactNode {
 	)
 }
 
-const queryClient = new QueryClient()
+// const queryClient = new QueryClient()
 export default function App(): ReactNode {
+	const [queryClient,] = useState(() => new QueryClient())
+	
 	useEffect(() => {
 		if ("serviceWorker" in navigator) {
 			const handleMessages = (event: MessageEvent): void => {

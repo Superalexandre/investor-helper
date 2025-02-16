@@ -31,5 +31,8 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 
 	// logger.info(`News API took ${end - start}ms to respond`)
 
+	// Wait fake 5sec
+	// await new Promise((resolve) => setTimeout(resolve, 5000))
+
 	return news
 }
