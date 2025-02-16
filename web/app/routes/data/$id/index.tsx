@@ -252,7 +252,7 @@ export default function Index(): ReactNode {
 						{/* <p className="w-full truncate text-muted-foreground">{data.info.exchange} - {data.info.name}</p> */}
 					</div>
 				</div>
-				<div className="flex flex-row items-center justify-center gap-2">
+				<div className="flex flex-col flex-wrap items-center justify-center gap-2 lg:flex-row">
 					{info.loading ? (
 						<Skeleton className="h-7 w-16" />
 					) : (
@@ -330,7 +330,7 @@ export default function Index(): ReactNode {
 						</CardHeader>
 
 						<CardContent>
-							<div className="flex items-center justify-between">
+							<div className="flex items-center justify-between flex-wrap">
 								<span className="text-sm">Low: {data.info.price_52_week_low.toFixed(2)}</span>
 								<span className="text-sm">High: {data.info.price_52_week_high.toFixed(2)}</span>
 							</div>
@@ -400,7 +400,7 @@ export default function Index(): ReactNode {
 					</CardHeader>
 
 					<CardContent>
-						<div className="flex items-center justify-between">
+						<div className="flex flex-wrap items-center justify-between">
 							<span className="truncate text-sm">Low: {data.info["Pivot.M.Fibonacci.S3"].toFixed(2)}</span>
 							<span className="truncate text-sm">Avg: {data.info["Pivot.M.Fibonacci.Middle"].toFixed(2)}</span>
 							<span className="truncate text-sm">High: {data.info["Pivot.M.Fibonacci.R3"].toFixed(2)}</span>
@@ -433,7 +433,7 @@ export default function Index(): ReactNode {
 									<Link to={`/news/${news.news.id}`} className="flex flex-row items-center gap-2">
 										<h2 className="truncate font-bold">{news.news.title}</h2>
 
-										<ExternalLinkIcon className="h-4 w-4" />
+										<ExternalLinkIcon className="size-4 min-h-4 min-w-4" />
 									</Link>
 								</Button>
 

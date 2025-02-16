@@ -1,10 +1,11 @@
-import { CSSProperties, Dispatch, ReactNode, SetStateAction } from "react";
+import type { CSSProperties, Dispatch, ReactNode, SetStateAction } from "react";
 import { cn } from "../../lib/utils";
 import { ChartContainer } from "../ui/chart";
 import { CartesianGrid, ComposedChart, Legend, Line, Tooltip, XAxis, YAxis } from "recharts";
-import { LineConfig, XAxisConfig, YAxisConfig } from "./config";
+import { XAxisConfig, YAxisConfig } from "./config";
 import { formatDistance } from "date-fns";
 import { fr } from "date-fns/locale";
+import { isMobile } from 'react-device-detect';
 
 interface SelectedPeriod {
     isActive: boolean,
@@ -76,7 +77,6 @@ export function Chart({
     data,
 }: ChartProps): ReactNode {
     return (
-
         <ChartContainer
             config={{}}
             className="min-h-[400px] w-full overflow-hidden lg:h-[500px] lg:min-h-0"
@@ -92,7 +92,7 @@ export function Chart({
                     // Get the date of the click
                     const activePayload = e?.activePayload?.[0]
 
-                    if (!activePayload || setSelectedPeriod === undefined) {
+                    if (!activePayload || setSelectedPeriod === undefined || isMobile) {
                         return
                     }
 
@@ -107,7 +107,7 @@ export function Chart({
                 }}
 
                 onMouseMove={(e): void => {
-                    if (!selectedPeriod?.isActive || setSelectedPeriod === undefined) {
+                    if (!selectedPeriod?.isActive || setSelectedPeriod === undefined || isMobile) {
                         return
                     }
 
@@ -138,7 +138,7 @@ export function Chart({
                 }}
 
                 onMouseUp={(): void => {
-                    if (setSelectedPeriod === undefined) {
+                    if (setSelectedPeriod === undefined || isMobile) {
                         return
                     }
 
@@ -149,7 +149,7 @@ export function Chart({
                 }}
 
                 onMouseLeave={(): void => {
-                    if (setSelectedPeriod === undefined) {
+                    if (setSelectedPeriod === undefined || isMobile) {
                         return
                     }
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = "v1";
+const CACHE_NAME = "v2";
 const OFFLINE_PAGE = "/offline";
 const ASSETS_TO_CACHE = [
     // Scripts
