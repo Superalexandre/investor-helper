@@ -9,7 +9,7 @@ const ASSETS_TO_CACHE = [
     "/",
     "/news",
     "/calendar",
-    "/profile",
+    // "/profile",
 
     // Images for the download
     "/screenshots/wide.png",
