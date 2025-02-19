@@ -1,11 +1,11 @@
 import type { LoaderFunction, MetaFunction } from "@remix-run/node"
 import { Link, redirect, useParams } from "@remix-run/react"
 import SymbolLogo from "@/components/symbolLogo"
-import { type ReactNode, useCallback, useMemo, useState } from "react"
+import { type ReactNode, useState } from "react"
 import BackButton from "@/components/button/backButton"
 import { Button } from "../../../components/ui/button"
 import { useQuery } from "@tanstack/react-query"
-import { ArrowDownIcon, ArrowUpIcon, BellIcon, BellPlusIcon, Currency, EllipsisVerticalIcon, ExternalLinkIcon, InfoIcon } from "lucide-react"
+import { ArrowDownIcon, ArrowUpIcon, BellPlusIcon, EllipsisVerticalIcon, ExternalLinkIcon, InfoIcon } from "lucide-react"
 import { Skeleton } from "../../../components/ui/skeleton"
 import { getInfo } from "../../api/data/info"
 import { FullChart } from "./Chart"
@@ -20,7 +20,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import CopyButton from "../../../components/button/copyButton"
 import ShareButton from "../../../components/button/shareButton"
 import DialogNotificationNews from "../../../components/dialog/dialogNotificationNews"
-import AiAnalysis from "./AiAnalysis"
 
 export const loader: LoaderFunction = async ({ params }) => {
 	if (!params.id) {
@@ -161,7 +160,8 @@ export default function Index(): ReactNode {
 		return <p>Symbol not found</p>
 	}
 
-	console.log(data.info.additionalInfo.symbol.pro_symbol)
+
+	const safeCurrency = Intl.supportedValuesOf("currency").includes(data.info.currency) ? data.info.currency : undefined
 
 	return (
 		<div className="relative mb-4 flex flex-col gap-4">
@@ -257,11 +257,11 @@ export default function Index(): ReactNode {
 						<Skeleton className="h-7 w-16" />
 					) : (
 						<p className="font-bold text-xl">
-							{new Intl.NumberFormat("fr-FR", data.info.currency ? {
+							{new Intl.NumberFormat("fr-FR", safeCurrency ? {
 								style: "currency",
-								currency: data.info.currency,
+								currency: safeCurrency,
 								maximumFractionDigits: 2
-							} : undefined).format(data.info.close)}
+							} : undefined).format(data.info.close)} {safeCurrency ? "" : data.info.currency}
 						</p>
 					)}
 
@@ -276,8 +276,8 @@ export default function Index(): ReactNode {
 						currency={data.info.currency}
 						setInfo={setInfo}
 
-						// selectedPeriod={memoizedSelectedPeriod}
-						// setSelectedPeriod={updateSelectedPeriod}
+					// selectedPeriod={memoizedSelectedPeriod}
+					// setSelectedPeriod={updateSelectedPeriod}
 					/>
 
 					<div className="flex w-full flex-row items-center justify-end">
@@ -525,16 +525,18 @@ function DisplayChange({ currency, price, change, loading }: { currency: string,
 		)
 	}
 
+	const safeCurrency = Intl.supportedValuesOf("currency").includes(currency) ? currency : undefined
+
 	const prettyPourcentage = new Intl.NumberFormat("fr-FR", {
 		style: "percent",
 		maximumFractionDigits: 2
 	}).format(change / 100)
 
-	const prettyPrice = new Intl.NumberFormat("fr-FR", currency ? {
+	const prettyPrice = new Intl.NumberFormat("fr-FR", safeCurrency ? {
 		style: "currency",
-		currency: currency,
+		currency: safeCurrency,
 		maximumFractionDigits: 2
-	}: undefined).format(price * (change / 100))
+	} : undefined).format(price * (change / 100))
 
 	if (change > 0) {
 		return (
@@ -542,7 +544,7 @@ function DisplayChange({ currency, price, change, loading }: { currency: string,
 				<ArrowUpIcon className="size-5" />
 
 				<p className="text-sm">
-					{prettyPrice} ({prettyPourcentage})
+					{prettyPrice} {safeCurrency ? "" : currency} ({prettyPourcentage})
 				</p>
 			</div>
 		)
@@ -553,7 +555,7 @@ function DisplayChange({ currency, price, change, loading }: { currency: string,
 			<ArrowDownIcon className="size-5" />
 
 			<p className="text-sm">
-				{prettyPrice} ({prettyPourcentage})
+				{prettyPrice} {safeCurrency ? "" : currency} ({prettyPourcentage})
 			</p>
 		</div>
 	)

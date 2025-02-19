@@ -24,5 +24,15 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 	// Await fake delay
 	// await new Promise(resolve => setTimeout(resolve, 10_000))
 
-	return events
+	// Group the events if possible
+	const groupedEvents = events.reduce((acc, event) => {
+		const key = `${event.country}-${event.date}`
+		if (!acc[key]) {
+			acc[key] = []
+		}
+		acc[key].push(event)
+		return acc
+	}, {} as Record<string, typeof events>)
+
+	return Object.values(groupedEvents)
 }

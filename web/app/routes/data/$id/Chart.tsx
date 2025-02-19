@@ -134,6 +134,8 @@ export function FullChart({ symbol, setInfo, currency }: {
         minValue.toString().length * 8
     )
 
+    const safeCurrency = Intl.supportedValuesOf("currency").includes(currency) ? currency : undefined
+
     // console.log(data)
 
     return (
@@ -170,10 +172,12 @@ export function FullChart({ symbol, setInfo, currency }: {
                         displayLegend: true,
                         displayTooltip: true,
                         tooltipFormatter(value): string {
-                            return new Intl.NumberFormat("fr-FR", currency ? {
+                            const prettyCurrency = new Intl.NumberFormat("fr-FR", safeCurrency ? {
                                 style: "currency",
-                                currency: currency
+                                currency: safeCurrency
                             } : undefined).format(value)
+
+                            return `${prettyCurrency} ${safeCurrency ? "" : currency}`
                         }
                     },
                     {

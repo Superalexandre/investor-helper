@@ -2,6 +2,7 @@ import type { LoaderFunction } from "@remix-run/node"
 import getPrices, { closeClient, type Period } from "../../../../../utils/getPrices"
 import { subDays, subMonths, subYears } from "date-fns"
 import currencies from "../../../../../../lang/currencies"
+import logger from "../../../../../../log"
 
 export const loader: LoaderFunction = async ({ request }) => {
 	const url = new URL(request.url)
@@ -103,6 +104,14 @@ export const loader: LoaderFunction = async ({ request }) => {
 		pricesFiltered = prices.filter((price) => {
 			return new Date(price.time * 1000) >= timeframeFrom
 		})
+
+		if (pricesFiltered.length <= 1) {
+			logger.warn(`No prices found for ${symbol} in the timeframe ${timeframeParams || "1D"}`)
+			
+			pricesFiltered = prices
+		}
+
+		// console.log("pricesFiltered", pricesFiltered, prices)
 	}
 	
 	const prettyCurrency = currencies[periodInfo.currency_code]?.symbol_native ?? periodInfo.currency_code
