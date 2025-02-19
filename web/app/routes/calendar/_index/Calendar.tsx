@@ -86,7 +86,7 @@ export const EconomicCalendar = memo(function EconomicCalendar({
 
 		// 	return json
 		// },
-		queryFn: async () => await fetch("/api/calendar/economic").then(res => res.json()),
+		queryFn: async () => await fetch(`/api/calendar/economic?month=${month}&year=${year}`).then(res => res.json()),
 		refetchOnWindowFocus: true
 	})
 
