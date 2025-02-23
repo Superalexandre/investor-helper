@@ -1,5 +1,5 @@
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Link, useLocation } from "@remix-run/react"
+// import { Link, useLocation } from "@remix-run/react"
 import { useState, memo } from "react"
 import { Button } from "./ui/button"
 import type { User } from "../../../db/schema/users"
@@ -16,6 +16,7 @@ import {
 } from "./ui/navigation-menu"
 import { Trigger as NavigationMenuPrimitiveTrigger } from "@radix-ui/react-navigation-menu"
 import { BellIcon, CalendarDaysIcon, ChartCandlestickIcon, ChevronUpIcon, CircleUserRoundIcon, HomeIcon, LogInIcon, LogOutIcon, MenuIcon, NewspaperIcon, SearchIcon, SettingsIcon, UserRoundPlusIcon } from "lucide-react"
+import { Link, useLocation } from "@tanstack/react-router"
 
 export const handle = {
 	i18n: "header"
@@ -61,14 +62,14 @@ export default function Header({
 					</Button>
 
 					<Button variant="ghost" className="p-0">
-						<Link to="/calendar" className="flex flex-row items-center px-4 py-2">
+						<Link to="." className="flex flex-row items-center px-4 py-2">
 							<CalendarDaysIcon className="mr-2 inline-block size-5" />
 							{t("header.calendar")}
 						</Link>
 					</Button>
 
 					<Button variant="ghost" className="p-0">
-						<Link to="/search" className="flex flex-row items-center px-4 py-2">
+						<Link to="." className="flex flex-row items-center px-4 py-2">
 							<SearchIcon className="mr-2 inline-block size-5" />
 							{t("header.search")}
 						</Link>
@@ -81,7 +82,7 @@ export default function Header({
 					{user ? (
 						<>
 							<Button variant="ghost" className="p-0">
-								<Link to="/profile" className="flex flex-row items-center gap-2 px-4 py-2">
+								<Link to="." className="flex flex-row items-center gap-2 px-4 py-2">
 									<img
 										src={`https://api.dicebear.com/7.x/bottts/png?seed=${user.username}`}
 										alt={user.username}
@@ -93,7 +94,7 @@ export default function Header({
 							</Button>
 
 							<Button variant="ghost" className="p-0">
-								<Link to={`/logout?redirect=${fullUrl}`} className="flex flex-row items-center px-4 py-2">
+								<Link to="." className="flex flex-row items-center px-4 py-2">
 									<LogOutIcon className="mr-2 inline-block size-5" />
 									{t("header.logout")}
 								</Link>
@@ -102,14 +103,14 @@ export default function Header({
 					) : (
 						<>
 							<Button variant="ghost" className="p-0">
-								<Link to="/login" className="flex flex-row items-center px-4 py-2">
+								<Link to="." className="flex flex-row items-center px-4 py-2">
 									<LogInIcon className="mr-2 inline-block size-5" />
 									{t("header.login")}
 								</Link>
 							</Button>
 
 							<Button variant="ghost" className="p-0">
-								<Link to="/register" className="flex flex-row items-center px-4 py-2">
+								<Link to="." className="flex flex-row items-center px-4 py-2">
 									<UserRoundPlusIcon className="mr-2 inline-block size-5" />
 									{t("header.register")}
 								</Link>
@@ -140,18 +141,18 @@ export default function Header({
 					<SheetDescription className="hidden">{t("header.sheetDescription")}</SheetDescription>
 
 					<div className="flex w-full flex-col items-center gap-4">
-						<Link to="/" className="flex flex-row items-center text-xl" onClick={() => setOpen(false)}>
+						<Link to="." className="flex flex-row items-center text-xl" onClick={() => setOpen(false)}>
 							<HomeIcon className="mr-2 inline-block size-5" />
 							{t("header.home")}
 						</Link>
 
-						<Link to="/news" className="flex flex-row items-center text-xl" onClick={() => setOpen(false)}>
+						<Link to="." className="flex flex-row items-center text-xl" onClick={() => setOpen(false)}>
 							<NewspaperIcon className="mr-2 inline-block size-5" />
 							{t("header.news")}
 						</Link>
 
 						<Link
-							to="/calendar"
+							to="."
 							className="flex flex-row items-center text-xl"
 							onClick={() => setOpen(false)}
 						>
@@ -172,7 +173,7 @@ export default function Header({
 			<div className="block xl:hidden">
 				<div className="absolute inset-y-0 right-0 mr-3 flex h-full flex-row items-center justify-center">
 					<Button className="flex h-9 flex-row items-center justify-center gap-2 px-8" asChild={true}>
-						<Link to="/search" className="flex h-9 flex-row items-center justify-center gap-2 px-8">
+						<Link to="." className="flex h-9 flex-row items-center justify-center gap-2 px-8">
 							<SearchIcon className="size-5" />
 							{t("header.search")}
 						</Link>
@@ -257,7 +258,7 @@ const SeeMore = memo(function SeeMore({
 			</NavigationMenu>
 
 			<div className="flex flex-col items-center gap-4 xl:hidden">
-				<Link to="/heatmap" className="flex flex-row items-center text-xl" onClick={onClick}>
+				<Link to="." className="flex flex-row items-center text-xl" onClick={onClick}>
 					<ChartCandlestickIcon className="mr-2 inline-block size-5" />
 					{t("header.heatmap")}
 				</Link>

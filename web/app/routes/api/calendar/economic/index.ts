@@ -1,38 +1,45 @@
-import type { LoaderFunction, LoaderFunctionArgs } from "@remix-run/node"
+import { json } from "@tanstack/start"
+import { createAPIFileRoute } from "@tanstack/start/api"
 import { getEvents } from "../../../../../utils/events"
 
-export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) => {
-	const url = new URL(request.url)
-	const limit = url.searchParams.get("limit")
-	const page = url.searchParams.get("page")
+export const APIRoute = createAPIFileRoute("/api/calendar/economic")({
+	GET: async ({ request }) => {
+		const url = new URL(request.url)
+		const limit = url.searchParams.get("limit")
+		const page = url.searchParams.get("page")
+		const month = url.searchParams.get("month")
+		const year = url.searchParams.get("year")
 
-	const month = url.searchParams.get("month")
-	const year = url.searchParams.get("year")
+		// Convertir les paramètres en nombres
+		const limitResult = limit ? Number.parseInt(limit) : 60
+		const pageResult = page ? Number.parseInt(page) : 1
 
-	// Convert the limit and page to numbers
-	const limitResult = limit ? Number.parseInt(limit) : 60
-	const pageResult = page ? Number.parseInt(page) : 1
-	
-	const events = await getEvents({
-		limit: limitResult,
-		page: pageResult,
-		order: "asc",
-		month: month ? Number.parseInt(month) : undefined,
-		year: year ? Number.parseInt(year) : undefined
-	})
+		try {
+			const events = await getEvents({
+				limit: limitResult,
+				page: pageResult,
+				order: "asc",
+				month: month ? Number.parseInt(month) : undefined,
+				year: year ? Number.parseInt(year) : undefined
+			})
 
-	// Await fake delay
-	// await new Promise(resolve => setTimeout(resolve, 10_000))
+			// Regrouper les événements
+			const groupedEvents = events.reduce(
+				(acc, event) => {
+					const key = `${event.country}-${event.date}`
+					if (!acc[key]) {
+						acc[key] = []
+					}
+					acc[key].push(event)
+					return acc
+				},
+				{} as Record<string, typeof events>
+			)
 
-	// Group the events if possible
-	const groupedEvents = events.reduce((acc, event) => {
-		const key = `${event.country}-${event.date}`
-		if (!acc[key]) {
-			acc[key] = []
+			return json(Object.values(groupedEvents))
+		} catch (e) {
+			console.error(e)
+			return json({ error: "Failed to fetch events" }, { status: 500 })
 		}
-		acc[key].push(event)
-		return acc
-	}, {} as Record<string, typeof events>)
-
-	return Object.values(groupedEvents)
-}
+	}
+})

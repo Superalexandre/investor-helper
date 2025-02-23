@@ -1,95 +1,109 @@
-import type { LoaderFunction } from "@remix-run/node"
+import { json } from "@tanstack/start"
+import { createAPIFileRoute } from "@tanstack/start/api"
 import { generateAnalysis } from "../../../../../utils/ai/analysis/stocks/generate"
 
-const cache = new Map<string, {
-    recommendation: string
-    confidence: number
-    fr: {
-        beginner: {
-            reason: string
-        }
-        advanced: {
-            reason: string
-        }
-    },
-    en: {
-        beginner: {
-            reason: string
-        }
-        advanced: {
-            reason: string
-        }
-    },  
-    updated: Date
-}>()
-
-export const loader: LoaderFunction = async ({ request }) => {
-	const url = new URL(request.url)
-	const symbol = url.searchParams.get("symbol")
-
-	if (!symbol) {
-		return {
-			error: true,
-			success: false,
-			message: "Symbol not found"
+const cache = new Map<
+	string,
+	{
+		recommendation: string
+		confidence: number
+		fr: {
+			beginner: { reason: string }
+			advanced: { reason: string }
 		}
+		en: {
+			beginner: { reason: string }
+			advanced: { reason: string }
+		}
+		updated: Date
 	}
+>()
 
-    // TODO: Check if the symbol is valid
+export const APIRoute = createAPIFileRoute("/api/data/analysis")({
+	GET: async ({ request }) => {
+		const url = new URL(request.url)
+		const symbol = url.searchParams.get("symbol")
 
-    // Check if the analysis is already in the cache
-    if (cache.has(symbol)) {
-        const analysis = cache.get(symbol)
+		if (!symbol) {
+			return json(
+				{
+					error: true,
+					success: false,
+					message: "Symbol not found"
+				},
+				{ status: 400 }
+			)
+		}
 
-        if (!analysis) {
-            return
-        }
+		// TODO: Check if the symbol is valid
 
-        // If the analysis was updated in the last 24 hours, return it
-        const maxAge = 1000 * 60 * 60 * 24
-        if (analysis.updated.getTime() > Date.now() - maxAge) {
-            return {
-                error: false,
-                success: true,
-                message: "Data fetched successfully",
-                analysis: analysis
-            }
-        }
-    } else {
-        cache.delete(symbol)
+		// Vérifier si l'analyse est déjà en cache
+		if (cache.has(symbol)) {
+			const analysis = cache.get(symbol)
 
-        const analysis = await generateAnalysis({ symbol: symbol })
+			if (!analysis) {
+				return json(
+					{
+						error: true,
+						success: false,
+						message: "Error fetching analysis from cache"
+					},
+					{ status: 500 }
+				)
+			}
 
-        if (!analysis) {
-            return {
-                error: true,
-                success: false,
-                message: "Error generating analysis"
-            }
-        }
+			// Si l'analyse a été mise à jour dans les dernières 24 heures, la retourner
+			const maxAge = 1000 * 60 * 60 * 24
+			if (analysis.updated.getTime() > Date.now() - maxAge) {
+				return json({
+					error: false,
+					success: true,
+					message: "Data fetched successfully",
+					analysis: analysis
+				})
+			}
+		} else {
+			cache.delete(symbol)
 
-        const jsonAnalysis = analysis.json
+			const analysis = await generateAnalysis({ symbol: symbol })
 
-        cache.set(symbol, {
-            ...jsonAnalysis,
-            updated: new Date()
-        })
-    }
+			if (!analysis) {
+				return json(
+					{
+						error: true,
+						success: false,
+						message: "Error generating analysis"
+					},
+					{ status: 500 }
+				)
+			}
 
-    const analysis = cache.get(symbol)
+			const jsonAnalysis = analysis.json
 
-    if (!analysis) {
-        return {
-            error: true,
-            success: false,
-            message: "Error generating analysis"
-        }
-    }
+			cache.set(symbol, {
+				...jsonAnalysis,
+				updated: new Date()
+			})
+		}
 
-	return {
-		error: false,
-		success: true,
-		message: "Data fetched successfully",
-        analysis: analysis
+		const analysis = cache.get(symbol)
+
+		if (!analysis) {
+			return json(
+				{
+					error: true,
+					success: false,
+					message: "Error generating analysis"
+				},
+				{ status: 500 }
+			)
+		}
+
+		return json({
+			error: false,
+			success: true,
+			message: "Data fetched successfully",
+			analysis: analysis
+		})
 	}
-}
+})
