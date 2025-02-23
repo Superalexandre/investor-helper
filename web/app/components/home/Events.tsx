@@ -23,7 +23,8 @@ export default function Index({
 		<>
 			<h2 className="mb-4 flex flex-row items-center gap-2 font-bold text-lg">
 				<CalendarDaysIcon />
-				{/* {t("nextEvents")} */}
+				
+				{t("nextEvents")}
 			</h2>
 
 			{/* <div className="scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-track-muted scrollbar-thumb-slate-900 scrollbar-thin flex max-w-full flex-row items-center justify-start gap-4 overflow-y-auto whitespace-nowrap pb-2"> */}

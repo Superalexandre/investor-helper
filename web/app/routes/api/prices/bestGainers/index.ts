@@ -1,3 +1,5 @@
+import { json } from "@tanstack/start"
+import { createAPIFileRoute } from "@tanstack/start/api"
 import logger from "../../../../../../log"
 import type { BestGainer } from "../../../../../types/Prices"
 import getPrices, { closeClient, formatPrices, type Period } from "../../../../../utils/getPrices"
@@ -7,102 +9,104 @@ import { columns, filter } from "../parameters"
 const cachedPrice = new Map<string, { prices: Period[]; lastUpdate: number }>()
 const CACHE_TIME = 1000 * 60 * 60 // 1 hour
 
-export async function loader() {
-	const country = "france"
+export const APIRoute = createAPIFileRoute("/api/prices/bestGainers")({
+    GET: async () => {
+        const country = "france"
 
-	const { parsedResult } = await fetchScreener({
-		labelProduct: "screener-stock",
-		country: country,
-		columns: columns,
-		filter: filter,
-		sort: {
-			sortBy: "change",
-			sortOrder: "desc"
-		},
-		range: [0, 20]
-	})
+        const { parsedResult } = await fetchScreener({
+            labelProduct: "screener-stock",
+            country: country,
+            columns: columns,
+            filter: filter,
+            sort: {
+                sortBy: "change",
+                sortOrder: "desc"
+            },
+            range: [0, 20]
+        })
 
-	if (!parsedResult) {
-		return {
-			result: []
-		}
-	}
+        if (!parsedResult) {
+            return json({
+                result: []
+            })
+        }
 
-	const result: BestGainer[] = []
-	const toFetch: string[] = []
+        const result: BestGainer[] = []
+        const toFetch: string[] = []
 
-	for (const item of parsedResult) {
-		const symbol = item.symbol as string
+        for (const item of parsedResult) {
+            const symbol = item.symbol as string
 
-		if (cachedPrice.has(symbol)) {
-			const cached = cachedPrice.get(symbol)
+            if (cachedPrice.has(symbol)) {
+                const cached = cachedPrice.get(symbol)
 
-			if (!cached) {
-				toFetch.push(symbol)
-				continue
-			}
+                if (!cached) {
+                    toFetch.push(symbol)
+                    continue
+                }
 
-			if (Date.now() - cached.lastUpdate < CACHE_TIME) {
-				const rawChange = item.change.toString().replace(/\+|-/g, "")
-				const rawChangeNumber = Number.parseFloat(rawChange)
+                if (Date.now() - cached.lastUpdate < CACHE_TIME) {
+                    const rawChange = item.change.toString().replace(/\+|-/g, "")
+                    const rawChangeNumber = Number.parseFloat(rawChange)
 
-				result.push({
-					...item,
-					rawChange: rawChangeNumber,
-					prices: cached.prices
-				})
+                    result.push({
+                        ...item,
+                        rawChange: rawChangeNumber,
+                        prices: cached.prices
+                    })
 
-				continue
-			}
+                    continue
+                }
 
-			toFetch.push(symbol)
-		} else {
-			toFetch.push(symbol)
-		}
-	}
-	
-	if (toFetch.length === 0) {
-		logger.info("bestGainers: no need to fetch prices")
+                toFetch.push(symbol)
+            } else {
+                toFetch.push(symbol)
+            }
+        }
 
-		return {
-			result: result
-		}
-	}
-	
-	logger.info(`toFetch (gainers) ${toFetch.join(", ")}`)
-	const clientId = Math.random().toString(36).substring(7)
-	await Promise.all(
-		toFetch.map(async (symbol) => {
-			const prices = await getPrices(symbol, {
-				range: 360,
-				timeframe: "1",
-				clientId: clientId
-			})
+        if (toFetch.length === 0) {
+            logger.info("bestGainers: no need to fetch prices")
 
-			const reversed = formatPrices(prices.period).reverse()
+            return json({
+                result: result
+            })
+        }
 
-			cachedPrice.set(symbol, { prices: reversed, lastUpdate: Date.now() })
+        logger.info(`toFetch (gainers) ${toFetch.join(", ")}`)
+        const clientId = Math.random().toString(36).substring(7)
+        await Promise.all(
+            toFetch.map(async (symbol) => {
+                const prices = await getPrices(symbol, {
+                    range: 360,
+                    timeframe: "1",
+                    clientId: clientId
+                })
 
-			const item = parsedResult.find((item) => item.symbol === symbol)
+                const reversed = formatPrices(prices.period).reverse()
 
-			if (item) {
-				const rawChange = item.change.toString().replace(/\+|-/g, "")
-				const rawChangeNumber = Number.parseFloat(rawChange)
+                cachedPrice.set(symbol, { prices: reversed, lastUpdate: Date.now() })
 
-				result.push({
-					...item,
-					rawChange: rawChangeNumber,
-					prices: reversed
-				})
-			}
-		})
-	)
+                const item = parsedResult.find((item) => item.symbol === symbol)
 
-	if (toFetch.length > 0) {
-		closeClient({ clientId })
-	}
+                if (item) {
+                    const rawChange = item.change.toString().replace(/\+|-/g, "")
+                    const rawChangeNumber = Number.parseFloat(rawChange)
 
-	return {
-		result: result
-	}
-}
+                    result.push({
+                        ...item,
+                        rawChange: rawChangeNumber,
+                        prices: reversed
+                    })
+                }
+            })
+        )
+
+        if (toFetch.length > 0) {
+            closeClient({ clientId })
+        }
+
+        return json({
+            result: result
+        })
+    }
+})
