@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type { ReactNode } from 'react'
 import { createRootRoute, Outlet, Scripts, ScrollRestoration, HeadContent } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/toaster'
@@ -147,7 +147,7 @@ function Layout({ children }: { children: ReactNode }) {
 // }
 
 // Gestion des erreurs (error boundary)
-export function ErrorBoundary(): React.ReactNode {
+export function ErrorBoundary(): ReactNode {
 
     return (
         <p>Erreur</p>
@@ -183,7 +183,7 @@ export function ErrorBoundary(): React.ReactNode {
 }
 
 
-function RootComponent() {
+function RootComponent(): ReactNode {
     return (
         <Layout>
             <Outlet />

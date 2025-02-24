@@ -1,11 +1,12 @@
 import { memo, useState } from "react"
 import type { NewsRelatedSymbol } from "../../../db/schema/news"
 import { normalizeSymbol } from "../../utils/normalizeSymbol"
-import { Link } from "@remix-run/react"
+// import { Link } from "@remix-run/react"
 import { Badge } from "./ui/badge"
 import SymbolLogo from "./symbolLogo"
 import type { Symbol as SymbolType } from "@/schema/symbols"
 import type { TFunction } from "i18next"
+import { Link } from "@tanstack/react-router"
 
 interface FullSymbol {
 	symbol: SymbolType
@@ -38,13 +39,14 @@ export default memo(function DisplaySymbols({
 		<div className="flex flex-row flex-wrap items-center gap-1.5">
 			{displaySymbols.map((symbol) => (
 				<Link
-					to={{
-						pathname: `/data/${normalizeSymbol(symbol.symbol.symbolId)}`
-					}}
-					state={{
-						redirect: redirect ?? "/news",
-						hash: hash
-					}}
+					to={`/data/${normalizeSymbol(symbol.symbol.symbolId)}`}
+					// to={{
+					// 	pathname: `/data/${normalizeSymbol(symbol.symbol.symbolId)}`
+					// }}
+					// state={{
+					// 	redirect: redirect ?? "/news",
+					// 	hash: hash
+					// }}
 					key={symbol.symbol.symbolId}
 				>
 					<Badge

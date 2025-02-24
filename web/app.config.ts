@@ -4,6 +4,7 @@ import tsConfigPaths from "vite-tsconfig-paths"
 
 export default defineConfig({
 	vite: {
+		port: 4000,
 		plugins: [
 			tsConfigPaths({
 				projects: ["./tsconfig.json"]
