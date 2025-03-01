@@ -17,6 +17,7 @@ import type { NewsFull, NewsSymbolsArticle } from "../types/News.js"
 import i18n, { newsUrl } from "../app/i18n.js"
 import logger from "../../log/index.js"
 import LZString from "lz-string"
+import fs from "node:fs"
 
 const sqlite = new Database("../db/sqlite.db")
 const db = drizzle(sqlite)
@@ -171,7 +172,7 @@ async function fetchNews(lang = "fr-FR") {
 	const root = parse(data)
 
 	// Get the script tag with type="application/prs.init-data+json" inside of the div data-id="react-root"
-	const rawNews = root.querySelector("div[data-id='react-root'] script[type='application/prs.init-data+json']")?.text
+	const rawNews = root.querySelector(".tv-category-content script[type='application/prs.init-data+json']")?.text
 
 	if (!rawNews) {
 		logger.error("No news found")
@@ -190,7 +191,7 @@ async function fetchNews(lang = "fr-FR") {
 		return []
 	}
 
-	const news = json.blocks[0].news.items
+	const news = json.data.news.data.items
 
 	if (!news || news.length === 0) {
 		logger.error("No news found (news empty)")
