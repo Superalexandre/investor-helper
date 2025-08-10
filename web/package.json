@@ -102,7 +102,7 @@
         "remix-auth": "^3.7.0",
         "remix-auth-google": "^2.0.0",
         "remix-flat-routes": "^0.6.5",
-        "remix-hono": "^0.0.16",
+        "remix-hono": "^0.0.18",
         "remix-hook-form": "^5.0.4",
         "remix-i18next": "^6.4.1",
         "remix-utils": "^7.7.0",
