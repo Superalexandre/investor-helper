@@ -20,7 +20,7 @@
 		"@types/chrome": "^0.0.287",
 		"@types/react": "^18.3.5",
 		"@types/react-dom": "^18.3.0",
-		"astro": "^4.15.4",
+		"astro": "^7.0.0",
 		"astro-icon": "^1.1.1",
 		"class-variance-authority": "^0.7.0",
 		"clsx": "^2.1.1",
